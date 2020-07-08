@@ -1,0 +1,126 @@
+{
+  "contractName": "RegistryValidatorRegistry",
+  "abi": [],
+  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/suzana.moreno/workspace/identifiedToken/Back-Blockchain/contracts/RegistryValidatorRole.sol\":\"RegistryValidatorRegistry\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/suzana.moreno/workspace/identifiedToken/Back-Blockchain/contracts/RegistryValidatorRole.sol\":{\"keccak256\":\"0x89feb5d620283608e6f23a98a8035a17841bf7eec6a7e233b009d72208ef4788\",\"urls\":[\"bzz-raw://70e756c68bb762aeb34f1fb0c481aec9fde50a6f7b83115365eb84d1ea773744\",\"dweb:/ipfs/QmTupJQezn9HdoPJChU8XYQw6hwB9LpbGWkzVQmAFMHvsq\"]},\"@openzeppelin/contracts/access/Roles.sol\":{\"keccak256\":\"0xb002c378d7b82a101bd659c341518953ca0919d342c0a400196982c0e7e7bcdb\",\"urls\":[\"bzz-raw://00a788c4631466c220b385bdd100c571d24b2deccd657615cfbcef6cadf669a4\",\"dweb:/ipfs/QmTEwDbjJNxmMNCDMqtuou3dyM8Wtp8Q9NFvn7SAVM7Jf3\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820d607fa6596718ad91570bef4b6090833d579005e4bf7eb022a2c4d268459967564736f6c63430005100032",
+  "deployedBytecode": "0x6080604052600080fdfea265627a7a72315820d607fa6596718ad91570bef4b6090833d579005e4bf7eb022a2c4d268459967564736f6c63430005100032",
+  "sourceMap": "131:1125:3:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;131:1125:3;;;;;;;",
+  "deployedSourceMap": "131:1125:3:-;;;;;",
+  "source": "pragma solidity ^0.5.0;\n\nimport \"@openzeppelin/contracts/access/Roles.sol\";\n\n\n//TODO: validacao serah por id RBB (e nao por conta)\ncontract RegistryValidatorRegistry {\n\n/*\n    using Roles for Roles.Role;\n\n    event RegistryValidatorAdded(address indexed account);\n    event RegistryValidatorRemoved(address indexed account);\n\n    Roles.Role private _registryValidators;\n\n    constructor () internal {\n        _addRegistryValidator(msg.sender);\n    }\n\n    modifier onlyRegistryValidator() {\n        require(isRegistryValidator(msg.sender));\n        _;\n    }\n\n    function isRegistryValidator(address account) public view returns (bool) {\n        return _registryValidators.has(account);\n    }\n\n    function addRegistryValidator(address account) public onlyRegistryValidator {\n        _addRegistryValidator(account);\n    }\n\n    function renounceRegistryValidator() public {\n        _removeRegistryValidator(msg.sender);\n    }\n\n    function _addRegistryValidator(address account) internal {\n        _registryValidators.add(account);\n        emit RegistryValidatorAdded(account);\n    }\n\n    function _removeRegistryValidator(address account) internal {\n        _registryValidators.remove(account);\n        emit RegistryValidatorRemoved(account);\n    }\n    */\n}",
+  "sourcePath": "/Users/suzana.moreno/workspace/identifiedToken/Back-Blockchain/contracts/RegistryValidatorRole.sol",
+  "ast": {
+    "absolutePath": "/Users/suzana.moreno/workspace/identifiedToken/Back-Blockchain/contracts/RegistryValidatorRole.sol",
+    "exportedSymbols": {
+      "RegistryValidatorRegistry": [
+        1057
+      ]
+    },
+    "id": 1058,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1055,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:3"
+      },
+      {
+        "absolutePath": "@openzeppelin/contracts/access/Roles.sol",
+        "file": "@openzeppelin/contracts/access/Roles.sol",
+        "id": 1056,
+        "nodeType": "ImportDirective",
+        "scope": 1058,
+        "sourceUnit": 1234,
+        "src": "25:50:3",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 1057,
+        "linearizedBaseContracts": [
+          1057
+        ],
+        "name": "RegistryValidatorRegistry",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 1058,
+        "src": "131:1125:3"
+      }
+    ],
+    "src": "0:1256:3"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/suzana.moreno/workspace/identifiedToken/Back-Blockchain/contracts/RegistryValidatorRole.sol",
+    "exportedSymbols": {
+      "RegistryValidatorRegistry": [
+        1057
+      ]
+    },
+    "id": 1058,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1055,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:3"
+      },
+      {
+        "absolutePath": "@openzeppelin/contracts/access/Roles.sol",
+        "file": "@openzeppelin/contracts/access/Roles.sol",
+        "id": 1056,
+        "nodeType": "ImportDirective",
+        "scope": 1058,
+        "sourceUnit": 1234,
+        "src": "25:50:3",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 1057,
+        "linearizedBaseContracts": [
+          1057
+        ],
+        "name": "RegistryValidatorRegistry",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 1058,
+        "src": "131:1125:3"
+      }
+    ],
+    "src": "0:1256:3"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.16+commit.9c3226ce.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.0.23",
+  "updatedAt": "2020-07-06T20:33:39.329Z",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}
