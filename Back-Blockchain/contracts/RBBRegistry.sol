@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "@openzeppelin/contracts/ownership/Ownable.sol";
-import "./Utils.sol";
+import "./RBBLib.sol";
 
 /*
 Acho que LegalEntityInfo deveria conter id, ao invés de cnpj
@@ -25,6 +25,8 @@ contract RBBRegistry is Ownable() {
 //TODO: owner n pode ser BNDES
 //Tratar como address ou como id?
     address responsibleForRegistryValidation;
+
+    //todo: avaliar criacao de papel de invalidador para casos ad-hoc
 
     /**
         Describes the Legal Entity - clients or suppliers
@@ -71,12 +73,13 @@ contract RBBRegistry is Ownable() {
     * The link still needs to be validated by BNDES
     * This method can only be called by BNDESToken contract because BNDESToken can pause.
     * @param cnpj Brazilian identifier to legal entities
-    * @param addr the address to be associated with the legal entity.
     * @param idProofHash The legal entities have to send BNDES a PDF where it assumes as responsible for an Ethereum account.
     *                   This PDF is signed with eCNPJ and send to BNDES.
     */
-    function registryLegalEntity(uint cnpj, address addr, string memory idProofHash)
+    function registryLegalEntity(uint cnpj, string memory idProofHash)
         public {
+        
+        address addr = msg.sender;
 
         // Endereço não pode ter sido cadastrado anteriormente
         require (isAvailableAccount(addr), "Endereço não pode ter sido cadastrado anteriormente");
@@ -86,11 +89,11 @@ contract RBBRegistry is Ownable() {
 //?? Avaliar se essa verificacao serah feita
         require (isChangeAccountEnabled(addr), "A conta informada não está habilitada para cadastro");
 
-        legalEntitiesInfo[addr] = LegalEntityInfo(cnpj, idProofHash, BlockchainAccountState.WAITING_VALIDATION);
-
         address account = getBlockchainAccount(cnpj);
 
         require (isAvailableAccount(account), "CNPJ Já está associado. Use a função Troca.");
+
+        legalEntitiesInfo[addr] = LegalEntityInfo(cnpj, idProofHash, BlockchainAccountState.WAITING_VALIDATION);
 
         legalEntityId_To_Addr[cnpj] = addr;
 
@@ -142,18 +145,13 @@ contract RBBRegistry is Ownable() {
    /**
     * Validates the initial registry of a legal entity or the change of its registry
     * @param addr Ethereum address that needs to be validated
-    * @param idProofHash The legal entities have to send BNDES a PDF where it assumes as responsible for an Ethereum account.
-    *                   This PDF is signed with eCNPJ and send to BNDES.
     */
-    function validateRegistryLegalEntity(address addr, string memory idProofHash) public {
+    function validateRegistryLegalEntity(address addr) public {
 
         require(isResponsibleForRegistryValidation(msg.sender), "Somente o responsável pela validação pode validar contas");
 
         require(legalEntitiesInfo[addr].state == BlockchainAccountState.WAITING_VALIDATION,
             "A conta precisa estar no estado Aguardando Validação");
-
-        require(keccak256(abi.encodePacked(legalEntitiesInfo[addr].idProofHash))
-            == keccak256(abi.encodePacked(idProofHash)), "O hash recebido é diferente do esperado");
 
         legalEntitiesInfo[addr].state = BlockchainAccountState.VALIDATED;
 

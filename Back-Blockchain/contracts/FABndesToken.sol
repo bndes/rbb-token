@@ -1,12 +1,12 @@
 pragma solidity ^0.5.0;
 
-import "./Utils.sol";
+import "./RBBLib.sol";
 import "./RBBRegistry.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract FABndesContract is Ownable, Pausable {
+contract FABndesToken is Ownable, Pausable {
 
     using SafeMath for uint;
 
@@ -91,9 +91,12 @@ contract FABndesContract is Ownable, Pausable {
 
         //incluir regras especificas de resgate aqui
         //****** */
-
+        
         //altera valores de saldo
         supplierAmount[supplierId] = supplierAmount[supplierId].sub(amount, "saldo não é suficiente");
+
+        //TODO: chama metodo para pagamento FIAT (mock?)
+        //****** */
 
         emit RedemptionRequested (supplierId, amount);
 
