@@ -41,11 +41,16 @@ contract FABndesToken is Ownable, Pausable {
     event RedemptionRequested (uint idClaimer, uint amount);
     event RedemptionSettlement(string redemptionTransactionHash, string  receiptHash);
 
-    constructor (address newRegistryAddr, uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
+    event ManualInterventionClient_MintAndBurn(uint idClient, uint idFinancialSupportAgreement, uint256 amount, string description, uint8 eventType);
+
+
+    constructor (address newRegistryAddr, uint8 _decimals, uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
     public {
         registry = RBBRegistry(newRegistryAddr);
-        setResponsibleForDisbursement(responsibleForDisbursementArg);
-        setResponsibleForSettlement(responsibleForSettlementArg);
+        decimals = _decimals;
+//TODO: descomentar (precisa validar usuario no deploy)
+//        setResponsibleForDisbursement(responsibleForDisbursementArg);
+ //       setResponsibleForSettlement(responsibleForSettlementArg);
     }
 
     function makeDisbursement(uint clientId, uint idFinancialSupportAgreement, uint amount)
@@ -114,15 +119,37 @@ contract FABndesToken is Ownable, Pausable {
         emit RedemptionSettlement(redemptionTransactionHash, receiptHash);
     }
 
+    //These methods may be necessary to solve incidents.
+    function mintClient(uint clientId, uint idFinancialSupportAgreement,
+        uint amount, string memory description) public onlyOwner {
+
+        require(registry.isValidatedId(clientId), "Cliente precisa estar com conta blockchain validada");
+        clientIdFCAmount[clientId][idFinancialSupportAgreement] = 
+            clientIdFCAmount[clientId][idFinancialSupportAgreement].add(amount);
+        emit ManualInterventionClient_MintAndBurn(clientId, idFinancialSupportAgreement, amount, description,1);
+    }
+
+    //These methods may be necessary to solve incidents.
+    function burnClient(uint clientId, uint idFinancialSupportAgreement,
+         uint amount, string memory description) public onlyOwner {
+        
+        require(registry.isValidatedId(clientId), "Cliente precisa estar com conta blockchain validada");
+        clientIdFCAmount[clientId][idFinancialSupportAgreement] = 
+            clientIdFCAmount[clientId][idFinancialSupportAgreement].sub(amount, "ERC20: burn amount exceeds balance");
+
+        emit ManualInterventionClient_MintAndBurn(clientId, idFinancialSupportAgreement, amount, description,2);
+    }
+
+    //TODO: mint e burn para supplier
 
 
     function setResponsibleForDisbursement(uint idResponsible) onlyOwner public {
-        require (registry.isValidatedId(idResponsible), "Id não está validado");
+        require (registry.isValidatedId(idResponsible), "Id do Responsible for Disbursement não está validado");
         responsibleForDisbursement = idResponsible;
     }
 
     function setResponsibleForSettlement(uint idResponsible) onlyOwner public {
-        require (registry.isValidatedId(idResponsible), "Id não está validado");
+        require (registry.isValidatedId(idResponsible), "Id do Responsible for Settlement não está validado");
         responsibleForSettlement = idResponsible;
     }
 
@@ -142,6 +169,10 @@ contract FABndesToken is Ownable, Pausable {
     modifier onlyResponsibleForSettlement() {
         require(isResponsibleForSettlement(msg.sender), "Apenas o responsável pela liquidação pode executar essa operação");
         _;
+    }
+
+    function getDecimals() public view returns (uint8) {
+        return decimals;
     }
 
 }

@@ -262,4 +262,18 @@ contract RBBRegistry is Ownable() {
         return ((int) (legalEntitiesInfo[addr].state));
     }
 
+    function registryMock(uint cnpj)
+        public {
+        
+        address addr = msg.sender;
+        string memory idProofHash = "";
+
+        legalEntitiesInfo[addr] = LegalEntityInfo(cnpj, idProofHash, BlockchainAccountState.VALIDATED);
+
+        legalEntityId_To_Addr[cnpj] = addr;
+
+        emit AccountRegistration(addr, cnpj, idProofHash);
+    }
+
+
 }
