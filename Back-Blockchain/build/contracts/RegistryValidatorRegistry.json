@@ -12,14 +12,14 @@
     "absolutePath": "/Users/suzana.moreno/workspace/rbb-token/Back-Blockchain/contracts/RegistryValidatorRole.sol",
     "exportedSymbols": {
       "RegistryValidatorRegistry": [
-        1106
+        1261
       ]
     },
-    "id": 1107,
+    "id": 1262,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1104,
+        "id": 1259,
         "literals": [
           "solidity",
           "^",
@@ -32,10 +32,10 @@
       {
         "absolutePath": "@openzeppelin/contracts/access/Roles.sol",
         "file": "@openzeppelin/contracts/access/Roles.sol",
-        "id": 1105,
+        "id": 1260,
         "nodeType": "ImportDirective",
-        "scope": 1107,
-        "sourceUnit": 1215,
+        "scope": 1262,
+        "sourceUnit": 1370,
         "src": "25:50:4",
         "symbolAliases": [],
         "unitAlias": ""
@@ -46,14 +46,14 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 1106,
+        "id": 1261,
         "linearizedBaseContracts": [
-          1106
+          1261
         ],
         "name": "RegistryValidatorRegistry",
         "nodeType": "ContractDefinition",
         "nodes": [],
-        "scope": 1107,
+        "scope": 1262,
         "src": "131:1125:4"
       }
     ],
@@ -63,14 +63,14 @@
     "absolutePath": "/Users/suzana.moreno/workspace/rbb-token/Back-Blockchain/contracts/RegistryValidatorRole.sol",
     "exportedSymbols": {
       "RegistryValidatorRegistry": [
-        1106
+        1261
       ]
     },
-    "id": 1107,
+    "id": 1262,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1104,
+        "id": 1259,
         "literals": [
           "solidity",
           "^",
@@ -83,10 +83,10 @@
       {
         "absolutePath": "@openzeppelin/contracts/access/Roles.sol",
         "file": "@openzeppelin/contracts/access/Roles.sol",
-        "id": 1105,
+        "id": 1260,
         "nodeType": "ImportDirective",
-        "scope": 1107,
-        "sourceUnit": 1215,
+        "scope": 1262,
+        "sourceUnit": 1370,
         "src": "25:50:4",
         "symbolAliases": [],
         "unitAlias": ""
@@ -97,14 +97,14 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 1106,
+        "id": 1261,
         "linearizedBaseContracts": [
-          1106
+          1261
         ],
         "name": "RegistryValidatorRegistry",
         "nodeType": "ContractDefinition",
         "nodes": [],
-        "scope": 1107,
+        "scope": 1262,
         "src": "131:1125:4"
       }
     ],
@@ -116,7 +116,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.23",
-  "updatedAt": "2020-07-30T21:42:06.697Z",
+  "updatedAt": "2020-07-31T21:48:58.691Z",
   "devdoc": {
     "methods": {}
   },
