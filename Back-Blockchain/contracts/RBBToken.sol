@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-//TODO: incluir modificadores para pausar contratos
 contract RBBToken is BusinessContractRegistry, Ownable, Pausable {
 
     using SafeMath for uint;
@@ -33,7 +32,7 @@ contract RBBToken is BusinessContractRegistry, Ownable, Pausable {
 
 
 //TODO: avaliar se deve incluir um objeto genérico para registrar informacoes (ou deixa apenas nos contratos especificos)
-    function transfer (uint fromId, string fromHash, uint toId, string toHash, uint amount) public onlyByRegisteredAndActiveContracts {
+    function transfer (uint fromId, string fromHash, uint toId, string toHash, uint amount) public whenNotPaused onlyByRegisteredAndActiveContracts {
         
         address businessContractAddr = msg.sender;
         uint businessContractId = getBusinessContractId(businessContractAddr);
@@ -53,6 +52,7 @@ contract RBBToken is BusinessContractRegistry, Ownable, Pausable {
         emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);
     }
 
+    //whenNotPaused?
     function mint(uint contractId, uint amount) public onlyOwner {
 
         require(registry.isBusinessContractActive(contractId), "Contrato precisa estar ativo");
@@ -61,6 +61,7 @@ contract RBBToken is BusinessContractRegistry, Ownable, Pausable {
         emit RBBTokenMint(contractId, amount);
     }
 
+    //whenNotPaused?
     function burn (uint contractId, uint amount) public onlyOwner {
         
         require(registry.isBusinessContractActive(clientId), "Contrato precisa estar ativo");
@@ -75,52 +76,54 @@ contract RBBToken is BusinessContractRegistry, Ownable, Pausable {
 
 }
 
+contract BusinessContractRegistry is Ownable {
 
-contract BusinessContractRegistry {
-
-    int idCount = 0;
+    //It starts with 1, because 0 is the id value returned when the item is not found in the businessContractsRegistry
+    uint public idCount = 1;
 
     struct BusinessContractInfo {
-        int id;
+        uint id;
         bool isActive;
     }
 
+    event BusinessContractRegistration (uint id, address addr);
+    event BusinessContractStateChange (uint id, bool state);
+
     //indexado pelo address pq serah a forma mais usada para consulta.
-    mapping (address => BusinessContractInfo) businessContractsRegistry;
+    mapping (address => BusinessContractInfo) public businessContractsRegistry;
 
     modifier onlyByRegisteredAndActiveContracts {
         require(containsBusinessContract(msg.sender), "Método só pode ser chamado por endereço de contrato de negócio previamente cadastrado");
-        //TODO: falta verificar se estah ativo
+        require(isBusinessContractActive(msg.sender), "Método só pode ser chamado por endereço de contrato de negócio ativo")
         _
     }
 
-    function registerBusinessContract (address addr) public onlyOwner returns (int) {
-        require (containsBusinessContract(addr), "Contrato já registrado");
-        businessContractsRegistry[addr] = new BusinessContractInfo(idCount, false);
+    function registerBusinessContract (address addr) public onlyOwner returns (int)  {
+        require (!containsBusinessContract(addr), "Contrato já registrado");
+        businessContractsRegistry[addr] = BusinessContractInfo(idCount, true);
+        emit BusinessContractRegistration (idCount, addr);
         idCount++;
+        //TODO: discutir se contrato deveria jah ser registrado como ativo (como feito acima)
+    }
+    
+    function containsBusinessContract(address addr) public view returns (bool) {
+        BusinessContractInfo memory info = businessContractsRegistry[addr];
+        if (info.id!=0) return true;
+        else return false;
     }
 
-    function getBusinessContractId(address addr) public returns (uint) {
-
-    }
-
-    function containsBusinessContract(address addr) public returns (bool) {
-        BusinessContractInfo info = businessContractsRegistry[addr];
-        ?
-    }
-
-    function isBusinessContractActive(uint id) public returns (bool) {
-        ?
-        //throw if contract is not registered
+    function isBusinessContractActive(address addr) public view returns (bool) {
+        require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
+        BusinessContractInfo memory info = businessContractsRegistry[addr];
+        return info.isActive;
     }
 
     function setStatus(address addr, bool status) public returns (bool) {
-        BusinessContractInfo info = businessContractsRegistry[addr];
-        ?
+        require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
+        BusinessContractInfo storage info = businessContractsRegistry[addr];
+        info.isActive = status;
+        emit BusinessContractStateChange(info.id, info.isActive);
     }
-
+}
 
 //TODO: pensar - se precisasse fazer upgrade de um contrato, seria somente registrar um contrato com id do anterior. Criar um metodo para facilitar isso para facilitar o código de mudanças?
-//TODO: levantar eventos para essa parte
-
-}

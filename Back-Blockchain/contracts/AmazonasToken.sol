@@ -22,7 +22,7 @@ contract FABndesToken is Ownable, Pausable {
     event Disbursement  (uint idClient, uint idFinancialSupportAgreement, uint amount);
     event TokenTransfer (uint fromCnpj, uint fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
     event RedemptionRequested (uint idClaimer, uint amount);
-    event RedemptionSettlement(string redemptionTransactionHash, string  receiptHash);
+    event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
 
     constructor (address newRegistryAddr, uint8 _decimals, uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
@@ -34,7 +34,7 @@ contract FABndesToken is Ownable, Pausable {
     }
 
     function makeDisbursement(uint clientId, uint idFinancialSupportAgreement, uint amount)
-        public onlyResponsibleForDisbursement {
+        public whenNotPaused onlyResponsibleForDisbursement {
 
         //incluir regras especificas de validacao de cliente e do contrato aqui
         //****** */
@@ -46,7 +46,7 @@ contract FABndesToken is Ownable, Pausable {
 
     }
 
-    function paySupplier (uint idFinancialSupportAgreement, uint amount, uint supplierId) public {
+    function paySupplier (uint idFinancialSupportAgreement, uint amount, uint supplierId) whenNotPaused public {
         
         uint clientId = registry.getId(msg.sender);
 
@@ -65,7 +65,7 @@ contract FABndesToken is Ownable, Pausable {
         emit TokenTransfer (clientId, idFinancialSupportAgreement, supplierId, amount);
     }
 
-    function redeem(uint amount) public {
+    function redeem(uint amount) whenNotPaused public {
         
         uint supplierId = registry.getId(msg.sender);
 
@@ -94,6 +94,7 @@ contract FABndesToken is Ownable, Pausable {
         require (RBBLib.isValidHash(receiptHash), "O hash do recibo é inválido");
         emit RedemptionSettlement(redemptionTransactionHash, receiptHash);
     }
+    
 
 //avaliar se deve passar pelo framework de mudanca (exceto construtor)
     function setResponsibleForDisbursement(uint idResponsible) onlyOwner public {
