@@ -2,21 +2,21 @@ pragma solidity ^0.5.0;
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
+import "./RBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
 contract FABndesToken is Ownable, Pausable {
 
-    using SafeMath for uint;
-
     RBBRegistry public registry;
-
-    //TODO: receber??????????? trocar?
     RBBToken public rbbToken;
 
     //É o id, nao tem como especializar dentro do BNDES. Diferença no front-end
     uint public responsibleForSettlement;
     uint public responsibleForDisbursement;
+
+    uint8 public RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT = 0;
+
 
     //ATENCAO: troquei cnpj por id no argumento do evento e tirei arg de contrato no resgate - impacto no BNDESTransparente
     event Disbursement  (uint idClient, uint idFinancialSupportAgreement, uint amount);
@@ -25,10 +25,12 @@ contract FABndesToken is Ownable, Pausable {
     event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
 
-    constructor (address newRegistryAddr, uint8 _decimals, uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
-    public {
+    constructor (address newRegistryAddr, address newrbbTokenAddr, uint8 _decimals,
+                uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
+                public {
+
         registry = RBBRegistry(newRegistryAddr);
-        decimals = _decimals;
+        rbbToken = RBBToken(newrbbTokenAddr);
         setResponsibleForDisbursement(responsibleForDisbursementArg);
         setResponsibleForSettlement(responsibleForSettlementArg);
     }
@@ -39,8 +41,8 @@ contract FABndesToken is Ownable, Pausable {
         //incluir regras especificas de validacao de cliente e do contrato aqui
         //****** */
 
-        string hashTo = keccak256(abi.encodePacked(idFinancialSupportAgreement));
-        rbbToken.transfer(RBBToken.RESERVED_ID_VALUE, RBBToken.RESERVED_HASH_VALUE, clientId, hashTo, amount);
+        bytes32 hashTo = keccak256(abi.encodePacked(idFinancialSupportAgreement));
+        rbbToken.transfer(rbbToken.RESERVED_ID_VALUE(), rbbToken.RESERVED_HASH_VALUE(), clientId, hashTo, amount);
 
         emit Disbursement (clientId, idFinancialSupportAgreement, amount);
 
@@ -58,9 +60,9 @@ contract FABndesToken is Ownable, Pausable {
         //****** */
 
 
-        string hashFrom = keccak256(abi.encodePacked(idFinancialSupportAgreement));
-        string hashTo = keccak256(abi.encodePacked(0));
-        rbbToken.transfer(clientId, hashFrom, suppliedId, hashTo, amount);
+        bytes32 hashFrom = keccak256(abi.encodePacked(idFinancialSupportAgreement));
+        bytes32 hashTo = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
+        rbbToken.transfer(clientId, hashFrom, supplierId, hashTo, amount);
 
         emit TokenTransfer (clientId, idFinancialSupportAgreement, supplierId, amount);
     }
@@ -73,8 +75,8 @@ contract FABndesToken is Ownable, Pausable {
         //incluir regras especificas de resgate aqui
         //****** */
         
-        string hashFrom = keccak256(abi.encodePacked(0));
-        rbbToken.transfer(suppliedId, hashFrom, RBBToken.RESERVED_ID_VALUE, RBBToken.RESERVED_HASH_VALUE, amount);
+        bytes32 hashFrom = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
+        rbbToken.transfer(supplierId, hashFrom, rbbToken.RESERVED_ID_VALUE(), rbbToken.RESERVED_HASH_VALUE(), amount);
 
         //TODO: chama metodo para pagamento FIAT (mock?)
         //****** */
@@ -94,7 +96,7 @@ contract FABndesToken is Ownable, Pausable {
         require (RBBLib.isValidHash(receiptHash), "O hash do recibo é inválido");
         emit RedemptionSettlement(redemptionTransactionHash, receiptHash);
     }
-    
+
 
 //avaliar se deve passar pelo framework de mudanca (exceto construtor)
     function setResponsibleForDisbursement(uint idResponsible) onlyOwner public {
