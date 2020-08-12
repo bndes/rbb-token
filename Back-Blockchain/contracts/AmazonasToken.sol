@@ -25,7 +25,7 @@ contract FABndesToken is Ownable, Pausable {
     event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
 
-    constructor (address newRegistryAddr, address newrbbTokenAddr, uint8 _decimals,
+    constructor (address newRegistryAddr, address newrbbTokenAddr, 
                 uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
                 public {
 

@@ -23,8 +23,8 @@ contract BusinessContractRegistry is Ownable {
     mapping (address => BusinessContractInfo) public businessContractsRegistry;
 
     modifier onlyByRegisteredAndActiveContracts {
-        require(containsBusinessContract(msg.sender), "Método só pode ser chamado por endereço de contrato de negócio previamente cadastrado");
-        require(isBusinessContractActive(msg.sender), "Método só pode ser chamado por endereço de contrato de negócio ativo");
+        require(containsBusinessContract(msg.sender), "Método só pode ser chamado por contrato de negócio previamente cadastrado");
+        require(isBusinessContractActive(msg.sender), "Método só pode ser chamado por contrato de negócio ativo");
         _;
     }
 
@@ -33,10 +33,9 @@ contract BusinessContractRegistry is Ownable {
         businessContractsRegistry[addr] = BusinessContractInfo(idCount, true);
         emit BusinessContractRegistration (idCount, addr);
         idCount++;
-        //TODO: discutir se contrato deveria jah ser registrado como ativo (como feito acima)
     }
 
-    function getBusinessContractId (address addr) public returns (uint) {
+    function getBusinessContractId (address addr) public view returns (uint) {
         require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
         BusinessContractInfo memory info = businessContractsRegistry[addr];
         return info.id;
@@ -63,7 +62,6 @@ contract BusinessContractRegistry is Ownable {
 }
 
 //TODO: pensar - se precisasse fazer upgrade de um contrato, seria somente registrar um contrato com id do anterior. Criar um metodo para facilitar isso para facilitar o código de mudanças?
-
 contract RBBToken is Pausable, BusinessContractRegistry {
 
     using SafeMath for uint;
@@ -90,9 +88,10 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
 
 //TODO: avaliar se deve incluir um objeto genérico para registrar informacoes (ou deixa apenas nos contratos especificos)
-    function transfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, uint amount) 
+    function transfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, uint amount)
                         public whenNotPaused onlyByRegisteredAndActiveContracts {
         
+        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
         uint businessContractId = getBusinessContractId(businessContractAddr);
 
@@ -105,7 +104,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         //altera valores de saldo
         rbbBalances[businessContractId][fromId][fromHash] =
-            rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
+                rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
         rbbBalances[businessContractId][toId][toHash] = rbbBalances[businessContractId][toId][toHash].add(amount);
 
         emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);
@@ -136,4 +135,3 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     }
 
 }
-
