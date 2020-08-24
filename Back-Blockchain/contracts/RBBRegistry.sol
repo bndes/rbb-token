@@ -87,7 +87,6 @@ contract RBBRegistry is Ownable() {
         require (RBBLib.isValidHash(idProofHash), "O hash da declaração é inválido");
 
 //?? Avaliar se essa verificacao serah feita
-        require (isChangeAccountEnabled(addr), "A conta informada não está habilitada para cadastro");
 
         address account = getBlockchainAccount(cnpj);
 
@@ -102,78 +101,6 @@ contract RBBRegistry is Ownable() {
 
 
 
-   /**
-    * Changes the original link between CNPJ and Ethereum account.
-    * The new link still needs to be validated by BNDES.
-    * This method can only be called by BNDESToken contract because BNDESToken can pause and because there are
-    * additional instructions there.
-    * @param cnpj Brazilian identifier to legal entities
-    * @param newAddr the new address to be associated with the legal entity
-    * @param idProofHash The legal entities have to send BNDES a PDF where it assumes as responsible for an Ethereum account.
-    *                   This PDF is signed with eCNPJ and send to BNDES.
-    */
-    function changeAccountLegalEntity(uint cnpj, address newAddr, string memory idProofHash)
-    public {
-
-        address oldAddr = getBlockchainAccount(cnpj);
-
-        // Tem que haver um endereço associado a esse cnpj/subcrédito
-        require(!isResponsibleForRegistryValidation(oldAddr), "Não pode trocar endereço de conta de validação");
-
-        require(!isAvailableAccount(oldAddr), "Tem que haver um endereço associado a esse cnpj");
-
-        require(isAvailableAccount(newAddr), "Novo endereço não está disponível");
-
-//TODO: avaliar se serah mantido
-        require (isChangeAccountEnabled(newAddr), "A conta nova não está habilitada para troca");
-
-        require (RBBLib.isValidHash(idProofHash), "O hash da declaração é inválido");
-
-        // Aponta o novo endereço para o novo LegalEntityInfo
-        legalEntitiesInfo[newAddr] = LegalEntityInfo(cnpj, idProofHash, BlockchainAccountState.WAITING_VALIDATION);
-
-        // Apaga o mapping do endereço antigo
-        legalEntitiesInfo[oldAddr].state = BlockchainAccountState.INVALIDATED_BY_CHANGE;
-
-        // Aponta mapping CNPJ para newAddr
-        legalEntityId_To_Addr[cnpj] = newAddr;
-
-        emit AccountChange(oldAddr, newAddr, cnpj, idProofHash);
-
-    }
-
-   /**
-    * Validates the initial registry of a legal entity or the change of its registry
-    * @param addr Ethereum address that needs to be validated
-    */
-    function validateRegistryLegalEntity(address addr) public {
-
-        require(isResponsibleForRegistryValidation(msg.sender), "Somente o responsável pela validação pode validar contas");
-
-        require(legalEntitiesInfo[addr].state == BlockchainAccountState.WAITING_VALIDATION,
-            "A conta precisa estar no estado Aguardando Validação");
-
-        legalEntitiesInfo[addr].state = BlockchainAccountState.VALIDATED;
-
-        emit AccountValidation(addr, legalEntitiesInfo[addr].id);
-    }
-
-
-   /**
-    * Invalidates the initial registry of a legal entity or the change of its registry
-    * The invalidation can be called at any time in the lifecycle of the address (not only when it is WAITING_VALIDATION)
-    * @param addr Ethereum address that needs to be validated
-    */
-    function invalidateRegistryLegalEntity(address addr) public {
-
-        require(isResponsibleForRegistryValidation(msg.sender), "Somente o responsável pela validação pode invalidar contas");
-
-        require(!isResponsibleForRegistryValidation(addr), "Não é possível invalidar conta do responsável pela validação de contas");
-
-        legalEntitiesInfo[addr].state = BlockchainAccountState.INVALIDATED_BY_VALIDATOR;
-        
-        emit AccountInvalidation(addr, legalEntitiesInfo[addr].id);
-    }
 
 
    /**
@@ -186,18 +113,8 @@ contract RBBRegistry is Ownable() {
         //TODOO: evento quando trocar papeis
     }
 
-   /**
-    * Enable the legal entity to change the account
-    * @param rs account that can be changed.
-    */
-    function enableChangeAccount (address rs) public {
-        require(isResponsibleForRegistryValidation(msg.sender), "Somente o responsável pela validação pode habilitar a troca de conta");
-        legalEntitiesChangeAccount[rs] = true;
-    }
 
-    function isChangeAccountEnabled (address rs) public view returns (bool) {
-        return legalEntitiesChangeAccount[rs] == true;
-    }
+
 
     function isResponsibleForRegistryValidation(address addr) public view returns (bool) {
         return (addr == responsibleForRegistryValidation);

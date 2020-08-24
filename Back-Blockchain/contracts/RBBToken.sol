@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+    
 contract BusinessContractRegistry is Ownable {
 
     //It starts with 1, because 0 is the id value returned when the item is not found in the businessContractsRegistry
@@ -53,7 +54,7 @@ contract BusinessContractRegistry is Ownable {
         return info.isActive;
     }
 
-    function setStatus(address addr, bool status) public returns (bool) {
+    function setStatus(address addr, bool status) public onlyOwner returns (bool) {
         require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
         BusinessContractInfo storage info = businessContractsRegistry[addr];
         info.isActive = status;
@@ -70,15 +71,16 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
     uint8 public decimals = 2;
     uint8 public RESERVED_ID_VALUE = 0;
-    bytes32 public RESERVED_HASH_VALUE = "0x0";
+    bytes32 public RESERVED_HASH_VALUE = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     //businessContractId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
-    event RBBTokenTransfer (uint businessContractId, uint fromId, bytes32 fromHash, uint toId,
-                            bytes32 toHash, uint amount);
+    event RBBMintRequest(uint businessContractId, uint amount);
     event RBBTokenMint(uint businessContractId, uint amount);
     event RBBTokenBurn(uint businessContractId, uint amount);
+    event RBBTokenTransfer (uint businessContractId, uint fromId, bytes32 fromHash, uint toId,
+                            bytes32 toHash, uint amount);
 
 
     constructor (address newRegistryAddr, uint8 _decimals) public {
@@ -86,11 +88,16 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         decimals = _decimals;
     }
 
+    function allocate (uint toId, bytes32 toHash, uint amount) public 
+        whenNotPaused onlyByRegisteredAndActiveContracts {
+            transfer(RESERVED_ID_VALUE, RESERVED_HASH_VALUE, toId, toHash, amount);
+    }
+
 
 //TODO: avaliar se deve incluir um objeto genérico para registrar informacoes (ou deixa apenas nos contratos especificos)
     function transfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, uint amount)
                         public whenNotPaused onlyByRegisteredAndActiveContracts {
-        
+
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
         uint businessContractId = getBusinessContractId(businessContractAddr);
@@ -110,7 +117,26 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);
     }
 
+    function deallocate (uint fromId, bytes32 fromHash, uint amount) public 
+        whenNotPaused onlyByRegisteredAndActiveContracts {
+//queima?
+//Nao volta para reserva. Apenas queima?
+//            transfer(fromId, fromHash, RESERVED_ID_VALUE, RESERVED_HASH_VALUE, amount;
+    }
+
+    function askForMint(uint amount) public onlyByRegisteredAndActiveContracts {
+    
+        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
+        address businessContractAddr = msg.sender;
+        uint businessContractId = getBusinessContractId(businessContractAddr);
+    
+    //precisa guardar em uma estrutuda de dados?
+        emit RBBMintRequest(businessContractId, amount);
+
+    }
+
     //whenNotPaused?
+    //poderah tambem ser chamada por contratos autorizados
     function mint(address businessContractAddr, uint amount) public onlyOwner {
 
         require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo");
@@ -118,6 +144,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE] = 
             rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE].add(amount);
         emit RBBTokenMint(businessContractId, amount);
+        
     }
 
     //whenNotPaused?
@@ -130,6 +157,12 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         emit RBBTokenBurn(businessContractId, amount);
     }
 
+/*    
+    function getReservedBalanceByBusinessContract(address businessContractAddr) view public returns (uint) {
+        uint businessContractId = getBusinessContractId(businessContractAddr);
+        return rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE];
+    }
+*/
     function getDecimals() public view returns (uint8) {
         return decimals;
     }

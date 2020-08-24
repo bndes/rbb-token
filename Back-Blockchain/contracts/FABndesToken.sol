@@ -3,13 +3,11 @@ pragma solidity ^0.5.0;
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
 import "./RBBToken.sol";
+import "./SpecificRBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
-contract FABndesToken is Ownable, Pausable {
-
-    RBBRegistry public registry;
-    RBBToken public rbbToken;
+contract FABndesToken is SpecificRBBToken {
 
     //É o id, nao tem como especializar dentro do BNDES. Diferença no front-end
     uint public responsibleForSettlement;
@@ -27,10 +25,9 @@ contract FABndesToken is Ownable, Pausable {
 
     constructor (address newRegistryAddr, address newrbbTokenAddr, 
                 uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
+                SpecificRBBToken (newRegistryAddr, newrbbTokenAddr)
                 public {
 
-        registry = RBBRegistry(newRegistryAddr);
-        rbbToken = RBBToken(newrbbTokenAddr);
         setResponsibleForDisbursement(responsibleForDisbursementArg);
         setResponsibleForSettlement(responsibleForSettlementArg);
     }
@@ -42,7 +39,7 @@ contract FABndesToken is Ownable, Pausable {
         //****** */
 
         bytes32 hashTo = keccak256(abi.encodePacked(idFinancialSupportAgreement));
-        rbbToken.transfer(rbbToken.RESERVED_ID_VALUE(), rbbToken.RESERVED_HASH_VALUE(), clientId, hashTo, amount);
+        rbbToken.allocate(clientId, hashTo, amount);
 
         emit Disbursement (clientId, idFinancialSupportAgreement, amount);
 
@@ -71,12 +68,11 @@ contract FABndesToken is Ownable, Pausable {
         
         uint supplierId = registry.getId(msg.sender);
 
-
         //incluir regras especificas de resgate aqui
         //****** */
         
         bytes32 hashFrom = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
-        rbbToken.transfer(supplierId, hashFrom, rbbToken.RESERVED_ID_VALUE(), rbbToken.RESERVED_HASH_VALUE(), amount);
+        rbbToken.deallocate(supplierId, hashFrom, amount);
 
         //TODO: chama metodo para pagamento FIAT (mock?)
         //****** */
