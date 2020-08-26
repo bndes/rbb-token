@@ -124,7 +124,9 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 //            transfer(fromId, fromHash, RESERVED_ID_VALUE, RESERVED_HASH_VALUE, amount;
     }
 
-    function askForMint(uint amount) public onlyByRegisteredAndActiveContracts {
+///******************************************************************* */
+
+    function requestMint(uint amount) public onlyByRegisteredAndActiveContracts {
     
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;

@@ -56,7 +56,6 @@ contract FABndesToken is SpecificRBBToken {
         
         //****** */
 
-
         bytes32 hashFrom = keccak256(abi.encodePacked(idFinancialSupportAgreement));
         bytes32 hashTo = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
         rbbToken.transfer(clientId, hashFrom, supplierId, hashTo, amount);
@@ -81,6 +80,7 @@ contract FABndesToken is SpecificRBBToken {
 
     }
 
+//settlement deveria estar aqui mesmo? responsável pelo settlement será sempre o BNDES? Lembrar caso ANCINE
    /**
     * Using this function, the Responsible for Settlement indicates that he has made the FIAT money transfer.
     * @param redemptionTransactionHash hash of the redeem transaction in which the FIAT money settlement occurred.
