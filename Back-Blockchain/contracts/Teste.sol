@@ -1,3 +1,5 @@
+pragma solidity ^0.5.0;
+
 /*
     //businessContractId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;

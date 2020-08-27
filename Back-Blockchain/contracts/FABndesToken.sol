@@ -13,8 +13,8 @@ contract FABndesToken is SpecificRBBToken {
     uint public responsibleForSettlement;
     uint public responsibleForDisbursement;
 
+//    uint public contratoFABndesToken = 1;
     uint8 public RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT = 0;
-
 
     //ATENCAO: troquei cnpj por id no argumento do evento e tirei arg de contrato no resgate - impacto no BNDESTransparente
     event Disbursement  (uint idClient, uint idFinancialSupportAgreement, uint amount);
@@ -23,9 +23,9 @@ contract FABndesToken is SpecificRBBToken {
     event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
 
-    constructor (address newRegistryAddr, address newrbbTokenAddr, 
+    constructor (address newrbbTokenAddr, 
                 uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
-                SpecificRBBToken (newRegistryAddr, newrbbTokenAddr)
+                SpecificRBBToken (newrbbTokenAddr)
                 public {
 
         setResponsibleForDisbursement(responsibleForDisbursementArg);
@@ -35,11 +35,15 @@ contract FABndesToken is SpecificRBBToken {
     function makeDisbursement(uint clientId, uint idFinancialSupportAgreement, uint amount)
         public whenNotPaused onlyResponsibleForDisbursement {
 
+        uint fromId = registry.getId(msg.sender);
+
         //incluir regras especificas de validacao de cliente e do contrato aqui
         //****** */
+        
+        bytes32 fromHash = rbbToken.getBusinessContractHash(this);
+        bytes32 toHash = keccak256(abi.encodePacked(idFinancialSupportAgreement));
 
-        bytes32 hashTo = keccak256(abi.encodePacked(idFinancialSupportAgreement));
-        rbbToken.allocate(clientId, hashTo, amount);
+        transfer(fromId, fromHash, clientId, toHash, amount);
 
         emit Disbursement (clientId, idFinancialSupportAgreement, amount);
 
@@ -58,7 +62,7 @@ contract FABndesToken is SpecificRBBToken {
 
         bytes32 hashFrom = keccak256(abi.encodePacked(idFinancialSupportAgreement));
         bytes32 hashTo = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
-        rbbToken.transfer(clientId, hashFrom, supplierId, hashTo, amount);
+        transfer(clientId, hashFrom, supplierId, hashTo, amount);
 
         emit TokenTransfer (clientId, idFinancialSupportAgreement, supplierId, amount);
     }
@@ -71,7 +75,8 @@ contract FABndesToken is SpecificRBBToken {
         //****** */
         
         bytes32 hashFrom = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
-        rbbToken.deallocate(supplierId, hashFrom, amount);
+        
+        rbbToken.burnBySpecificContract(amount);
 
         //TODO: chama metodo para pagamento FIAT (mock?)
         //****** */
