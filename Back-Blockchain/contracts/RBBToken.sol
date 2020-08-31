@@ -5,6 +5,7 @@ import "./RBBRegistry.sol";
 import "./SpecificRBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
     
 contract BusinessContractRegistry is Ownable {
@@ -67,6 +68,7 @@ contract BusinessContractRegistry is Ownable {
 //TODO: pensar - se precisasse fazer upgrade de um contrato, seria somente registrar um contrato com id do anterior. Criar um metodo para facilitar isso para facilitar o código de mudanças?
 contract RBBToken is Pausable, BusinessContractRegistry {
 
+    using SafeMath for uint;
 
     RBBRegistry public registry;
 
@@ -94,11 +96,11 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         //USAR 165?
         SpecificRBBToken spt = SpecificRBBToken(addr);
         //ver qual o numero???????????/
-        require (spt.transfer.selector==23, "transfer function is not the expected one");
+//        require (spt.transfer.selector==23, "transfer function is not the expected one");
         spt.register( address(registry) );
 
         //Register the new class
-        businessContractsRegistry[addr] = BusinessContractInfo(idCount, true);
+        businessContractsRegistry[addr] = BusinessContractInfo(idCount, true, 0);
         emit BusinessContractRegistration (idCount, addr);
         idCount++;
     }
@@ -120,11 +122,11 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         require(amount>0, "Valor a emitir deve ser maior do que zero");
         BusinessContractInfo storage info = businessContractsRegistry[businessContractAddr];        
         info.totalSupply = info.totalSupply.add(amount);        
-        emit RBBTokenMint(info.businessContractId, amount);
+        emit RBBTokenMint(info.id, amount);
 
         //Incluir valor emitido na conta bndes
         SpecificRBBToken st = SpecificRBBToken(businessContractAddr);
-        uint idOwberRBBToken = registry.getId(onlyOwner); 
+        uint idOwberRBBToken = registry.getId(owner()); 
         st.allocate(idOwberRBBToken, amount);
 
     }
@@ -143,12 +145,13 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         require(amount>0, "Valor a queimar deve ser maior do que zero");
         BusinessContractInfo storage info = businessContractsRegistry[businessContractAddr];        
         info.totalSupply = info.totalSupply.sub(amount, "Burn amount exceeds balance");        
-        emit RBBTokenBurn(info.businessContractId, amount);
+        emit RBBTokenBurn(info.id, amount);
     }
 
     function registerTransfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, uint amount)
         public whenNotPaused onlyByRegisteredAndActiveContracts {
-        emit RBBTokenTransfer (fromId, fromHash, toId, toHash, amount);    
+        uint businessContractId = getBusinessContractId(msg.sender);
+        emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);    
     }
 
 /*    

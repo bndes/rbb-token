@@ -32,6 +32,7 @@ contract FABndesToken is SpecificRBBToken {
         setResponsibleForSettlement(responsibleForSettlementArg);
     }
 
+//Premissa: o responsavel pelo desembolso possui o mesmo RBBId do Owner do RbbToken
     function makeDisbursement(uint clientId, uint idFinancialSupportAgreement, uint amount)
         public whenNotPaused onlyResponsibleForDisbursement {
 
@@ -40,8 +41,9 @@ contract FABndesToken is SpecificRBBToken {
         //incluir regras especificas de validacao de cliente e do contrato aqui
         //****** */
         
-        bytes32 fromHash = rbbToken.getBusinessContractHash(this);
+        bytes32 fromHash = rbbToken.getBusinessContractHash( address(this) );
         bytes32 toHash = keccak256(abi.encodePacked(idFinancialSupportAgreement));
+
 
         transfer(fromId, fromHash, clientId, toHash, amount);
 
@@ -75,8 +77,8 @@ contract FABndesToken is SpecificRBBToken {
         //****** */
         
         bytes32 hashFrom = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
-        
-        rbbToken.burnBySpecificContract(amount);
+    
+        desalocate(supplierId, hashFrom, amount);
 
         //TODO: chama metodo para pagamento FIAT (mock?)
         //****** */
