@@ -132,11 +132,11 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
 
 //myContract.call(bytes4(sha3("myFunction(uint256,bytes32,string)")), 42, 0xabc, "hello")
+//chamados de intervenção manual também seriam feitos pelo transfer, com verificação de intervencao manual
 
 //TODO: avaliar se deve incluir um objeto genérico para registrar informacoes (ou deixa apenas nos contratos especificos)
     function transfer (uint businessContractId, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount)
-                        public whenNotPaused {
+            uint amount) public whenNotPaused {
 
 //https://ethereum.stackexchange.com/questions/8912/calling-other-contracts-function-dynamically
 //businessContractId, selector, dados                             

@@ -26,7 +26,8 @@ contract FABndesToken is SpecificRBBToken {
     event RedemptionRequested (uint idClaimer, uint amount);
     event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
-
+//deveria nao receber (newRegistryAddr, newrbbTokenAddr) e serem setados no registro?
+//O BNDES poderah verificar que o registry e token nao podem ser alterados.
     constructor (address newRegistryAddr, address newrbbTokenAddr, 
                 uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
                 SpecificRBBToken (newRegistryAddr, newrbbTokenAddr)
