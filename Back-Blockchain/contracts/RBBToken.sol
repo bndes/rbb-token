@@ -2,12 +2,12 @@ pragma solidity ^0.5.0;
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
-import "./SpecificRBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
     
+//TODO: framework de mudanca e gestao descentralizada de mints e burns
 contract BusinessContractRegistry is Ownable {
 
     //It starts with 1, because 0 is the id value returned when the item is not found in the businessContractsRegistry
@@ -16,8 +16,6 @@ contract BusinessContractRegistry is Ownable {
     struct BusinessContractInfo {
         uint id;
         bool isActive;
-        uint totalSupply;
-        //totalInUse?
     }
 
     event BusinessContractRegistration (uint id, address addr);
@@ -32,6 +30,12 @@ contract BusinessContractRegistry is Ownable {
         _;
     }
 
+    function registerBusinessContract (address addr) public onlyOwner returns (uint)  {
+        require (!containsBusinessContract(addr), "Contrato já registrado");
+        businessContractsRegistry[addr] = BusinessContractInfo(idCount, true);
+        emit BusinessContractRegistration (idCount, addr);
+        idCount++;
+    }
 
     function getBusinessContractId (address addr) public view returns (uint) {
         require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
@@ -57,12 +61,6 @@ contract BusinessContractRegistry is Ownable {
         info.isActive = status;
         emit BusinessContractStateChange(info.id, info.isActive);
     }
-
-    function getBusinessContractHash(address addr) public returns (bytes32) {
-        uint contractId = getBusinessContractId(addr);
-        return keccak256(abi.encodePacked(contractId));
-    }
-
 }
 
 //TODO: pensar - se precisasse fazer upgrade de um contrato, seria somente registrar um contrato com id do anterior. Criar um metodo para facilitar isso para facilitar o código de mudanças?
@@ -73,9 +71,11 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     RBBRegistry public registry;
 
     uint8 public decimals = 2;
-//    uint8 public RESERVED_ID_VALUE = 0;
-//    bytes32 public RESERVED_HASH_VALUE = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    uint8 public RESERVED_ID_VALUE = 0;
+    bytes32 public RESERVED_HASH_VALUE = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
+    //businessContractId => (RBBid => (specificHash => amount)
+    mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
     event RBBMintRequest(uint businessContractId, uint amount);
     event RBBTokenMint(uint businessContractId, uint amount);
@@ -89,24 +89,9 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         decimals = _decimals;
     }
 
-    function registerBusinessContract (address addr) public onlyOwner returns (uint)  {
-        require (!containsBusinessContract(addr), "Contrato já registrado");
-
-        //Verifies that this address belongs to a proper class
-        //USAR 165?
-        SpecificRBBToken spt = SpecificRBBToken(addr);
-        //ver qual o numero???????????/
-//        require (spt.transfer.selector==23, "transfer function is not the expected one");
-        spt.register( address(registry) );
-
-        //Register the new class
-        businessContractsRegistry[addr] = BusinessContractInfo(idCount, true, 0);
-        emit BusinessContractRegistration (idCount, addr);
-        idCount++;
-    }
 ///******************************************************************* */
 
-    function requestMint(uint amount) public whenNotPaused onlyByRegisteredAndActiveContracts {
+    function requestMint(uint amount) public onlyByRegisteredAndActiveContracts {
     
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
@@ -117,42 +102,77 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
     }
 
-    function mint(address businessContractAddr, uint amount) whenNotPaused public onlyOwner {
-        require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo para haver emissão");
-        require(amount>0, "Valor a emitir deve ser maior do que zero");
-        BusinessContractInfo storage info = businessContractsRegistry[businessContractAddr];        
-        info.totalSupply = info.totalSupply.add(amount);        
-        emit RBBTokenMint(info.id, amount);
+    function mint(address businessContractAddr, uint amount) public onlyOwner {
 
-        //Incluir valor emitido na conta bndes
-        SpecificRBBToken st = SpecificRBBToken(businessContractAddr);
-        uint idOwberRBBToken = registry.getId(owner()); 
-        st.allocate(idOwberRBBToken, amount);
-
+        require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo");
+        uint businessContractId = getBusinessContractId(businessContractAddr);
+        rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE] = 
+            rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE].add(amount);
+        emit RBBTokenMint(businessContractId, amount);
+        
     }
 
-    function burn (address businessContractAddr, uint amount) whenNotPaused public onlyOwner {
+    function burn (address businessContractAddr, uint amount) public onlyOwner {
         _burn(businessContractAddr, amount);
-    }
 
-    function burnBySpecificContract(uint amount) public whenNotPaused onlyByRegisteredAndActiveContracts {
-        address businessContractAddr = msg.sender;
-        _burn(businessContractAddr, amount);
     }
 
     function _burn(address businessContractAddr, uint amount) internal {
         require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo para haver burn");
         require(amount>0, "Valor a queimar deve ser maior do que zero");
-        BusinessContractInfo storage info = businessContractsRegistry[businessContractAddr];        
-        info.totalSupply = info.totalSupply.sub(amount, "Burn amount exceeds balance");        
-        emit RBBTokenBurn(info.id, amount);
+        uint businessContractId = getBusinessContractId(businessContractAddr);
+
+        rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE] = 
+            rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE].sub(amount, "Burn amount exceeds balance");
+
+        emit RBBTokenBurn(businessContractId, amount);
     }
 
-    function registerTransfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, uint amount)
-        public whenNotPaused onlyByRegisteredAndActiveContracts {
-        uint businessContractId = getBusinessContractId(msg.sender);
-        emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);    
+///******************************************************************* */
+
+
+//myContract.call(bytes4(sha3("myFunction(uint256,bytes32,string)")), 42, 0xabc, "hello")
+
+//TODO: avaliar se deve incluir um objeto genérico para registrar informacoes (ou deixa apenas nos contratos especificos)
+    function transfer (uint businessContractId, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+            uint amount)
+                        public whenNotPaused {
+
+//https://ethereum.stackexchange.com/questions/8912/calling-other-contracts-function-dynamically
+//businessContractId, selector, dados                             
+
+        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
+ //       address businessContractAddr = msg.sender;
+ //       uint businessContractId = getBusinessContractId(businessContractAddr);
+
+        if (fromId!=RESERVED_ID_VALUE) {
+            require(registry.isValidatedId(fromId), "Conta de origem precisa estar com cadastro validado");
+        }
+        if (toId!=RESERVED_ID_VALUE) {
+            require(registry.isValidatedId(toId), "Conta de destino precisa estar com cadastro validado");
+        }
+
+        //altera valores de saldo
+        rbbBalances[businessContractId][fromId][fromHash] =
+                rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
+        rbbBalances[businessContractId][toId][toHash] = rbbBalances[businessContractId][toId][toHash].add(amount);
+
+        emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);
     }
+
+    function allocate (uint businessContractId, uint toId, bytes32 toHash, uint amount) public 
+        whenNotPaused onlyByRegisteredAndActiveContracts {
+            transfer(RESERVED_ID_VALUE, RESERVED_HASH_VALUE, toId, toHash, amount);
+    }
+
+    function deallocate (uint businessContractId, uint fromId, bytes32 fromHash, uint amount) public 
+        whenNotPaused onlyByRegisteredAndActiveContracts {
+            transfer(businessContractId, fromId, fromHash, RESERVED_ID_VALUE, RESERVED_HASH_VALUE, amount);
+            _burn(businessContractId, amount);
+    }
+
+///******************************************************************* */
+
 
 /*    
     function getReservedBalanceByBusinessContract(address businessContractAddr) view public returns (uint) {

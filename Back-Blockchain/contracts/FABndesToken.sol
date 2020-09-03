@@ -7,14 +7,18 @@ import "./SpecificRBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
+
+// Pode ter cliente no hash xyz, fornecedor no hash abc
+// clientes no hash xyz são aqueles que bndes informou (set cliente no hash total)
+
 contract FABndesToken is SpecificRBBToken {
 
     //É o id, nao tem como especializar dentro do BNDES. Diferença no front-end
     uint public responsibleForSettlement;
     uint public responsibleForDisbursement;
 
-//    uint public contratoFABndesToken = 1;
     uint8 public RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT = 0;
+
 
     //ATENCAO: troquei cnpj por id no argumento do evento e tirei arg de contrato no resgate - impacto no BNDESTransparente
     event Disbursement  (uint idClient, uint idFinancialSupportAgreement, uint amount);
@@ -23,29 +27,26 @@ contract FABndesToken is SpecificRBBToken {
     event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
 
-    constructor (address newrbbTokenAddr, 
+    constructor (address newRegistryAddr, address newrbbTokenAddr, 
                 uint responsibleForDisbursementArg, uint responsibleForSettlementArg)
-                SpecificRBBToken (newrbbTokenAddr)
+                SpecificRBBToken (newRegistryAddr, newrbbTokenAddr)
                 public {
 
         setResponsibleForDisbursement(responsibleForDisbursementArg);
         setResponsibleForSettlement(responsibleForSettlementArg);
     }
 
-//Premissa: o responsavel pelo desembolso possui o mesmo RBBId do Owner do RbbToken
     function makeDisbursement(uint clientId, uint idFinancialSupportAgreement, uint amount)
         public whenNotPaused onlyResponsibleForDisbursement {
 
-        uint fromId = registry.getId(msg.sender);
-
         //incluir regras especificas de validacao de cliente e do contrato aqui
-        //****** */
         
-        bytes32 fromHash = rbbToken.getBusinessContractHash( address(this) );
-        bytes32 toHash = keccak256(abi.encodePacked(idFinancialSupportAgreement));
+        //TODO:origem eh bndes e destino e cliente em hash cadastrado
+        
+        //****** */
 
-
-        transfer(fromId, fromHash, clientId, toHash, amount);
+        bytes32 hashTo = keccak256(abi.encodePacked(idFinancialSupportAgreement));
+        rbbToken.allocate(clientId, hashTo, amount);
 
         emit Disbursement (clientId, idFinancialSupportAgreement, amount);
 
@@ -59,12 +60,15 @@ contract FABndesToken is SpecificRBBToken {
 
         require(clientId != supplierId,
             "Um CNPJ não pode transferir token para si, ainda que em papéis distintos (Cliente/Fornecedor)");
-        
+
+        //TODO:verificar se o sender eh mesmo um cliente e destino nao eh bndes, hash do destino eh zero
+
         //****** */
 
         bytes32 hashFrom = keccak256(abi.encodePacked(idFinancialSupportAgreement));
         bytes32 hashTo = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
-        transfer(clientId, hashFrom, supplierId, hashTo, amount);
+        rbbToken.transfer(clientId, hashFrom, supplierId, hashTo, amount);
+
 
         emit TokenTransfer (clientId, idFinancialSupportAgreement, supplierId, amount);
     }
@@ -77,10 +81,13 @@ contract FABndesToken is SpecificRBBToken {
         //****** */
         
         bytes32 hashFrom = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
-    
-        desalocate(supplierId, hashFrom, amount);
+        rbbToken.deallocate(supplierId, hashFrom, amount);
+
+        //TODO:verificar se o sender hash eh zero e destino BNDES
+
 
         //TODO: chama metodo para pagamento FIAT (mock?)
+        //linkar com burn
         //****** */
 
         emit RedemptionRequested (supplierId, amount);
