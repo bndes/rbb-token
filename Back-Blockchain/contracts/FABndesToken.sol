@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 // clientes no hash xyz são aqueles que bndes informou (set cliente no hash total)
 
 contract FABndesToken is SpecificRBBToken {
-
+/*
     //É o id, nao tem como especializar dentro do BNDES. Diferença no front-end
     uint public responsibleForSettlement;
     uint public responsibleForDisbursement;
@@ -44,7 +44,7 @@ contract FABndesToken is SpecificRBBToken {
         
         //TODO:origem eh bndes e destino e cliente em hash cadastrado
         
-        //****** */
+        //****** * /
 
         bytes32 hashTo = keccak256(abi.encodePacked(idFinancialSupportAgreement));
         rbbToken.allocate(clientId, hashTo, amount);
@@ -64,7 +64,7 @@ contract FABndesToken is SpecificRBBToken {
 
         //TODO:verificar se o sender eh mesmo um cliente e destino nao eh bndes, hash do destino eh zero
 
-        //****** */
+        //****** * /
 
         bytes32 hashFrom = keccak256(abi.encodePacked(idFinancialSupportAgreement));
         bytes32 hashTo = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
@@ -79,7 +79,7 @@ contract FABndesToken is SpecificRBBToken {
         uint supplierId = registry.getId(msg.sender);
 
         //incluir regras especificas de resgate aqui
-        //****** */
+        //****** * /
         
         bytes32 hashFrom = keccak256(abi.encodePacked(RESERVED_SUPPLIER_ID_FINANCIAL_SUPPORT_AGREEMENT));
         rbbToken.deallocate(supplierId, hashFrom, amount);
@@ -89,7 +89,7 @@ contract FABndesToken is SpecificRBBToken {
 
         //TODO: chama metodo para pagamento FIAT (mock?)
         //linkar com burn
-        //****** */
+        //****** * /
 
         emit RedemptionRequested (supplierId, amount);
 
@@ -100,7 +100,7 @@ contract FABndesToken is SpecificRBBToken {
     * Using this function, the Responsible for Settlement indicates that he has made the FIAT money transfer.
     * @param redemptionTransactionHash hash of the redeem transaction in which the FIAT money settlement occurred.
     * @param receiptHash hash that proof the FIAT money transfer
-    */
+    * / 
     function notifyRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash)
         public whenNotPaused onlyResponsibleForSettlement {
 
@@ -138,4 +138,5 @@ contract FABndesToken is SpecificRBBToken {
         require(isResponsibleForSettlement(msg.sender), "Apenas o responsável pela liquidação pode executar essa operação");
         _;
     }
+    */
 }
