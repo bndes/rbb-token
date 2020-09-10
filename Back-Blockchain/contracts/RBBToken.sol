@@ -1,4 +1,6 @@
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
+
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
@@ -6,7 +8,7 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-    
+//todo: decidir usar id or addr para os contratos especificos
 //TODO: framework de mudanca e gestao descentralizada de mints e burns
 contract BusinessContractRegistry is Ownable {
 
@@ -85,6 +87,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     //businessContractId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
+//todo: incluir parametro de data nos eventos de transfer e redeem
     event RBBMintRequest(uint businessContractId, uint amount);
     event RBBTokenMint(uint businessContractId, uint amount);
     event RBBTokenBurn(uint businessContractId, uint amount);
@@ -150,13 +153,20 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 //chamados de intervenção manual também seriam feitos pelo transfer, com verificação de intervencao manual
 
 //TODO: avaliar se deve incluir um objeto genérico para registrar informacoes (ou deixa apenas nos contratos especificos)
-    function transfer (uint businessContractId, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount) public whenNotPaused {
+    function transfer (address businessContractAddr, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+            uint amount, string[] memory data) public whenNotPaused {
 
 //https://ethereum.stackexchange.com/questions/8912/calling-other-contracts-function-dynamically
 //businessContractId, selector, dados                             
 
-        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
+        require(containsBusinessContract(businessContractAddr), "Contrato específico especificado não está registrado");
+        require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
+
+        businessContractAddr.call(bytes4(sha3(data[0])), fromId, fromHash, toId, toHash, amount, data);
+
+        uint businessContractId = getBusinessContractId(businessContractAddr);
+
+//        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
  //       address businessContractAddr = msg.sender;
  //       uint businessContractId = getBusinessContractId(businessContractAddr);
 
@@ -171,21 +181,21 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);
     }
 
-    function allocate (address businessContractAddress, uint toId, bytes32 toHash, uint amount) public 
+    function allocate (address businessContractAddr, uint toId, bytes32 toHash, uint amount, string[] memory data) public 
         whenNotPaused {
 
             (uint businessContractId, uint businessContractOwnerId) = 
-                    getBusinessContractIdAndOwnerId(businessContractAddress);
+                    getBusinessContractIdAndOwnerId(businessContractAddr);
 
             require(registry.isValidatedId(businessContractOwnerId), "Conta do owner do contrato específico precisa estar com cadastro validado");
-            transfer(businessContractId, businessContractOwnerId, RESERVED_HASH_VALUE, toId, toHash, amount);
+            transfer(businessContractId, businessContractOwnerId, RESERVED_HASH_VALUE, toId, toHash, amount, data);
     }
 
-    function redeem (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount) public 
+    function redeem (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount, string[] memory data) public 
         whenNotPaused  {
 
             (uint businessContractId, uint businessContractOwnerId) = 
-                    getBusinessContractIdAndOwnerId(businessContractAddress);
+                    getBusinessContractIdAndOwnerId(businessContractAddr);
 
             require(registry.isValidatedId(businessContractOwnerId), "Conta do owner do contrato específico precisa estar com cadastro validado");
 

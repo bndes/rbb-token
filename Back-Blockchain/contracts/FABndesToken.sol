@@ -1,4 +1,6 @@
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
+
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
@@ -12,7 +14,7 @@ import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 // clientes no hash xyz são aqueles que bndes informou (set cliente no hash total)
 
 contract FABndesToken is SpecificRBBToken {
-/*
+
     //É o id, nao tem como especializar dentro do BNDES. Diferença no front-end
     uint public responsibleForSettlement;
     uint public responsibleForDisbursement;
@@ -21,10 +23,10 @@ contract FABndesToken is SpecificRBBToken {
 
 
     //ATENCAO: troquei cnpj por id no argumento do evento e tirei arg de contrato no resgate - impacto no BNDESTransparente
-    event Disbursement  (uint idClient, uint idFinancialSupportAgreement, uint amount);
-    event TokenTransfer (uint fromCnpj, uint fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
-    event RedemptionRequested (uint idClaimer, uint amount);
-    event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
+    event DisbursementVerified  (uint idClient, string idFinancialSupportAgreement, uint amount);
+//    event TokenTransfer (uint fromCnpj, uint fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
+//    event RedemptionRequested (uint idClaimer, uint amount);
+//    event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
 //deveria nao receber (newRegistryAddr, newrbbTokenAddr) e serem setados no registro?
 //O BNDES poderah verificar que o registry e token nao podem ser alterados.
@@ -37,8 +39,12 @@ contract FABndesToken is SpecificRBBToken {
         setResponsibleForSettlement(responsibleForSettlementArg);
     }
 
-    function makeDisbursement(uint clientId, uint idFinancialSupportAgreement, uint amount)
+    function verifyDisbursement(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+            uint amount, string[] memory data)
         public whenNotPaused onlyResponsibleForDisbursement {
+
+        uint clientId = fromId;
+        string memory idFinancialSupportAgreement = data[1];
 
         //incluir regras especificas de validacao de cliente e do contrato aqui
         
@@ -46,13 +52,10 @@ contract FABndesToken is SpecificRBBToken {
         
         //****** * /
 
-        bytes32 hashTo = keccak256(abi.encodePacked(idFinancialSupportAgreement));
-        rbbToken.allocate(clientId, hashTo, amount);
-
-        emit Disbursement (clientId, idFinancialSupportAgreement, amount);
+        emit DisbursementVerified (clientId, idFinancialSupportAgreement, amount);
 
     }
-
+/*
     function paySupplier (uint idFinancialSupportAgreement, uint amount, uint supplierId) whenNotPaused public {
         
         uint clientId = registry.getId(msg.sender);
@@ -95,6 +98,7 @@ contract FABndesToken is SpecificRBBToken {
 
     }
 
+
 //settlement deveria estar aqui mesmo? responsável pelo settlement será sempre o BNDES? Lembrar caso ANCINE
    /**
     * Using this function, the Responsible for Settlement indicates that he has made the FIAT money transfer.
@@ -107,7 +111,7 @@ contract FABndesToken is SpecificRBBToken {
         require (RBBLib.isValidHash(receiptHash), "O hash do recibo é inválido");
         emit RedemptionSettlement(redemptionTransactionHash, receiptHash);
     }
-
+    */
 
 //avaliar se deve passar pelo framework de mudanca (exceto construtor)
     function setResponsibleForDisbursement(uint idResponsible) onlyOwner public {
@@ -120,7 +124,7 @@ contract FABndesToken is SpecificRBBToken {
         require (registry.isValidatedId(idResponsible), "Id do Responsible for Settlement não está validado");
         responsibleForSettlement = idResponsible;
     }
-
+ 
     function isResponsibleForDisbursement(address addr) public view returns (bool) {
         return (registry.getId(addr) == responsibleForDisbursement);
     }
@@ -138,5 +142,5 @@ contract FABndesToken is SpecificRBBToken {
         require(isResponsibleForSettlement(msg.sender), "Apenas o responsável pela liquidação pode executar essa operação");
         _;
     }
-    */
+   
 }
