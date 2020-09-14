@@ -1,4 +1,6 @@
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
+
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
@@ -17,6 +19,11 @@ contract SpecificRBBToken is Ownable, Pausable {
         rbbToken = RBBToken(newrbbTokenAddr);
 
     }
+
+
+    function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+            uint amount, string[] memory data) public;
+
 
     
 

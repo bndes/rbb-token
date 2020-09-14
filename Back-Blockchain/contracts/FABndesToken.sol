@@ -12,6 +12,16 @@ import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
 // Pode ter cliente no hash xyz, fornecedor no hash abc
 // clientes no hash xyz são aqueles que bndes informou (set cliente no hash total)
+/*
+Regras específicas
+- Toda vez que o BNDES faz um desembolso, o destinatário será associado como CLIENTE para um idFinancialSupportAgreement específico (se ainda não estiver associado).
+- Somente clientes fazem pagamentos. Toda vez que um CLIENTE de um idFinancialSupportAgreement específico paga um fornecedor, o destinatário será associado como FORNECEDOR (se ainda não estiver associado). 
+- Somente FORNECEDORES podem solicitar o resgate.
+
+Todas as operações já supõem que a entidade de origem e destino estão cadastradas e validadas, pois isso é garantido pelo contrato genérico (RBB_Token)
+Contrato não contempla o requisito adicional de o cliente poder resgatar uma parte do valor.
+Avaliar a ideia de o fornecedor poder sacar mais de um saldo ao mesmo tempo.
+*/
 
 contract FABndesToken is SpecificRBBToken {
 
@@ -39,9 +49,19 @@ contract FABndesToken is SpecificRBBToken {
         setResponsibleForSettlement(responsibleForSettlementArg);
     }
 
-    function verifyDisbursement(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data)
-        public whenNotPaused onlyResponsibleForDisbursement {
+    function getDisbusementData (string memory idFinancialSupportAgreement) public returns (string[] memory) {
+        
+        string[] memory data = new string[](2);
+        data[0] = "disbursement";
+        data[1] = idFinancialSupportAgreement;
+        return data;
+    }
+
+    function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+            uint amount, string[] memory data) public whenNotPaused {
+
+
+//TODO: fazer ifs com o data[0]
 
         uint clientId = fromId;
         string memory idFinancialSupportAgreement = data[1];
@@ -55,6 +75,8 @@ contract FABndesToken is SpecificRBBToken {
         emit DisbursementVerified (clientId, idFinancialSupportAgreement, amount);
 
     }
+
+
 /*
     function paySupplier (uint idFinancialSupportAgreement, uint amount, uint supplierId) whenNotPaused public {
         

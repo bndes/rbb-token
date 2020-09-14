@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
+import "./SpecificRBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -129,7 +130,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
-//TODO: confirmar que não precisa ter cadastro validado para ter esse burn
+//TODO: confirmar que não contrato precisa ter cadastro validado para ter esse burn
         _burn(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, amount);
 
     }
@@ -152,33 +153,29 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 //myContract.call(bytes4(sha3("myFunction(uint256,bytes32,string)")), 42, 0xabc, "hello")
 //chamados de intervenção manual também seriam feitos pelo transfer, com verificação de intervencao manual
 
-//TODO: avaliar se deve incluir um objeto genérico para registrar informacoes (ou deixa apenas nos contratos especificos)
+//TODO: incluir hash de registro um objeto genérico para registrar informacoes
     function transfer (address businessContractAddr, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, string[] memory data) public whenNotPaused {
 
-//https://ethereum.stackexchange.com/questions/8912/calling-other-contracts-function-dynamically
-//businessContractId, selector, dados                             
-
         require(containsBusinessContract(businessContractAddr), "Contrato específico especificado não está registrado");
         require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
-
-        businessContractAddr.call(bytes4(sha3(data[0])), fromId, fromHash, toId, toHash, amount, data);
-
-        uint businessContractId = getBusinessContractId(businessContractAddr);
-
-//        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
- //       address businessContractAddr = msg.sender;
- //       uint businessContractId = getBusinessContractId(businessContractAddr);
-
         require(registry.isValidatedId(fromId), "Conta de origem precisa estar com cadastro validado");
         require(registry.isValidatedId(toId), "Conta de destino precisa estar com cadastro validado");
+        uint businessContractId = getBusinessContractId(businessContractAddr);
 
+
+        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
+        specificContract.verifyAndActForTransfer(fromId, fromHash, toId, toHash, amount, data);
+
+//        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         //altera valores de saldo
         rbbBalances[businessContractId][fromId][fromHash] =
                 rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
         rbbBalances[businessContractId][toId][toHash] = rbbBalances[businessContractId][toId][toHash].add(amount);
 
         emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);
+
+
     }
 
     function allocate (address businessContractAddr, uint toId, bytes32 toHash, uint amount, string[] memory data) public 
@@ -188,7 +185,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
                     getBusinessContractIdAndOwnerId(businessContractAddr);
 
             require(registry.isValidatedId(businessContractOwnerId), "Conta do owner do contrato específico precisa estar com cadastro validado");
-            transfer(businessContractId, businessContractOwnerId, RESERVED_HASH_VALUE, toId, toHash, amount, data);
+            transfer(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, toId, toHash, amount, data);
     }
 
     function redeem (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount, string[] memory data) public 
