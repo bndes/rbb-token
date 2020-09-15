@@ -82,19 +82,18 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     RBBRegistry public registry;
 
     uint8 public decimals = 2;
-//    uint8 public RESERVED_ID_VALUE = 0;
     bytes32 public RESERVED_HASH_VALUE = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     //businessContractId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
 //todo: incluir parametro de data nos eventos de transfer e redeem
-    event RBBMintRequest(uint businessContractId, uint amount);
-    event RBBTokenMint(uint businessContractId, uint amount);
-    event RBBTokenBurn(uint businessContractId, uint amount);
-    event RBBRedemptionRequested (uint businessContractId, uint fromId, bytes32 fromHash, uint amount);
+    event RBBMintRequest(address businessContractAddr, uint amount);
+    event RBBTokenMint(address businessContractAddr, uint amount);
+    event RBBTokenBurn(address businessContractAddr, uint amount);
+    event RBBRedemptionRequested (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount);
 
-    event RBBTokenTransfer (uint businessContractId, uint fromId, bytes32 fromHash, uint toId,
+    event RBBTokenTransfer (address businessContractAddr, uint fromId, bytes32 fromHash, uint toId,
                             bytes32 toHash, uint amount);
 
 
@@ -103,27 +102,35 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         decimals = _decimals;
     }
 
+//AVALIAR
+    function getBndesId() view public returns (uint) {
+        uint bndesId = registry.getId(owner());
+        return bndesId;
+    }
+
 ///******************************************************************* */
 
     function requestMint(uint amount) public onlyByRegisteredAndActiveContracts {
     
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
-        uint businessContractId = getBusinessContractId(businessContractAddr);
     
     //TODO: precisa guardar em uma estrutuda de dados?
-        emit RBBMintRequest(businessContractId, amount);
+        emit RBBMintRequest(businessContractAddr, amount);
 
     }
 
     function mint(address businessContractAddr, uint amount) public onlyOwner {
 
         require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo");
+        
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
+        
         rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE] = 
             rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE].add(amount);
-        emit RBBTokenMint(businessContractId, amount);
+
+        emit RBBTokenMint(businessContractAddr, amount);
     }
 
     function burn (address businessContractAddr, uint amount) public onlyOwner {
@@ -144,13 +151,12 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Burn amount exceeds balance");
 
-        emit RBBTokenBurn(businessContractId, amount);
+        emit RBBTokenBurn(businessContractAddr, amount);
     }
 
 ///******************************************************************* */
 
 
-//myContract.call(bytes4(sha3("myFunction(uint256,bytes32,string)")), 42, 0xabc, "hello")
 //chamados de intervenção manual também seriam feitos pelo transfer, com verificação de intervencao manual
 
 //TODO: incluir hash de registro um objeto genérico para registrar informacoes
@@ -163,18 +169,15 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         require(registry.isValidatedId(toId), "Conta de destino precisa estar com cadastro validado");
         uint businessContractId = getBusinessContractId(businessContractAddr);
 
-
         SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
         specificContract.verifyAndActForTransfer(fromId, fromHash, toId, toHash, amount, data);
 
-//        require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         //altera valores de saldo
         rbbBalances[businessContractId][fromId][fromHash] =
                 rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
         rbbBalances[businessContractId][toId][toHash] = rbbBalances[businessContractId][toId][toHash].add(amount);
 
-        emit RBBTokenTransfer (businessContractId, fromId, fromHash, toId, toHash, amount);
-
+        emit RBBTokenTransfer (businessContractAddr, fromId, fromHash, toId, toHash, amount);
 
     }
 
@@ -196,9 +199,10 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
             require(registry.isValidatedId(businessContractOwnerId), "Conta do owner do contrato específico precisa estar com cadastro validado");
 
-            //?? Burn deveria ser de qq conta ou somente da conta reserva? conta reserva do BNDES? refletir no allocate?
-            //transfer(businessContractId, fromId, fromHash, RESERVED_ID_VALUE, RESERVED_HASH_VALUE, amount);
-            emit RBBRedemptionRequested(businessContractId, fromId, fromHash, amount);
+            SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
+            specificContract.verifyAndActForRedeem(fromId, fromHash, amount, data);
+
+            emit RBBRedemptionRequested(businessContractAddr, fromId, fromHash, amount);
             _burn(businessContractAddr, fromId, fromHash, amount);
     }
 
@@ -211,6 +215,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         return rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE];
     }
 */
+
     function getDecimals() public view returns (uint8) {
         return decimals;
     }

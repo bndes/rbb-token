@@ -25,6 +25,7 @@ contract SpecificRBBToken is Ownable, Pausable {
             uint amount, string[] memory data) public;
 
 
+    function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) public;
     
 
 }
