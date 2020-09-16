@@ -51,7 +51,7 @@ contract FABndesToken is SpecificRBBToken {
 
     string public DISBURSEMENT_VERIFICATION = "DISBURSEMENT_VERIFICATION";
     string public PAY_SUPPLIER_VERIFICATION = "PAY_SUPPLIER_VERIFICATION";
-    string public RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION = "RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION";
+//    string public RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION = "RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION";
 
     uint8 public RESERVED_NO_ADDITIONAL_FIELD_TO_HASH = 0;
 
@@ -67,7 +67,7 @@ contract FABndesToken is SpecificRBBToken {
     event FAB_DonationBooked(uint idDonor, uint amount, uint tokenToBeMinted);
     event FAB_DonationConfirmed(string idDonor, uint amount, string receiptHash);
 
-    event FAB_ManualIntervention_Returned_Client_BNDES (uint fromId, string idFinancialSupportAgreement, uint amount);
+ //   event FAB_ManualIntervention_Returned_Client_BNDES (uint fromId, string idFinancialSupportAgreement, uint amount);
     event FAB_ManualIntervention_Fee(uint256 percent, string description);
 
     event FAB_DonorAdded(uint id);
@@ -75,9 +75,9 @@ contract FABndesToken is SpecificRBBToken {
     event FAB_SupplierAdded(uint id);
 
 
-    constructor (uint _bndesFee) public {
-        require (bndesFee < 100, "Valor de Fee maior que 100%");
-        bndesFee = _bndesFee;
+    constructor (uint fee) public {
+        require (fee < 100, "Valor de Fee maior que 100%");
+        bndesFee = fee;
     }
 
     function setBNDESFee(uint256 newBndesFee, string memory description) public onlyOwner {
@@ -152,6 +152,7 @@ contract FABndesToken is SpecificRBBToken {
         return (fromHash, toHash, data);
     }
 
+/*
     function getReturnedClientToBNDESData (string memory idFinancialSupportAgreement) public 
         returns (bytes32, bytes32, string[] memory) {
 
@@ -163,7 +164,7 @@ contract FABndesToken is SpecificRBBToken {
         data[1] = idFinancialSupportAgreement;
         return (fromHash, toHash, data);
     }
-
+*/
     function getRedeemData () public 
             returns (bytes32, string[] memory) {
 
@@ -236,6 +237,7 @@ contract FABndesToken is SpecificRBBToken {
         emit FAB_TokenTransfer (fromId, idFinancialSupportAgreement, toId, amount);
 
     }
+/*    
 //TODO: incluir no metodo publico, tratar como caso geral de tratamento de erros ou nao?
     function verifyAndActForTransfer_RETURN_CLIENT_BNDES(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, string[] memory data) internal whenNotPaused {
@@ -249,7 +251,7 @@ contract FABndesToken is SpecificRBBToken {
         emit FAB_ManualIntervention_Returned_Client_BNDES (fromId, idFinancialSupportAgreement, amount);
 
     }
-
+*/
     function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) 
         public whenNotPaused onlyRBBToken {
 
