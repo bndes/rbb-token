@@ -21,6 +21,7 @@ contract SpecificRBBToken is Ownable, Pausable {
         rbbToken = RBBToken(newrbbTokenAddr);
     }
 
+//TODO: acrescenar receiptHash
     function verifyAndActForMint(bytes32 specificHash, uint amountMinted, string[] memory data,
         string memory docHash) public;
 
@@ -31,7 +32,6 @@ contract SpecificRBBToken is Ownable, Pausable {
     
     
     function verifyAndActForRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash, 
-        string[] memory data)
-        public;
+        string[] memory data) public;
 
 }

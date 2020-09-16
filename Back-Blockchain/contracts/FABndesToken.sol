@@ -8,6 +8,8 @@ import "./RBBToken.sol";
 import "./SpecificRBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+
 
 
 // Pode ter cliente no hash xyz, fornecedor no hash abc
@@ -31,10 +33,12 @@ Não incluído:
 - qualquer pessoa do BNDES pode liberar (não é necessário verificar na blockchain)
 */
 
-//TODO: teoricamente, o cliente deveria registrar na blockchain o pedido de financiamento, concordam?
-//TODO: quem sao doadores e quanto cada um doou ficaria nesse contrato.
+//TODO: teoricamente, o cliente deveria registrar na blockchain o pedido de financiamento do cliente, concordam?
 
 contract FABndesToken is SpecificRBBToken {
+
+    //RBBId donor => true/false (registered or not)
+    mapping (uint => bool) donors;
 
     //RBBId client => (idFinancialSupportAgreement Client => true/false (registered or not)
     mapping (uint => mapping (string => bool)) public clients;
@@ -42,59 +46,89 @@ contract FABndesToken is SpecificRBBToken {
     //RBBId supplier => true/false (registered or not)
     mapping (uint => bool) suppliers;
 
+   /* BNDES Fee percentage */
+    uint256 public bndesFee;    
+
     string public DISBURSEMENT_VERIFICATION = "DISBURSEMENT_VERIFICATION";
     string public PAY_SUPPLIER_VERIFICATION = "PAY_SUPPLIER_VERIFICATION";
     string public RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION = "RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION";
 
     uint8 public RESERVED_NO_ADDITIONAL_FIELD_TO_HASH = 0;
 
-    //ATENCAO: troquei cnpj por id no argumento do evento e tirei arg de contrato no resgate - impacto no BNDESTransparente
-    event Disbursement  (uint idClient, string idFinancialSupportAgreement, uint amount);
-    event TokenTransfer (uint fromCnpj, string fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
-    event RedemptionRequested (uint idClaimer, uint amount);
-    event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
+     using SafeMath for uint;
+   
 
-    event DonationBooked(uint idDonor, uint amount, uint tokenToBeMinted);
+//TODO: rever eventos para BNDES Transparente
+    event FAB_Disbursement  (uint idClient, string idFinancialSupportAgreement, uint amount);
+    event FAB_TokenTransfer (uint fromCnpj, string fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
+    event FAB_RedemptionRequested (uint idClaimer, uint amount);
+    event FAB_RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
+
+    event FAB_DonationBooked(uint idDonor, uint amount, uint tokenToBeMinted);
+    event FAB_DonationConfirmed(string idDonor, uint amount, string receiptHash);
+
+    event FAB_ManualIntervention_Returned_Client_BNDES (uint fromId, string idFinancialSupportAgreement, uint amount);
+    event FAB_ManualIntervention_Fee(uint256 percent, string description);
+
+    event FAB_DonorAdded(uint id);
+    event FAB_ClientAdded(uint id);
+    event FAB_SupplierAdded(uint id);
 
 
-    event ManualIntervention_Returned_Client_BNDES (uint fromId, string idFinancialSupportAgreement, uint amount);
+    constructor (uint _bndesFee) public {
+        require (bndesFee < 100, "Valor de Fee maior que 100%");
+        bndesFee = _bndesFee;
+    }
 
+    function setBNDESFee(uint256 newBndesFee, string memory description) public onlyOwner {
+        require (newBndesFee < 100, "Valor de Fee maior que 100%");
+        bndesFee = newBndesFee;
+        emit FAB_ManualIntervention_Fee(newBndesFee, description);
+    }
 
-    constructor () public {
+    function addDonor (uint idDonor) public onlyOwner {
+        require(registry.isValidatedId(idDonor), "Conta de doador precisa estar com cadastro validado");
+        if(!donors[idDonor]) {
+            donors[idDonor] = true;
+            emit FAB_DonorAdded(idDonor);
+        }
     }
 
     /* Donor books a donation */
-    function bookDonation(uint amount) public whenNotPaused  {
+    function bookDonation(uint amount) public whenNotPaused  {        
+        
+        uint idDonor = registry.getId(msg.sender);
 
-        //TODO: owner alguém precisa dizer quem sao os doadores previamente. somente donors podem chamar esse metodo
-
-        uint donorId = registry.getId(msg.sender);
-        require(registry.isValidatedId(donorId), "Conta de doador precisa estar com cadastro validado");
+        require (donors[idDonor], "Somente doadores podem fazer doações");
+        require(registry.isValidatedId(idDonor), "Conta de doador precisa estar com cadastro validado");
         
         bytes32 specificHash = keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH));
-
-        uint256 tokenToBeMinted = amount.sub(amount.mul(bndesFee).div(100));
+        uint tokenToBeMinted = amount.sub(amount.mul(bndesFee).div(100));
 
         rbbToken.requestMint(tokenToBeMinted, specificHash);
 
-        emit DonationBooked(donorId, amount, tokenToBeMinted);
+        emit FAB_DonationBooked(idDonor, amount, tokenToBeMinted);
     }
     
     /* confirms the donor's donation */
     function verifyAndActForMint(bytes32 specificHash, uint amountMinted, string[] memory data,
-        string memory docHash) public whenNotPaused onlyByRBBToken {
+        string memory docHash) public whenNotPaused onlyRBBToken {
 
-        uint donorId = data[0];
+        require (keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH))==specificHash, "Erro no cálculo do hash da doação");
 
-        emit DonationConfirmed(donorId, amountMinted, docHash);
+        string memory idDonor = data[0];
+//        require (donors[idDonor], "Somente doadores podem fazer doações, registro estah incorreto");
+
+//TODO: transformar de string para uint de forma a ter eventos soh com uint         
+        emit FAB_DonationConfirmed(idDonor, amountMinted, docHash);
 
     }
 
     //*********** */
 
 
-    function getDisbusementData (string memory idFinancialSupportAgreement) public 
-        returns (bytes32, bytes32, string[] memory) {
+    function getDisbusementData (string memory idFinancialSupportAgreement) public view
+        returns (bytes32, bytes32, string[] memory)  {
 
         bytes32 fromHash = keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH));
         bytes32 toHash = keccak256(abi.encodePacked(idFinancialSupportAgreement));
@@ -105,7 +139,7 @@ contract FABndesToken is SpecificRBBToken {
         return (fromHash, toHash, data);
     }
 
-    function getPaySupplierData (string memory idFinancialSupportAgreement) public 
+    function getPaySupplierData (string memory idFinancialSupportAgreement) public view
             returns (bytes32, bytes32, string[] memory) {
 
 
@@ -142,7 +176,7 @@ contract FABndesToken is SpecificRBBToken {
     //*********** */
 
     function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data) public whenNotPaused onlyRBBRegistry {
+            uint amount, string[] memory data) public whenNotPaused onlyRBBToken {
 
         string memory specificMethod = data[0];
 
@@ -174,9 +208,11 @@ contract FABndesToken is SpecificRBBToken {
 
         if (!clients[toId][idFinancialSupportAgreement]) {
             clients[toId][idFinancialSupportAgreement] = true; //register the client
+            emit FAB_ClientAdded(toId);
+
         }
 
-        emit Disbursement (toId, idFinancialSupportAgreement, amount);
+        emit FAB_Disbursement (toId, idFinancialSupportAgreement, amount);
 
     }
 
@@ -194,9 +230,10 @@ contract FABndesToken is SpecificRBBToken {
 
         if (!suppliers[toId]) {
             suppliers[toId] = true; //register the supplier
+            emit FAB_SupplierAdded(fromId);
         }
 
-        emit TokenTransfer (fromId, idFinancialSupportAgreement, toId, amount);
+        emit FAB_TokenTransfer (fromId, idFinancialSupportAgreement, toId, amount);
 
     }
 //TODO: incluir no metodo publico, tratar como caso geral de tratamento de erros ou nao?
@@ -209,30 +246,29 @@ contract FABndesToken is SpecificRBBToken {
         require (keccak256(abi.encodePacked(idFinancialSupportAgreement))==fromHash, "Erro no cálculo do hash da conta do cliente");
         require (keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH))==fromHash, "Erro no cálculo do hash da conta do BNDES");
 
-        emit ManualIntervention_Returned_Client_BNDES (fromId, idFinancialSupportAgreement, amount);
+        emit FAB_ManualIntervention_Returned_Client_BNDES (fromId, idFinancialSupportAgreement, amount);
 
     }
 
     function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) 
-        public whenNotPaused onlyRBBRegistry {
+        public whenNotPaused onlyRBBToken {
 
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         require (suppliers[fromId], "Somente fornecedores podem executar o pagamento");
         require (keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH))==fromHash, "Erro no cálculo do hash da conta do fornecedor");
 
-        emit RedemptionRequested (fromId, amount);
+        emit FAB_RedemptionRequested (fromId, amount);
 
     }
-
 
     function verifyAndActForRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash, 
         string[] memory data)
-        public whenNotPaused onlyRBBRegistry {
+        public whenNotPaused onlyRBBToken {
 
-        emit RedemptionSettlement (redemptionTransactionHash, receiptHash);
+        emit FAB_RedemptionSettlement (redemptionTransactionHash, receiptHash);
     }
 
-    modifier onlyRBBRegistry() {
+    modifier onlyRBBToken() {
         require (msg.sender==address(rbbToken), "Esse método só pode ser chamado pelo RBB_Token");
         _;
     }

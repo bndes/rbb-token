@@ -94,7 +94,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     //businessContractId => (specificHash => amount)
     mapping (uint => mapping (bytes32 => uint)) public balanceTokensToMint;
 
-//todo: incluir parametro de data nos eventos de transfer e redeem? -- PERGUNTAR
+//TODO: incluir parametro de data nos eventos de transfer e redeem? -- AVALIAR
     event RBBMintRequest(address businessContractAddr, uint amount);
     event RBBTokenMint(address businessContractAddr, uint amount);
     event RBBTokenBurn(address businessContractAddr, uint amount);
@@ -110,7 +110,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         decimals = _decimals;
     }
 
-//AVALIAR como identifica BNDES
+//TODO: AVALIAR como identifica BNDES
     function getBndesId() view public returns (uint) {
         uint bndesId = registry.getId(owner());
         return bndesId;
@@ -181,11 +181,15 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 //chamados de intervenção manual também seriam feitos pelo transfer, com verificação de intervencao manual
 
 //TODO: incluir hash de registro um objeto genérico para registrar informacoes
-    function transfer (address businessContractAddr, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+    function transfer (address businessContractAddr, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, string[] memory data) public whenNotPaused {
 
+        uint fromId = registry.getId(msg.sender);
+
+//TODO: ver se essas duas linhas seguintes devem estar em outros metodos
         require(containsBusinessContract(businessContractAddr), "Contrato específico especificado não está registrado");
         require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
+
         require(registry.isValidatedId(fromId), "Conta de origem precisa estar com cadastro validado");
         require(registry.isValidatedId(toId), "Conta de destino precisa estar com cadastro validado");
         uint businessContractId = getBusinessContractId(businessContractAddr);
@@ -205,11 +209,13 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     function allocate (address businessContractAddr, uint toId, bytes32 toHash, uint amount, string[] memory data) public 
         whenNotPaused {
 
+
             (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
+            uint fromId = registry.getId(msg.sender);
+            require (fromId==businessContractOwnerId, "Somente o Owner do contrato específico pode chamar esse método");
 
-            require(registry.isValidatedId(businessContractOwnerId), "Conta do owner do contrato específico precisa estar com cadastro validado");
-            transfer(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, toId, toHash, amount, data);
+            transfer(businessContractAddr, RESERVED_HASH_VALUE, toId, toHash, amount, data);
     }
 
     function redeem (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount, string[] memory data) public 
@@ -218,7 +224,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
             (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
 
-            require(registry.isValidatedId(businessContractOwnerId), "Conta do owner do contrato específico precisa estar com cadastro validado");
+            require(registry.isValidatedId(fromId), "Conta solicitante do redeem precisa estar com cadastro validado");
 
             SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
             specificContract.verifyAndActForRedeem(fromId, fromHash, amount, data);
@@ -234,7 +240,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     */ 
     function notifyRedemptionSettlement(address businessContractAddr, string memory redemptionTransactionHash, 
         string memory receiptHash, string[] memory data)
-        public whenNotPaused  {
+        public whenNotPaused onlyOwner {
 
         require (RBBLib.isValidHash(receiptHash), "O hash da comprovação é inválido");
 
