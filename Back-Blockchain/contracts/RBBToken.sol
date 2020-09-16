@@ -9,9 +9,10 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-//todo: decidir usar id or addr para os contratos especificos
 //TODO: framework de mudanca e gestao descentralizada de mints e burns
 contract BusinessContractRegistry is Ownable {
+
+    RBBRegistry public registry;
 
     //It starts with 1, because 0 is the id value returned when the item is not found in the businessContractsRegistry
     uint public idCount = 1;
@@ -35,10 +36,15 @@ contract BusinessContractRegistry is Ownable {
     }
 
 //TODO: adicionar como ponto positivo do contrato genérico no PPT. nao eh possivel mudar o uint do owner sem mudar o contrato
-    function registerBusinessContract (address addr, uint ownerId) public onlyOwner returns (uint)  {
-        require (!containsBusinessContract(addr), "Contrato já registrado");
-        businessContractsRegistry[addr] = BusinessContractInfo(idCount, ownerId, true);
-        emit BusinessContractRegistration (idCount, ownerId, addr);
+    function registerBusinessContract (address businessContractAddr, uint ownerId) public onlyOwner returns (uint)  {
+        require (!containsBusinessContract(businessContractAddr), "Contrato já registrado");
+
+        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
+        specificContract.setInitializationDataDuringRegistration(address(registry), address(this));
+
+
+        businessContractsRegistry[businessContractAddr] = BusinessContractInfo(idCount, ownerId, true);
+        emit BusinessContractRegistration (idCount, ownerId, businessContractAddr);
         idCount++;
     }
 
@@ -79,15 +85,16 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
     using SafeMath for uint;
 
-    RBBRegistry public registry;
-
     uint8 public decimals = 2;
     bytes32 public RESERVED_HASH_VALUE = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     //businessContractId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
-//todo: incluir parametro de data nos eventos de transfer e redeem
+    //businessContractId => (specificHash => amount)
+    mapping (uint => mapping (bytes32 => uint)) public balanceTokensToMint;
+
+//todo: incluir parametro de data nos eventos de transfer e redeem? -- PERGUNTAR
     event RBBMintRequest(address businessContractAddr, uint amount);
     event RBBTokenMint(address businessContractAddr, uint amount);
     event RBBTokenBurn(address businessContractAddr, uint amount);
@@ -95,6 +102,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
     event RBBTokenTransfer (address businessContractAddr, uint fromId, bytes32 fromHash, uint toId,
                             bytes32 toHash, uint amount);
+    event RBBRedemptionSettlement(address businessContractAddr, string redemptionTransactionHash, string receiptHash);
 
 
     constructor (address newRegistryAddr, uint8 _decimals) public {
@@ -102,7 +110,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         decimals = _decimals;
     }
 
-//AVALIAR
+//AVALIAR como identifica BNDES
     function getBndesId() view public returns (uint) {
         uint bndesId = registry.getId(owner());
         return bndesId;
@@ -110,25 +118,38 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
 ///******************************************************************* */
 
-    function requestMint(uint amount) public onlyByRegisteredAndActiveContracts {
+    function requestMint(uint amount, bytes32 specificHash) public onlyByRegisteredAndActiveContracts {
     
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
+
+        (uint businessContractId, uint businessContractOwnerId) = 
+                    getBusinessContractIdAndOwnerId(businessContractAddr);
+
+        balanceTokensToMint[businessContractId][specificHash] = 
+            balanceTokensToMint[businessContractId][specificHash].add(amount);
     
-    //TODO: precisa guardar em uma estrutuda de dados?
         emit RBBMintRequest(businessContractAddr, amount);
 
     }
 
-    function mint(address businessContractAddr, uint amount) public onlyOwner {
+    function mint(address businessContractAddr, bytes32 specificHash, uint amount, string[] memory data, 
+        string memory docHash) public onlyOwner {
 
         require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo");
-        
+        require (RBBLib.isValidHash(docHash), "O hash da comprovação é inválido");
+
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
-        
+
+        balanceTokensToMint[businessContractId][specificHash] 
+            = balanceTokensToMint[businessContractId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
+
         rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE] = 
             rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE].add(amount);
+
+        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
+        specificContract.verifyAndActForMint(specificHash, amount, data, docHash);
 
         emit RBBTokenMint(businessContractAddr, amount);
     }
@@ -137,7 +158,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
-//TODO: confirmar que não contrato precisa ter cadastro validado para ter esse burn
+//TODO: confirmar que contrato não precisa ter cadastro ativo para ter esse burn
         _burn(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, amount);
 
     }
@@ -149,7 +170,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         
         uint businessContractId = getBusinessContractId(businessContractAddr);
 
-        rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Burn amount exceeds balance");
+        rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Total de tokens a serem queimados é maior do que o balance");
 
         emit RBBTokenBurn(businessContractAddr, amount);
     }
@@ -206,15 +227,32 @@ contract RBBToken is Pausable, BusinessContractRegistry {
             _burn(businessContractAddr, fromId, fromHash, amount);
     }
 
+   /**
+    * Using this function, the Responsible for Settlement indicates that he has made the FIAT money transfer.
+    * @ param redemptionTransactionHash hash of the redeem transaction in which the FIAT money settlement occurred.
+    * @ param receiptHash hash that proof the FIAT money transfer
+    */ 
+    function notifyRedemptionSettlement(address businessContractAddr, string memory redemptionTransactionHash, 
+        string memory receiptHash, string[] memory data)
+        public whenNotPaused  {
+
+        require (RBBLib.isValidHash(receiptHash), "O hash da comprovação é inválido");
+
+        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
+        specificContract.verifyAndActForRedemptionSettlement(redemptionTransactionHash, receiptHash, data);
+
+        emit RBBRedemptionSettlement(businessContractAddr, redemptionTransactionHash, receiptHash);
+    }
+    
+
 ///******************************************************************* */
 
-
-/*    
     function getReservedBalanceByBusinessContract(address businessContractAddr) view public returns (uint) {
-        uint businessContractId = getBusinessContractId(businessContractAddr);
-        return rbbBalances[businessContractId][RESERVED_ID_VALUE][RESERVED_HASH_VALUE];
+
+        (uint businessContractId, uint businessContractOwnerId) = 
+                getBusinessContractIdAndOwnerId(businessContractAddr);
+        return rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE];
     }
-*/
 
     function getDecimals() public view returns (uint8) {
         return decimals;

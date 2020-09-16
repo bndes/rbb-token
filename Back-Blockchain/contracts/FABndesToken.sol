@@ -31,10 +31,10 @@ Não incluído:
 - qualquer pessoa do BNDES pode liberar (não é necessário verificar na blockchain)
 */
 
-contract FABndesToken is SpecificRBBToken {
+//TODO: teoricamente, o cliente deveria registrar na blockchain o pedido de financiamento, concordam?
+//TODO: quem sao doadores e quanto cada um doou ficaria nesse contrato.
 
-    //É o id, nao tem como especializar dentro do BNDES. Diferença no front-end
-    uint public responsibleForSettlement;
+contract FABndesToken is SpecificRBBToken {
 
     //RBBId client => (idFinancialSupportAgreement Client => true/false (registered or not)
     mapping (uint => mapping (string => bool)) public clients;
@@ -44,6 +44,7 @@ contract FABndesToken is SpecificRBBToken {
 
     string public DISBURSEMENT_VERIFICATION = "DISBURSEMENT_VERIFICATION";
     string public PAY_SUPPLIER_VERIFICATION = "PAY_SUPPLIER_VERIFICATION";
+    string public RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION = "RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION";
 
     uint8 public RESERVED_NO_ADDITIONAL_FIELD_TO_HASH = 0;
 
@@ -51,19 +52,47 @@ contract FABndesToken is SpecificRBBToken {
     event Disbursement  (uint idClient, string idFinancialSupportAgreement, uint amount);
     event TokenTransfer (uint fromCnpj, string fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
     event RedemptionRequested (uint idClaimer, uint amount);
-//    event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
+    event RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
-//deveria nao receber (newRegistryAddr, newrbbTokenAddr) e serem setados no registro?
-//O BNDES poderah verificar que o registry e token nao podem ser alterados.
-    constructor (address newRegistryAddr, address newrbbTokenAddr, 
-                 uint responsibleForSettlementArg)
-                SpecificRBBToken (newRegistryAddr, newrbbTokenAddr)
-                public {
+    event DonationBooked(uint idDonor, uint amount, uint tokenToBeMinted);
 
-        setResponsibleForSettlement(responsibleForSettlementArg);
+
+    event ManualIntervention_Returned_Client_BNDES (uint fromId, string idFinancialSupportAgreement, uint amount);
+
+
+    constructor () public {
     }
 
-//TODO: tem que retornar o hash do fromHash e toHash tambem
+    /* Donor books a donation */
+    function bookDonation(uint amount) public whenNotPaused  {
+
+        //TODO: owner alguém precisa dizer quem sao os doadores previamente. somente donors podem chamar esse metodo
+
+        uint donorId = registry.getId(msg.sender);
+        require(registry.isValidatedId(donorId), "Conta de doador precisa estar com cadastro validado");
+        
+        bytes32 specificHash = keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH));
+
+        uint256 tokenToBeMinted = amount.sub(amount.mul(bndesFee).div(100));
+
+        rbbToken.requestMint(tokenToBeMinted, specificHash);
+
+        emit DonationBooked(donorId, amount, tokenToBeMinted);
+    }
+    
+    /* confirms the donor's donation */
+    function verifyAndActForMint(bytes32 specificHash, uint amountMinted, string[] memory data,
+        string memory docHash) public whenNotPaused onlyByRBBToken {
+
+        uint donorId = data[0];
+
+        emit DonationConfirmed(donorId, amountMinted, docHash);
+
+    }
+
+    //*********** */
+
+
     function getDisbusementData (string memory idFinancialSupportAgreement) public 
         returns (bytes32, bytes32, string[] memory) {
 
@@ -89,6 +118,18 @@ contract FABndesToken is SpecificRBBToken {
         return (fromHash, toHash, data);
     }
 
+    function getReturnedClientToBNDESData (string memory idFinancialSupportAgreement) public 
+        returns (bytes32, bytes32, string[] memory) {
+
+        bytes32 fromHash = keccak256(abi.encodePacked(idFinancialSupportAgreement));
+        bytes32 toHash = keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH));
+
+        string[] memory data = new string[](2);
+        data[0] = RETURN_FROM_CLIENT_TO_BNDES_VERIFICATION;
+        data[1] = idFinancialSupportAgreement;
+        return (fromHash, toHash, data);
+    }
+
     function getRedeemData () public 
             returns (bytes32, string[] memory) {
 
@@ -98,9 +139,10 @@ contract FABndesToken is SpecificRBBToken {
         return (fromHash, data);
     }
 
+    //*********** */
 
     function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data) public whenNotPaused {
+            uint amount, string[] memory data) public whenNotPaused onlyRBBRegistry {
 
         string memory specificMethod = data[0];
 
@@ -113,6 +155,7 @@ contract FABndesToken is SpecificRBBToken {
         else if (RBBLib.isEqual(PAY_SUPPLIER_VERIFICATION, specificMethod)) {
             verifyAndActForTransfer_PAY_SUPPLIER(fromId, fromHash, toId, toHash, amount, data);
         }
+//TODO: incluir intervencao manual. Owner do contrato aprova uma transferencia e o dono da carteira a executa?
         else {
             require (false, "Nenhuma verificação específica encontrada para a transferência");
         }
@@ -120,7 +163,7 @@ contract FABndesToken is SpecificRBBToken {
     }
 
     function verifyAndActForTransfer_DISBURSEMENT(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data) public whenNotPaused {
+            uint amount, string[] memory data) internal whenNotPaused {
     
         string memory idFinancialSupportAgreement = data[1];
 
@@ -138,7 +181,7 @@ contract FABndesToken is SpecificRBBToken {
     }
 
     function verifyAndActForTransfer_PAY_SUPPLIER(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data) public whenNotPaused {
+            uint amount, string[] memory data) internal whenNotPaused {
     
         string memory idFinancialSupportAgreement = data[1];
 
@@ -156,8 +199,22 @@ contract FABndesToken is SpecificRBBToken {
         emit TokenTransfer (fromId, idFinancialSupportAgreement, toId, amount);
 
     }
+//TODO: incluir no metodo publico, tratar como caso geral de tratamento de erros ou nao?
+    function verifyAndActForTransfer_RETURN_CLIENT_BNDES(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+            uint amount, string[] memory data) internal whenNotPaused {
+    
+        string memory idFinancialSupportAgreement = data[1];
 
-    function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) public whenNotPaused {
+        require (clients[fromId][idFinancialSupportAgreement], "Somente clientes em contratos cadastrados podem executar o retorno de recursos");
+        require (keccak256(abi.encodePacked(idFinancialSupportAgreement))==fromHash, "Erro no cálculo do hash da conta do cliente");
+        require (keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH))==fromHash, "Erro no cálculo do hash da conta do BNDES");
+
+        emit ManualIntervention_Returned_Client_BNDES (fromId, idFinancialSupportAgreement, amount);
+
+    }
+
+    function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) 
+        public whenNotPaused onlyRBBRegistry {
 
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         require (suppliers[fromId], "Somente fornecedores podem executar o pagamento");
@@ -168,33 +225,15 @@ contract FABndesToken is SpecificRBBToken {
     }
 
 
+    function verifyAndActForRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash, 
+        string[] memory data)
+        public whenNotPaused onlyRBBRegistry {
 
-//settlement deveria estar aqui mesmo? responsável pelo settlement será sempre o BNDES? Lembrar caso ANCINE
-   /**
-    * Using this function, the Responsible for Settlement indicates that he has made the FIAT money transfer.
-    * @ param redemptionTransactionHash hash of the redeem transaction in which the FIAT money settlement occurred.
-    * @ param receiptHash hash that proof the FIAT money transfer
-    * / 
-    function notifyRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash)
-        public whenNotPaused onlyResponsibleForSettlement {
-
-        require (RBBLib.isValidHash(receiptHash), "O hash do recibo é inválido");
-        emit RedemptionSettlement(redemptionTransactionHash, receiptHash);
-    }
-*/
-
-//avaliar se deve passar pelo framework de mudanca (exceto construtor)
-    function setResponsibleForSettlement(uint idResponsible) onlyOwner public {
-        require (registry.isValidatedId(idResponsible), "Id do Responsible for Settlement não está validado");
-        responsibleForSettlement = idResponsible;
-    }
- 
-    function isResponsibleForSettlement(address addr) public view returns (bool) {
-        return (registry.getId(addr) == responsibleForSettlement);
+        emit RedemptionSettlement (redemptionTransactionHash, receiptHash);
     }
 
-    modifier onlyResponsibleForSettlement() {
-        require(isResponsibleForSettlement(msg.sender), "Apenas o responsável pela liquidação pode executar essa operação");
+    modifier onlyRBBRegistry() {
+        require (msg.sender==address(rbbToken), "Esse método só pode ser chamado pelo RBB_Token");
         _;
     }
    
