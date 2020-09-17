@@ -9,7 +9,10 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-//TODO: framework de mudanca e gestao descentralizada de mints e burns
+//TODO: framework de mudanca e como incluir um business contract com um id específico
+//TODO: avaliar se precisa ter totalSupply de cada contrato ou outras info derivadas para aumentar programabilidade
+//TODO: Alterar Owner para id e address, ao inves de somente address?
+//TODO: pensar em mudanças de CNPJ por motivos de negócio (compra de empresa por exemplo)
 contract BusinessContractRegistry is Ownable {
 
     RBBRegistry public registry;
@@ -80,7 +83,6 @@ contract BusinessContractRegistry is Ownable {
     }
 }
 
-//TODO: pensar - se precisasse fazer upgrade de um contrato, seria somente registrar um contrato com id do anterior. Criar um metodo para facilitar isso para facilitar o código de mudanças?
 contract RBBToken is Pausable, BusinessContractRegistry {
 
     using SafeMath for uint;
@@ -92,17 +94,17 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
     //businessContractId => (specificHash => amount)
-    mapping (uint => mapping (bytes32 => uint)) public balanceTokensToMint;
+    mapping (uint => mapping (bytes32 => uint)) public balaceRequestedTokens;
 
-//TODO: incluir parametro de data nos eventos de transfer e redeem? -- AVALIAR
-    event RBBMintRequest(address businessContractAddr, uint amount);
-    event RBBTokenMint(address businessContractAddr, uint amount);
-    event RBBTokenBurn(address businessContractAddr, uint amount);
-    event RBBRedemptionRequested (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount);
-
+    event RBBTokenMintRequest(address businessContractAddr, bytes32 specificHash, uint amount);
+    event RBBTokenMint(address businessContractAddr, bytes32 specificHash, uint amount, string docHash, string[] data);
+    event RBBTokenBurn(address businessContractAddr, uint fromId, bytes32 fromHash, uint amount);
     event RBBTokenTransfer (address businessContractAddr, uint fromId, bytes32 fromHash, uint toId,
-                            bytes32 toHash, uint amount);
-    event RBBRedemptionSettlement(address businessContractAddr, string redemptionTransactionHash, string receiptHash);
+                            bytes32 toHash, uint amount, string[] data);
+    event RBBTokenRedemptionRequested (address businessContractAddr, uint fromId, bytes32 fromHash, 
+                            uint amount, string[] data);
+    event RBBTokenRedemptionSettlement(address businessContractAddr, string redemptionTransactionHash, 
+                            string receiptHash, string[] data);
 
 
     constructor (address newRegistryAddr, uint8 _decimals) public {
@@ -110,35 +112,31 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         decimals = _decimals;
     }
 
-//TODO: AVALIAR como identifica BNDES
-    function getBndesId() view public returns (uint) {
-        uint bndesId = registry.getId(owner());
-        return bndesId;
-    }
+
 
 ///******************************************************************* */
 
-    function requestMint(uint amount, bytes32 specificHash) public onlyByRegisteredAndActiveContracts {
+//TODO: incluir novo hash aqui?
+    function requestMint(bytes32 specificHash, uint amount) public onlyByRegisteredAndActiveContracts {
     
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
 
         require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
         require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
-//        require(amount>0, "Valor a queimar deve ser maior do que zero");
 
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
 
-        balanceTokensToMint[businessContractId][specificHash] = 
-            balanceTokensToMint[businessContractId][specificHash].add(amount);
+        balaceRequestedTokens[businessContractId][specificHash] = 
+            balaceRequestedTokens[businessContractId][specificHash].add(amount);
     
-        emit RBBMintRequest(businessContractAddr, amount);
+        emit RBBTokenMintRequest(businessContractAddr, specificHash, amount);
 
     }
 
-    function mint(address businessContractAddr, bytes32 specificHash, uint amount, string[] memory data, 
-        string memory docHash) public onlyOwner {
+    function mint(address businessContractAddr, bytes32 specificHash, uint amount, string memory docHash,
+        string[] memory data) public onlyOwner {
 
         require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
         require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
@@ -149,8 +147,8 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
 
-        balanceTokensToMint[businessContractId][specificHash] 
-            = balanceTokensToMint[businessContractId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
+        balaceRequestedTokens[businessContractId][specificHash] 
+            = balaceRequestedTokens[businessContractId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
 
         rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE] = 
             rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE].add(amount);
@@ -158,7 +156,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
         specificContract.verifyAndActForMint(specificHash, amount, data, docHash);
 
-        emit RBBTokenMint(businessContractAddr, amount);
+        emit RBBTokenMint(businessContractAddr, specificHash, amount, docHash, data);
     }
 
     function burn (address businessContractAddr, uint amount) public onlyOwner {
@@ -179,7 +177,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Total de tokens a serem queimados é maior do que o balance");
 
-        emit RBBTokenBurn(businessContractAddr, amount);
+        emit RBBTokenBurn(businessContractAddr, fromId, fromHash, amount);
     }
 
 ///******************************************************************* */
@@ -208,7 +206,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
                 rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
         rbbBalances[businessContractId][toId][toHash] = rbbBalances[businessContractId][toId][toHash].add(amount);
 
-        emit RBBTokenTransfer (businessContractAddr, fromId, fromHash, toId, toHash, amount);
+        emit RBBTokenTransfer (businessContractAddr, fromId, fromHash, toId, toHash, amount, data);
 
     }
 
@@ -235,7 +233,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
             SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
             specificContract.verifyAndActForRedeem(fromId, fromHash, amount, data);
 
-            emit RBBRedemptionRequested(businessContractAddr, fromId, fromHash, amount);
+            emit RBBTokenRedemptionRequested(businessContractAddr, fromId, fromHash, amount, data);
             _burn(businessContractAddr, fromId, fromHash, amount);
     }
 
@@ -255,7 +253,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
         specificContract.verifyAndActForRedemptionSettlement(redemptionTransactionHash, receiptHash, data);
 
-        emit RBBRedemptionSettlement(businessContractAddr, redemptionTransactionHash, receiptHash);
+        emit RBBTokenRedemptionSettlement(businessContractAddr, redemptionTransactionHash, receiptHash, data);
     }
     
 
@@ -271,5 +269,12 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     function getDecimals() public view returns (uint8) {
         return decimals;
     }
+
+/*
+    function getBndesId() view public returns (uint) {
+        uint bndesId = registry.getId(owner());
+        return bndesId;
+    }
+*/    
 
 }
