@@ -73,8 +73,9 @@ contract FABndesToken is SpecificRBBToken {
     event FA_RedemptionRequested (uint idClaimer, uint amount);
     event FA_RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
 
-    event FA_DonationBooked(uint idDonor, uint amount, uint tokenToBeMinted);
+    event FA_DonationBooked(uint idDonor, uint amount);
     event FA_DonationConfirmed(string idDonor, uint amount, string receiptHash);
+    event FA_AdmFeeCharged(string idDonor, uint amount);
 
  //   event FAB_ManualIntervention_Returned_Client_BNDES (uint fromId, string idFinancialSupportAgreement, uint amount);
     event FA_ManualIntervention_Fee(uint256 percent, string description);
@@ -112,24 +113,26 @@ contract FABndesToken is SpecificRBBToken {
         require(registry.isValidatedId(idDonor), "Conta de doador precisa estar com cadastro validado");
         
         bytes32 specificHash = keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH));
-        uint tokenToBeMinted = amount.sub(amount.mul(bndesFee).div(100));
+        rbbToken.requestMint(specificHash, idDonor, amount);
 
-        rbbToken.requestMint(specificHash, tokenToBeMinted);
-
-        emit FA_DonationBooked(idDonor, amount, tokenToBeMinted);
+        emit FA_DonationBooked(idDonor, amount);
     }
     
     /* confirms the donor's donation */
-    function verifyAndActForMint(bytes32 specificHash, uint amountMinted, string[] memory data,
+    function verifyAndActForMint(bytes32 specificHash, uint amount, string[] memory data,
         string memory docHash) public whenNotPaused onlyRBBToken {
 
         require (keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH))==specificHash, "Erro no cálculo do hash da doação");
 
+        uint admFee = amount.mul(bndesFee).div(100);
+        rbbToken.burn(admFee);
+
         string memory idDonor = data[0];
 //        require (donors[idDonor], "Somente doadores podem fazer doações, registro estah incorreto");
 
-//TODO: transformar de string para uint de forma a ter eventos soh com uint         
-        emit FA_DonationConfirmed(idDonor, amountMinted, docHash);
+//TODO: transformar de string para uint de forma a ter eventos soh com uint
+        emit FA_DonationConfirmed(idDonor, amount, docHash);
+        emit FA_AdmFeeCharged(idDonor, amount);
 
     }
 
@@ -150,7 +153,6 @@ contract FABndesToken is SpecificRBBToken {
 
     function getPaySupplierData (string memory idFinancialSupportAgreement) public view
             returns (bytes32, bytes32, string[] memory) {
-
 
         bytes32 fromHash = keccak256(abi.encodePacked(idFinancialSupportAgreement));
         bytes32 toHash = keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH));
@@ -194,6 +196,8 @@ contract FABndesToken is SpecificRBBToken {
 
     }
 
+//TODO: temos que contemplar pedido de doacao!? Cliente se cadastrando no cadastro. Marcio nao acha critico
+//PREMISSA 1: 
     function verifyAndActForTransfer_DISBURSEMENT(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, string[] memory data) internal whenNotPaused {
     
@@ -235,6 +239,10 @@ contract FABndesToken is SpecificRBBToken {
         emit FA_TokenTransfer (fromId, idFinancialSupportAgreement, toId, amount);
 
     }
+
+    //TODO: BNDES poder pagar fornecedor usando token
+
+
     function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) 
         public whenNotPaused onlyRBBToken {
 
@@ -261,7 +269,7 @@ contract FABndesToken is SpecificRBBToken {
     
     //*********** MANUAL INTERVENTION  */
 
-    function addManualInterventionRegistry (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+    function authorizeExtraordinaryTransfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount) public onlyOwner {
         
         //TODO: verificar from e to sao parte do contrato especifico

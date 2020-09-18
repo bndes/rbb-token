@@ -22,7 +22,7 @@ contract SpecificRBBToken is Ownable, Pausable {
     }
 
 //TODO: acrescenar receiptHash
-    function verifyAndActForMint(bytes32 specificHash, uint amountMinted, string[] memory data,
+    function verifyAndActForMint(bytes32 specificHash, uint amount, string[] memory data,
         string memory docHash) public;
 
     function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 

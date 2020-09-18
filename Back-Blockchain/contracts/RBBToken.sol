@@ -11,8 +11,8 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 //TODO: framework de mudanca e como incluir um business contract com um id específico
 //TODO: avaliar se precisa ter totalSupply de cada contrato ou outras info derivadas para aumentar programabilidade
-//TODO: Alterar Owner para id e address, ao inves de somente address?
-//TODO: pensar em mudanças de CNPJ por motivos de negócio (compra de empresa por exemplo)
+//TODO: Alterar Owner para id e address, ao inves de somente address? BAIXA PRIORIDADE
+//TODO: pensar em mudanças de CNPJ por motivos de negócio (compra de empresa por exemplo) --- Nogueira
 contract BusinessContractRegistry is Ownable {
 
     RBBRegistry public registry;
@@ -96,7 +96,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     //businessContractId => (specificHash => amount)
     mapping (uint => mapping (bytes32 => uint)) public balaceRequestedTokens;
 
-    event RBBTokenMintRequest(address businessContractAddr, bytes32 specificHash, uint amount);
+    event RBBTokenMintRequest(address businessContractAddr, bytes32 specificHash, uint idInvestor, uint amount);
     event RBBTokenMint(address businessContractAddr, bytes32 specificHash, uint amount, string docHash, string[] data);
     event RBBTokenBurn(address businessContractAddr, uint fromId, bytes32 fromHash, uint amount);
     event RBBTokenTransfer (address businessContractAddr, uint fromId, bytes32 fromHash, uint toId,
@@ -117,7 +117,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 ///******************************************************************* */
 
 //TODO: incluir novo hash aqui?
-    function requestMint(bytes32 specificHash, uint amount) public onlyByRegisteredAndActiveContracts {
+    function requestMint(bytes32 specificHash, uint idInvestor, uint amount) public onlyByRegisteredAndActiveContracts {
     
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
@@ -131,7 +131,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         balaceRequestedTokens[businessContractId][specificHash] = 
             balaceRequestedTokens[businessContractId][specificHash].add(amount);
     
-        emit RBBTokenMintRequest(businessContractAddr, specificHash, amount);
+        emit RBBTokenMintRequest(businessContractAddr, specificHash, idInvestor, amount);
 
     }
 
@@ -167,6 +167,17 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
     }
 
+//TODO: avaliar se qq um poderia queimar o seu dinheiro (e nao apenas contratos)
+    function burn (uint amount) public onlyByRegisteredAndActiveContracts {
+
+        address businessContractAddr = msg.sender;
+        (uint businessContractId, uint businessContractOwnerId) = 
+                    getBusinessContractIdAndOwnerId(businessContractAddr);
+        
+        _burn(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, amount);
+
+    }
+
     function _burn(address businessContractAddr, uint fromId, bytes32 fromHash, uint amount) internal {
         
         require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
@@ -182,8 +193,6 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
 ///******************************************************************* */
 
-
-//chamados de intervenção manual também seriam feitos pelo transfer, com verificação de intervencao manual
 
 //TODO: incluir hash de registro um objeto genérico para registrar informacoes
     function transfer (address businessContractAddr, bytes32 fromHash, uint toId, bytes32 toHash, 
@@ -208,18 +217,6 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         emit RBBTokenTransfer (businessContractAddr, fromId, fromHash, toId, toHash, amount, data);
 
-    }
-
-    function allocate (address businessContractAddr, uint toId, bytes32 toHash, uint amount, string[] memory data) public 
-        whenNotPaused {
-
-
-            (uint businessContractId, uint businessContractOwnerId) = 
-                    getBusinessContractIdAndOwnerId(businessContractAddr);
-            uint fromId = registry.getId(msg.sender);
-            require (fromId==businessContractOwnerId, "Somente o Owner do contrato específico pode chamar esse método");
-
-            transfer(businessContractAddr, RESERVED_HASH_VALUE, toId, toHash, amount, data);
     }
 
     function redeem (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount, string[] memory data) public 
@@ -275,6 +272,6 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         uint bndesId = registry.getId(owner());
         return bndesId;
     }
-*/    
+*/
 
 }
