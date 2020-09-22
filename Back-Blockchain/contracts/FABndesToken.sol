@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
 
@@ -132,7 +132,7 @@ contract FABndesToken is SpecificRBBToken {
     
     /* confirms the donor's donation */
     function verifyAndActForMint(bytes32 specificHash, uint amount, string[] memory data,
-        string memory docHash) public whenNotPaused onlyRBBToken {
+        string memory docHash) public override whenNotPaused onlyRBBToken {
 
         require (keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELD_TO_HASH))==specificHash, "Erro no cálculo do hash da doação");
 
@@ -189,7 +189,7 @@ contract FABndesToken is SpecificRBBToken {
 
 
     function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data) public whenNotPaused onlyRBBToken {
+            uint amount, string[] memory data) public override whenNotPaused onlyRBBToken {
 
         string memory specificMethod = data[0];
 
@@ -258,7 +258,7 @@ contract FABndesToken is SpecificRBBToken {
 
 
     function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) 
-        public whenNotPaused onlyRBBToken {
+        public override whenNotPaused onlyRBBToken {
 
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         require (suppliers[fromId], "Somente fornecedores podem executar o pagamento");
@@ -270,7 +270,7 @@ contract FABndesToken is SpecificRBBToken {
 
     function verifyAndActForRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash, 
         string[] memory data)
-        public whenNotPaused onlyRBBToken {
+        public override whenNotPaused onlyRBBToken {
 
         emit FA_RedemptionSettlement (redemptionTransactionHash, receiptHash);
     }
@@ -334,7 +334,7 @@ contract FABndesToken is SpecificRBBToken {
     */
     function setResponsibleForDonationConfirmation(address rs) onlyOwner public {
         uint id = registry.getId(rs);
-        require(id==registry.getId(owner), "O responsável pela confirmação doação deve ser da mesmo RBB_ID do contrato");
+        require(id==registry.getId(owner()), "O responsável pela confirmação doação deve ser da mesmo RBB_ID do contrato");
         responsibleForDonationConfirmation = rs;
         emit ManualIntervention_RoleOrAddress(rs, 1);
     }
@@ -346,7 +346,7 @@ contract FABndesToken is SpecificRBBToken {
     */
     function setResponsibleForDisbursement(address rs) onlyOwner public {
         uint id = registry.getId(rs);
-        require(id==registry.getId(owner), "O responsável pelo desembolso deve ser da mesmo RBB_ID do contrato");
+        require(id==registry.getId(owner()), "O responsável pelo desembolso deve ser da mesmo RBB_ID do contrato");
         responsibleForDisbursement = rs;
         emit ManualIntervention_RoleOrAddress(rs, 2);
     }
@@ -356,9 +356,9 @@ contract FABndesToken is SpecificRBBToken {
     * The owner can assign other address to be the Resposible Extraordinary Transfers. 
     * @param rs Ethereum address to be assigned as Responsible for Extraordinary Transfers.
     */
-    function resposibleForExtraordinaryTransfers(address rs) onlyOwner public {
+    function setResposibleForExtraordinaryTransfers(address rs) onlyOwner public {
         uint id = registry.getId(rs);
-        require(id==registry.getId(owner), "O responsável pelo cadastramento de transferencias extraordinárias deve ser da mesmo RBB_ID do contrato");
+        require(id==registry.getId(owner()), "O responsável pelo cadastramento de transferencias extraordinárias deve ser da mesmo RBB_ID do contrato");
         resposibleForExtraordinaryTransfers = rs;
         emit ManualIntervention_RoleOrAddress(rs, 3);
     }
@@ -370,7 +370,7 @@ contract FABndesToken is SpecificRBBToken {
     */
     function setResponsibleForSettlement(address rs) onlyOwner public {
         uint id = registry.getId(rs);
-        require(id==registry.getId(owner), "O responsável pela liquidação deve ser da mesmo RBB_ID do contrato");
+        require(id==registry.getId(owner()), "O responsável pela liquidação deve ser da mesmo RBB_ID do contrato");
         responsibleForSettlement = rs;
         emit ManualIntervention_RoleOrAddress(rs, 4);
     }

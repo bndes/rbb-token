@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
 
@@ -21,8 +21,6 @@ contract BusinessContractRegistry is Ownable {
     struct BusinessContractInfo {
         uint id;
 
-        //todo: verificar se deixa owner aqui ou se pergunta ao especifico
-        uint ownerId;
         bool isActive;
     }
 
@@ -39,15 +37,17 @@ contract BusinessContractRegistry is Ownable {
     }
 
 //TODO: adicionar como ponto positivo do contrato genérico no PPT. nao eh possivel mudar o uint do owner sem mudar o contrato
-    function registerBusinessContract (address businessContractAddr, uint ownerId) public onlyOwner returns (uint)  {
+    function registerBusinessContract (address businessContractAddr) public onlyOwner returns (uint)  {
         require (!containsBusinessContract(businessContractAddr), "Contrato já registrado");
 
         SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
         specificContract.setInitializationDataDuringRegistration(address(registry), address(this));
+        address scOwnerAddr = specificContract.owner();
+        uint scOwnerId = registry.getId(scOwnerAddr);
 
 
-        businessContractsRegistry[businessContractAddr] = BusinessContractInfo(idCount, ownerId, true);
-        emit BusinessContractRegistration (idCount, ownerId, businessContractAddr);
+        businessContractsRegistry[businessContractAddr] = BusinessContractInfo(idCount, true);
+        emit BusinessContractRegistration (idCount, scOwnerId, businessContractAddr);
         idCount++;
     }
 
@@ -60,7 +60,11 @@ contract BusinessContractRegistry is Ownable {
     function getBusinessContractIdAndOwnerId (address addr) public view returns (uint, uint) {
         require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
         BusinessContractInfo memory info = businessContractsRegistry[addr];
-        return (info.id, info.ownerId);
+        SpecificRBBToken specificContract = SpecificRBBToken(addr);
+        address scOwnerAddr = specificContract.owner();
+        uint scOwnerId = registry.getId(scOwnerAddr);
+
+        return (info.id, scOwnerId);
     }
     
     function containsBusinessContract(address addr) public view returns (bool) {
@@ -125,8 +129,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
         require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
 
-        (uint businessContractId, uint businessContractOwnerId) = 
-                    getBusinessContractIdAndOwnerId(businessContractAddr);
+        uint businessContractId = getBusinessContractId(businessContractAddr);
 
         balaceRequestedTokens[businessContractId][specificHash] = 
             balaceRequestedTokens[businessContractId][specificHash].add(amount);
@@ -163,6 +166,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
+        
         _burn(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, amount);
 
     }

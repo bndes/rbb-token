@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
 
@@ -8,7 +8,7 @@ import "./RBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
-contract SpecificRBBToken is Ownable, Pausable {
+abstract contract SpecificRBBToken is Ownable, Pausable {
 
     RBBRegistry public registry;
     RBBToken public rbbToken;
@@ -23,15 +23,15 @@ contract SpecificRBBToken is Ownable, Pausable {
 
 //TODO: acrescenar receiptHash
     function verifyAndActForMint(bytes32 specificHash, uint amount, string[] memory data,
-        string memory docHash) public;
+        string memory docHash) virtual public;
 
     function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data) public;
+            uint amount, string[] memory data) virtual public;
 
-    function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) public;
+    function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) virtual public;
     
     
     function verifyAndActForRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash, 
-        string[] memory data) public;
+        string[] memory data) virtual public;
 
 }
