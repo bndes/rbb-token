@@ -61,6 +61,10 @@ contract FABndesToken is SpecificRBBToken {
 
     string public MANUAL_INTERVENTION = "MANUAL_INTERVENTION";
 
+    address public responsibleForDonationConfirmation;
+    address public responsibleForDisbursement;
+    address public resposibleForExtraordinaryTransfers;
+    address public responsibleForSettlement;
 
     uint8 public RESERVED_NO_ADDITIONAL_FIELD_TO_HASH = 0;
 
@@ -80,15 +84,23 @@ contract FABndesToken is SpecificRBBToken {
  //   event FAB_ManualIntervention_Returned_Client_BNDES (uint fromId, string idFinancialSupportAgreement, uint amount);
     event FA_ManualIntervention_Fee(uint256 percent, string description);
 
+    event ManualIntervention_RoleOrAddress(address account, uint8 eventType);
     event FA_DonorAdded(uint id);
     event FA_ClientAdded(uint id);
     event FA_SupplierAdded(uint id);
 
-
+//TODO: verificar papeis nos metodos abaixo
     constructor (uint fee) public {
         require (fee < 100, "Valor de Fee maior que 100%");
+
+        responsibleForDonationConfirmation = msg.sender;
+        responsibleForDisbursement = msg.sender;
+        resposibleForExtraordinaryTransfers = msg.sender;
+        responsibleForSettlement = msg.sender;
+
         bndesFee = fee;
     }
+
 
     function setBNDESFee(uint256 newBndesFee, string memory description) public onlyOwner {
         require (newBndesFee < 100, "Valor de Fee maior que 100%");
@@ -175,6 +187,7 @@ contract FABndesToken is SpecificRBBToken {
 
     //*********** */
 
+
     function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, string[] memory data) public whenNotPaused onlyRBBToken {
 
@@ -196,6 +209,7 @@ contract FABndesToken is SpecificRBBToken {
 
     }
 
+//TODO: incluir msg.sender aqui e testar que é o resposibleForSettlement
 //TODO: temos que contemplar pedido de doacao!? Cliente se cadastrando no cadastro. Marcio nao acha critico
 //PREMISSA 1: 
     function verifyAndActForTransfer_DISBURSEMENT(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
@@ -311,5 +325,79 @@ contract FABndesToken is SpecificRBBToken {
     }
 */
 
-   //get hashs  
+
+
+ /**
+    * By default, the owner is also the Responsible for Donation Confirmation. 
+    * The owner can assign other address to be the Responsible for Donation Confirmation. 
+    * @param rs Ethereum address to be assigned as Responsible for Donation Confirmation.
+    */
+    function setResponsibleForDonationConfirmation(address rs) onlyOwner public {
+        uint id = registry.getId(rs);
+        require(id==registry.getId(owner), "O responsável pela confirmação doação deve ser da mesmo RBB_ID do contrato");
+        responsibleForDonationConfirmation = rs;
+        emit ManualIntervention_RoleOrAddress(rs, 1);
+    }
+
+   /**
+    * By default, the owner is also the Responsible for Disbursment. 
+    * The owner can assign other address to be the Responsible for Disbursment. 
+    * @param rs Ethereum address to be assigned as Responsible for Disbursment.
+    */
+    function setResponsibleForDisbursement(address rs) onlyOwner public {
+        uint id = registry.getId(rs);
+        require(id==registry.getId(owner), "O responsável pelo desembolso deve ser da mesmo RBB_ID do contrato");
+        responsibleForDisbursement = rs;
+        emit ManualIntervention_RoleOrAddress(rs, 2);
+    }
+
+   /**
+    * By default, the owner is also the Responsible for Extraordinary Transfers. 
+    * The owner can assign other address to be the Resposible Extraordinary Transfers. 
+    * @param rs Ethereum address to be assigned as Responsible for Extraordinary Transfers.
+    */
+    function resposibleForExtraordinaryTransfers(address rs) onlyOwner public {
+        uint id = registry.getId(rs);
+        require(id==registry.getId(owner), "O responsável pelo cadastramento de transferencias extraordinárias deve ser da mesmo RBB_ID do contrato");
+        resposibleForExtraordinaryTransfers = rs;
+        emit ManualIntervention_RoleOrAddress(rs, 3);
+    }
+
+   /**
+    * By default, the owner is also the Responsible for Settlement. 
+    * The owner can assign other address to be the Responsible for Settlement. 
+    * @param rs Ethereum address to be assigned as Responsible for Settlement.
+    */
+    function setResponsibleForSettlement(address rs) onlyOwner public {
+        uint id = registry.getId(rs);
+        require(id==registry.getId(owner), "O responsável pela liquidação deve ser da mesmo RBB_ID do contrato");
+        responsibleForSettlement = rs;
+        emit ManualIntervention_RoleOrAddress(rs, 4);
+    }
+
+/*
+
+(2) O método que faz a confirmação da doação faz queima 3% do valor recebido. É isso mesmo ou prefere transferir os 3% para uma conta do BNDES naquele contrato + viabilizar a possibilidade de o BNDES pagar seus fornecedores? Qual a melhor solução para agora? @Marcio Onodera Bndes 
+(3)  Todos os métodos poderão receber hashs de informações offchain, correto? BookDonation, transfer, etc?
+(4) Faz sentido existir uma ação de burn não associada a outro evento, como um Redeem?
+(5) É necessário separar o cadastro de uma empresa do papel cliente em um contrato financeiro (nesse caso, a empresa se auto-cadastraria para esse contrato financeiro) ou podemos simplificar e dizer que o cadastro ocorre no contexto de um desembolso? Percebam que com o novo RBB_Id, não temos mais a afirmação do cliente associada ao contrato financeiro. No entanto, o BNDES possui documentos no mundo offchain que o enquadram como cliente e, por isso, poderíamos simplificar permitir que o cliente fosse adicionado durante uma operação de desembolso.
+
+
+2. Acho que, simplesmente, queimar não é mesmo bom, não. O dinheiro foi parar em algum lugar e esse lugar tinha que ser transparente! Aliás, o contrato específico sequer deveria poder fazer isso, pensando melhor, né? Isso talvez mude algumas coisas, não?
+3. Todos? Os que precisarem de comprovação... Não está claro para mim que todos precisam. Só olhando com mais detalhes.
+4. A ser executada por quem? Ele vai queimar dinheiro que está com quem? Se for dinheiro que está na conta do BNDES, pode ser razoável, embora não saiba para que isso sirva, a princípio. 
+5. Não saquei, mas é coisa do token específico, não é?
+
+
+
+2. Deveria mintar os 100% e separar os 3% para a reserva para gastos administrativos. O BNDES deveria decidir se queima tudo no início (passei para a minha reserva e ponto), queima à medida que vai pagando despesas em FIAT e se explica offchain, ou passa a pagar seus fornecedores com Token tb.
+3. Bom, o hash é para incorporar á blockchain uma informação ou um conjunto de informações relativas a eventos ou documentos offcain, certo? Acho que pode haver elementos desses que não pensamos em documentar, associados a esses métodos e que, com esse artifício, pudessem enriquecer o processo.
+4. Acho que sim. Talvez seja isso a ser feito, pensando no que deveria seria feito caso o BNDES tivesse que devolver o dinheiro não utilizado para os doadores do Fundo Amazônia, por exemplo. Acho q pode acontecer de devolver os fundos para outros casos tb, como o BNDES devolve está devolvendo ao FAT agora.
+5. Tenho receio de não ter entendido direito o impacto da decisão, mas fica a questão que é necessário associar o cliente, ao contrato e ao desembolso. Entendo que a associação é necessriamente prévia, mas se ela será on-chain ou receberá essa garantia de outro sistema externo, creio que o efeito é o mesmo se não houver risco de trasnferência indevida.
+
+
+Criar um hash específico para representar o valor dos 3%
+*/
+
+
 }

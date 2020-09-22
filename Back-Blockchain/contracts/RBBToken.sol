@@ -11,8 +11,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 //TODO: framework de mudanca e como incluir um business contract com um id específico
 //TODO: avaliar se precisa ter totalSupply de cada contrato ou outras info derivadas para aumentar programabilidade
-//TODO: Alterar Owner para id e address, ao inves de somente address? BAIXA PRIORIDADE
-//TODO: pensar em mudanças de CNPJ por motivos de negócio (compra de empresa por exemplo) --- Nogueira
 contract BusinessContractRegistry is Ownable {
 
     RBBRegistry public registry;
@@ -22,6 +20,8 @@ contract BusinessContractRegistry is Ownable {
 
     struct BusinessContractInfo {
         uint id;
+
+        //todo: verificar se deixa owner aqui ou se pergunta ao especifico
         uint ownerId;
         bool isActive;
     }
