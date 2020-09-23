@@ -21,6 +21,8 @@ abstract contract SpecificRBBToken is Ownable, Pausable {
         rbbToken = RBBToken(newrbbTokenAddr);
     }
 
+    function getHashToMintedAccount(bytes32 specificHash) virtual public returns (bytes32);
+
 //TODO: acrescenar receiptHash
     function verifyAndActForMint(bytes32 specificHash, uint amount, string[] memory data,
         string memory docHash) virtual public;

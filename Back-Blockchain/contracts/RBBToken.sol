@@ -20,7 +20,6 @@ contract BusinessContractRegistry is Ownable {
 
     struct BusinessContractInfo {
         uint id;
-
         bool isActive;
     }
 
@@ -36,7 +35,6 @@ contract BusinessContractRegistry is Ownable {
         _;
     }
 
-//TODO: adicionar como ponto positivo do contrato genérico no PPT. nao eh possivel mudar o uint do owner sem mudar o contrato
     function registerBusinessContract (address businessContractAddr) public onlyOwner returns (uint)  {
         require (!containsBusinessContract(businessContractAddr), "Contrato já registrado");
 
@@ -92,7 +90,6 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     using SafeMath for uint;
 
     uint8 public decimals = 2;
-    bytes32 public RESERVED_HASH_VALUE = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     //businessContractId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
@@ -143,7 +140,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
         require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
-//        require(amount>0, "Valor a queimar deve ser maior do que zero");
+        require(amount>0, "Valor a mintar deve ser maior do que zero");
 
         require (RBBLib.isValidHash(docHash), "O hash da comprovação é inválido");
 
@@ -153,15 +150,18 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         balaceRequestedTokens[businessContractId][specificHash] 
             = balaceRequestedTokens[businessContractId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
 
-        rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE] = 
-            rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE].add(amount);
-
         SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
+        bytes32 calcHash = specificContract.getHashToMintedAccount(specificHash);
+
+        rbbBalances[businessContractId][businessContractOwnerId][calcHash] = 
+            rbbBalances[businessContractId][businessContractOwnerId][calcHash].add(amount);
+
         specificContract.verifyAndActForMint(specificHash, amount, data, docHash);
 
         emit RBBTokenMint(businessContractAddr, specificHash, amount, docHash, data);
     }
 
+/*
     function burn (address businessContractAddr, uint amount) public onlyOwner {
 
         (uint businessContractId, uint businessContractOwnerId) = 
@@ -170,15 +170,16 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         _burn(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, amount);
 
     }
+*/
 
 //TODO: avaliar se qq um poderia queimar o seu dinheiro (e nao apenas contratos)
-    function burn (uint amount) public onlyByRegisteredAndActiveContracts {
+    function burn (uint amount, bytes32 hashToBurn) public onlyByRegisteredAndActiveContracts {
 
         address businessContractAddr = msg.sender;
         (uint businessContractId, uint businessContractOwnerId) = 
                     getBusinessContractIdAndOwnerId(businessContractAddr);
         
-        _burn(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, amount);
+        _burn(businessContractAddr, businessContractOwnerId, hashToBurn, amount);
 
     }
 
@@ -259,13 +260,6 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     
 
 ///******************************************************************* */
-
-    function getReservedBalanceByBusinessContract(address businessContractAddr) view public returns (uint) {
-
-        (uint businessContractId, uint businessContractOwnerId) = 
-                getBusinessContractIdAndOwnerId(businessContractAddr);
-        return rbbBalances[businessContractId][businessContractOwnerId][RESERVED_HASH_VALUE];
-    }
 
     function getDecimals() public view returns (uint8) {
         return decimals;
