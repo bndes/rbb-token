@@ -30,9 +30,13 @@ contract BusinessContractRegistry is Ownable {
     mapping (address => BusinessContractInfo) public businessContractsRegistry;
 
     modifier onlyByRegisteredAndActiveContracts {
-        require(containsBusinessContract(msg.sender), "Método só pode ser chamado por contrato de negócio previamente cadastrado");
-        require(isBusinessContractActive(msg.sender), "Método só pode ser chamado por contrato de negócio ativo");
+        verifyContractIsRegisteredAndActive(msg.sender);
         _;
+    }
+
+    function verifyContractIsRegisteredAndActive(address addr) public {
+        require(containsBusinessContract(addr), "Método só pode ser chamado por contrato de negócio previamente cadastrado");
+        require(isBusinessContractActive(addr), "Método só pode ser chamado por contrato de negócio ativo");
     }
 
     function registerBusinessContract (address businessContractAddr) public onlyOwner returns (uint)  {
@@ -65,7 +69,7 @@ contract BusinessContractRegistry is Ownable {
         return (info.id, scOwnerId);
     }
     
-    function containsBusinessContract(address addr) public view returns (bool) {
+    function containsBusinessContract(address addr) private view returns (bool) {
         BusinessContractInfo memory info = businessContractsRegistry[addr];
         if (info.id!=0) return true;
         else return false;
@@ -123,9 +127,8 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
         address businessContractAddr = msg.sender;
 
-        require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
-        require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
-
+        verifyContractIsRegisteredAndActive(businessContractAddr);
+        
         uint businessContractId = getBusinessContractId(businessContractAddr);
 
         balaceRequestedTokens[businessContractId][specificHash] = 
@@ -138,8 +141,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     function mint(address businessContractAddr, bytes32 specificHash, uint amount, string memory docHash,
         string[] memory data) public onlyOwner {
 
-        require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
-        require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
+        verifyContractIsRegisteredAndActive(businessContractAddr);
         require(amount>0, "Valor a mintar deve ser maior do que zero");
 
         require (RBBLib.isValidHash(docHash), "O hash da comprovação é inválido");
@@ -161,19 +163,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         emit RBBTokenMint(businessContractAddr, specificHash, amount, docHash, data);
     }
 
-/*
-    function burn (address businessContractAddr, uint amount) public onlyOwner {
-
-        (uint businessContractId, uint businessContractOwnerId) = 
-                    getBusinessContractIdAndOwnerId(businessContractAddr);
-        
-        _burn(businessContractAddr, businessContractOwnerId, RESERVED_HASH_VALUE, amount);
-
-    }
-*/
-
-//TODO: avaliar se qq um poderia queimar o seu dinheiro (e nao apenas contratos)
-    function burn (uint amount, bytes32 hashToBurn) public onlyByRegisteredAndActiveContracts {
+    function burnOwnTokenBySpecificContracts (bytes32 hashToBurn, uint amount) public onlyByRegisteredAndActiveContracts {
 
         address businessContractAddr = msg.sender;
         (uint businessContractId, uint businessContractOwnerId) = 
@@ -183,10 +173,20 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
     }
 
+
+    function burnOwnToken (address businessContractAddr, bytes32 hashToBurn, uint amount) public onlyByRegisteredAndActiveContracts {
+
+        verifyContractIsRegisteredAndActive(businessContractAddr);
+
+        uint idToBurn = registry.getId(msg.sender);
+
+        _burn(businessContractAddr, idToBurn, hashToBurn, amount);
+
+    }
+
     function _burn(address businessContractAddr, uint fromId, bytes32 fromHash, uint amount) internal {
         
-        require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
-        require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo para haver burn");
+        verifyContractIsRegisteredAndActive(businessContractAddr);
 //        require(amount>0, "Valor a queimar deve ser maior do que zero");
 
         uint businessContractId = getBusinessContractId(businessContractAddr);
@@ -205,8 +205,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         uint fromId = registry.getId(msg.sender);
 
-        require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
-        require(isBusinessContractActive(businessContractAddr), "Contrato específico não está ativo");
+        verifyContractIsRegisteredAndActive(businessContractAddr);
 
         require(registry.isValidatedId(fromId), "Conta de origem precisa estar com cadastro validado");
         require(registry.isValidatedId(toId), "Conta de destino precisa estar com cadastro validado");
@@ -227,10 +226,9 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     function redeem (address businessContractAddr, uint fromId, bytes32 fromHash, uint amount, string[] memory data) public 
         whenNotPaused  {
 
-            require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
-            require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo para haver burn");
+            verifyContractIsRegisteredAndActive(businessContractAddr);
             require(registry.isValidatedId(fromId), "Conta solicitante do redeem precisa estar com cadastro validado");
-//        require(amount>0, "Valor a queimar deve ser maior do que zero");
+            require(amount>0, "Valor a resgatar deve ser maior do que zero");
     
             SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
             specificContract.verifyAndActForRedeem(fromId, fromHash, amount, data);
@@ -248,8 +246,7 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         string memory receiptHash, string[] memory data)
         public whenNotPaused onlyOwner {
 
-        require(containsBusinessContract(businessContractAddr), "Contrato específico não está registrado");
-        require(isBusinessContractActive(businessContractAddr), "Contrato precisa estar ativo para haver burn");
+        verifyContractIsRegisteredAndActive(businessContractAddr);
         require (RBBLib.isValidHash(receiptHash), "O hash da comprovação é inválido");
 
         SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
@@ -265,11 +262,9 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         return decimals;
     }
 
-/*
     function getBndesId() view public returns (uint) {
         uint bndesId = registry.getId(owner());
         return bndesId;
     }
-*/
 
 }

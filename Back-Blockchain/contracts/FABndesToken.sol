@@ -24,30 +24,31 @@ Todas as operações já supõem que a entidade de origem e destino estão cadas
 
 Não incluído:
 ------------
-- requisito adicional de o cliente poder resgatar uma parte do valor
+- requisito adicional de o cliente poder resgatar uma parte do valor (ao invés de ter que necessariamente transferir tudo ao fornecedor)
 - ideia de o fornecedor poder sacar mais de um saldo ao mesmo tempo.
 - pedido inicial de financiamento do cliente 
 - devolução de fornecedor para cliente sem anuência para o BNDES
-
+- controle que cada doacao realmente se transformou em duas transacoes, uma para a conta adm e outra para a conta usual
+uint admFee = amount.mul(bndesFee).div(100);
+- período de validade para as autorizações de transferências extraordinárias
 */
 
 
 contract FABndesToken is SpecificRBBToken {
 
     //RBBId donor => true/false (registered or not)
-    mapping (uint => bool) donors;
+    mapping (uint => bool) public donors;
 
     //RBBId client => (idFinancialSupportAgreement Client => true/false (registered or not)
     mapping (uint => mapping (string => bool)) public clients;
 
     //RBBId supplier => true/false (registered or not)
-    mapping (uint => bool) suppliers;
+    mapping (uint => bool) public suppliers;
 
-   /* Hash of approved ManualInterventionOperationApprovedByOwner */
+    //Hash of approved ManualInterventionOperationApprovedByOwner
     bytes32[] public hashManualInterventionOperationApprovedByOwner;
 
-
-   /* BNDES Fee percentage */
+    // BNDES Fee percentage
     uint256 public bndesFee;    
 
     string public INITIAL_ALLOCATION = "INITIAL_ALLOCATION";
@@ -57,38 +58,36 @@ contract FABndesToken is SpecificRBBToken {
     string public MANUAL_INTERVENTION = "MANUAL_INTERVENTION";
 
     address public responsibleForDonationConfirmation;
+    address public responsibleForInitialAllocation;
     address public responsibleForDisbursement;
     address public resposibleForExtraordinaryTransfers;
     address public responsibleForSettlement;
 
     uint8 public RESERVED_NO_ADDITIONAL_FIELDS_TO_HASH = 0;
     uint8 public RESERVED_MINTED_ACCOUNT = 1;
-    uint8 public RESERVED_TO_USUAL_DISBURSEMENTS_ACCOUNT = 2;
-    uint8 public RESERVED_BNDES_ADMIN_FEE__TO_HASH = 3;
+    uint8 public RESERVED_USUAL_DISBURSEMENTS_ACCOUNT = 2;
+    uint8 public RESERVED_BNDES_ADMIN_FEE_TO_HASH = 3;
 
 
-//TODO: get para isso ADMIN_FEE
-//TODO: initial allocation transfer do MINTED para RESERVED_TO_USUAL_DISBURSEMENTS_ACCOUNT e ADMIN e 
 
      using SafeMath for uint;
    
-
-//TODO: rever eventos para BNDES Transparente
-    event FA_Disbursement  (uint idClient, string idFinancialSupportAgreement, uint amount);
-    event FA_TokenTransfer (uint fromCnpj, string fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
-    event FA_RedemptionRequested (uint idClaimer, uint amount);
-    event FA_RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
-    event FA_BNDES_TokenTransfer(uint toCnpj, uint amount);
-
     event FA_DonationBooked(uint idDonor, uint amount);
     event FA_DonationConfirmed(string idDonor, uint amount, string receiptHash);
-    event FA_AdmFeeCharged(string idDonor, uint amount);
-    
 
+    event FA_InitialAllocation_Disbursements(uint amount);
+    event FA_InitialAllocation_Fee(uint amount);
+
+    event FA_Disbursement  (uint idClient, string idFinancialSupportAgreement, uint amount);
+    event FA_TokenTransfer (uint fromCnpj, string fromIdFinancialSupportAgreement, uint toCnpj, uint amount);
+        event FA_BNDES_TokenTransfer(uint toCnpj, uint amount);
+    event FA_RedemptionRequested (uint idClaimer, uint amount);
+    event FA_RedemptionSettlement(string redemptionTransactionHash, string receiptHash);
+ 
     event FA_ManualIntervention_TransferAllowed (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount);
     event FA_ManualIntervention_Transfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] data);
+            uint amount);
     event FA_ManualIntervention_Fee(uint256 percent, string description);
     event FA_ManualIntervention_RoleOrAddress(address account, uint8 eventType);
 
@@ -101,6 +100,7 @@ contract FABndesToken is SpecificRBBToken {
         require (fee < 100, "Valor de Fee maior que 100%");
 
         responsibleForDonationConfirmation = msg.sender;
+        responsibleForInitialAllocation = msg.sender;
         responsibleForDisbursement = msg.sender;
         resposibleForExtraordinaryTransfers = msg.sender;
         responsibleForSettlement = msg.sender;
@@ -162,7 +162,7 @@ contract FABndesToken is SpecificRBBToken {
     function getDisbusementData (string memory idFinancialSupportAgreement) public view
         returns (bytes32, bytes32, string[] memory)  {
 
-        bytes32 fromHash = keccak256(abi.encodePacked(RESERVED_TO_USUAL_DISBURSEMENTS_ACCOUNT));
+        bytes32 fromHash = keccak256(abi.encodePacked(RESERVED_USUAL_DISBURSEMENTS_ACCOUNT));
         bytes32 toHash = keccak256(abi.encodePacked(idFinancialSupportAgreement));
 
         string[] memory data = new string[](2);
@@ -222,19 +222,30 @@ contract FABndesToken is SpecificRBBToken {
 
     }
 
-//        uint admFee = amount.mul(bndesFee).div(100);
-//        rbbToken.burn(admFee);
 
-//terminar isso
+//TODO: get para isso ADMIN_FEE e na conta de desembolso
+
+//nao checa com msg.sender e sim com sender recebido!!!!!!
     function verifyAndActForTransfer_INITIAL_ALLOCATION(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, string[] memory data) internal whenNotPaused {
-//TODO: FAZER    
+
+        require (responsibleForInitialAllocation == msg.sender, "Somente um responsável pelas alocações iniciais pode enviar a transação");
+
         uint ownerId = registry.getId(owner());
+        require (fromId == ownerId, "Id de origem da transação não está igual ao do owner do contrato");
+        require (fromHash == keccak256(abi.encodePacked(RESERVED_MINTED_ACCOUNT)), "Hash de origem da transação não está correto");
 
+        require (fromId == toId, "Id de destino da transação não está igual ao do owner do contrato");
+        require ((toHash == keccak256(abi.encodePacked(RESERVED_USUAL_DISBURSEMENTS_ACCOUNT))
+         || toHash == keccak256(abi.encodePacked(RESERVED_BNDES_ADMIN_FEE_TO_HASH))
+         ), "Hash de destino não está correspondente a conta de desembolso ou de adm");
 
-//TODO
-//        emit FA_Disbursement (toId, idFinancialSupportAgreement, amount);
-
+        if (toHash == keccak256(abi.encodePacked(RESERVED_USUAL_DISBURSEMENTS_ACCOUNT))) {
+            emit FA_InitialAllocation_Disbursements(amount);
+        }
+        else {
+            emit FA_InitialAllocation_Fee(amount);
+        }
     }
 
 
@@ -246,8 +257,8 @@ contract FABndesToken is SpecificRBBToken {
         uint ownerId = registry.getId(owner());
 
         //Essa eh uma regra especifica visto que outra organizacao pode ter recebido o token no allocate.
-        require (fromId == ownerId, "Responsável pela liberação de recursos não está correto");
-        require (keccak256(abi.encodePacked(RESERVED_TO_USUAL_DISBURSEMENTS_ACCOUNT))==fromHash, "Erro no cálculo do hash da conta do BNDES");
+        require (fromId == ownerId, "Id de origem da transação não está igual ao do owner do contrato");
+        require (keccak256(abi.encodePacked(RESERVED_USUAL_DISBURSEMENTS_ACCOUNT))==fromHash, "Erro no cálculo do hash da conta do BNDES");
         require (keccak256(abi.encodePacked(idFinancialSupportAgreement))==toHash, "Erro no cálculo do hash da conta do cliente");
 
         if (!clients[toId][idFinancialSupportAgreement]) {
@@ -287,7 +298,7 @@ contract FABndesToken is SpecificRBBToken {
             uint amount, string[] memory data) internal whenNotPaused {
     
         require (fromId==registry.getId(owner()), "Somente o BNDES pode executar o pagamento");
-        require (keccak256(abi.encodePacked(RESERVED_BNDES_ADMIN_FEE__TO_HASH))==fromHash, "Erro no cálculo do hash da conta de admin do contrato especifico");
+        require (keccak256(abi.encodePacked(RESERVED_BNDES_ADMIN_FEE_TO_HASH))==fromHash, "Erro no cálculo do hash da conta de admin do contrato especifico");
         require (keccak256(abi.encodePacked(RESERVED_NO_ADDITIONAL_FIELDS_TO_HASH))==toHash, "Erro no cálculo do hash da conta do fornecedor");
 
         require(fromId != toId, "Um BNDES não pode transferir token para si");
@@ -302,9 +313,6 @@ contract FABndesToken is SpecificRBBToken {
             emit FA_SupplierAdded(registry.getId(owner()), id);
         }
     }
-
-
-    
 
     function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) 
         public override whenNotPaused onlyRBBToken {
@@ -338,10 +346,10 @@ contract FABndesToken is SpecificRBBToken {
     }
 
 //TODO: campo de justificativa
-//TODO: incluir periodo de validade para essa autorizacao
     function authorizeExtraordinaryTransfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount) public onlyOwner {
+            uint amount) public  {
         
+        require (resposibleForExtraordinaryTransfers == msg.sender, "Somente um responsável pelas transferências extraordinárias por enviar a transação");  
         require (hasRoleInThisContract(fromId, fromHash), "Endereço de origem não incluído como papel nesse cadastro");
         require (hasRoleInThisContract(toId, toHash), "Endereço de destino não incluído como papel nesse cadastro");
 
@@ -376,7 +384,7 @@ contract FABndesToken is SpecificRBBToken {
             = hashManualInterventionOperationApprovedByOwner [hashManualInterventionOperationApprovedByOwner.length-1];
         hashManualInterventionOperationApprovedByOwner.pop();
 
-        emit FA_ManualIntervention_Transfer (fromId, fromHash, toId, toHash, amount, data);
+        emit FA_ManualIntervention_Transfer (fromId, fromHash, toId, toHash, amount);
 
     }
 
@@ -412,6 +420,18 @@ contract FABndesToken is SpecificRBBToken {
     }
 
    /**
+    * By default, the owner is also the Responsible for Initial Allocation. 
+    * The owner can assign other address to be the Responsible for Initial Allocation. 
+    * @param rs Ethereum address to be assigned as Responsible for Initial Allocation.
+    */
+    function setResponsibleForInitialAllocation(address rs) onlyOwner public {
+        uint id = registry.getId(rs);
+        require(id==registry.getId(owner()), "O responsável pela alocação inicial deve ser da mesmo RBB_ID do contrato");
+        responsibleForInitialAllocation = rs;
+        emit FA_ManualIntervention_RoleOrAddress(rs, 2);
+    }
+
+   /**
     * By default, the owner is also the Responsible for Disbursment. 
     * The owner can assign other address to be the Responsible for Disbursment. 
     * @param rs Ethereum address to be assigned as Responsible for Disbursment.
@@ -420,7 +440,7 @@ contract FABndesToken is SpecificRBBToken {
         uint id = registry.getId(rs);
         require(id==registry.getId(owner()), "O responsável pelo desembolso deve ser da mesmo RBB_ID do contrato");
         responsibleForDisbursement = rs;
-        emit FA_ManualIntervention_RoleOrAddress(rs, 2);
+        emit FA_ManualIntervention_RoleOrAddress(rs, 3);
     }
 
    /**
@@ -432,7 +452,7 @@ contract FABndesToken is SpecificRBBToken {
         uint id = registry.getId(rs);
         require(id==registry.getId(owner()), "O responsável pelo cadastramento de transferencias extraordinárias deve ser da mesmo RBB_ID do contrato");
         resposibleForExtraordinaryTransfers = rs;
-        emit FA_ManualIntervention_RoleOrAddress(rs, 3);
+        emit FA_ManualIntervention_RoleOrAddress(rs, 4);
     }
 
    /**
@@ -444,7 +464,7 @@ contract FABndesToken is SpecificRBBToken {
         uint id = registry.getId(rs);
         require(id==registry.getId(owner()), "O responsável pela liquidação deve ser da mesmo RBB_ID do contrato");
         responsibleForSettlement = rs;
-        emit FA_ManualIntervention_RoleOrAddress(rs, 4);
+        emit FA_ManualIntervention_RoleOrAddress(rs, 5);
     }
 
 
