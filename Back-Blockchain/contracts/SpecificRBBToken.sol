@@ -23,17 +23,16 @@ abstract contract SpecificRBBToken is Ownable, Pausable {
 
     function getHashToMintedAccount(bytes32 specificHash) virtual public returns (bytes32);
 
-//TODO: acrescenar receiptHash
-    function verifyAndActForMint(bytes32 specificHash, uint amount, string[] memory data,
-        string memory docHash) virtual public;
+    function verifyAndActForMint(bytes32 specificHash, uint amount, bytes32 docHash, 
+            string[] memory data) virtual public;
 
-    function verifyAndActForTransfer(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, string[] memory data) virtual public;
+    function verifyAndActForTransfer(address originalSender, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
+            uint amount, bytes32 docHash, string[] memory data) virtual public;
 
-    function verifyAndActForRedeem(uint fromId, bytes32 fromHash, uint amount, string[] memory data) virtual public;
+    function verifyAndActForRedeem(address originalSender, uint fromId, bytes32 fromHash, uint amount, bytes32 docHash, 
+            string[] memory data) virtual public;
     
-    
-    function verifyAndActForRedemptionSettlement(string memory redemptionTransactionHash, string memory receiptHash, 
+    function verifyAndActForRedemptionSettlement(bytes32 redemptionTransactionHash, bytes32 docHash, 
         string[] memory data) virtual public;
 
 }
