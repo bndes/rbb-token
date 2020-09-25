@@ -547,7 +547,6 @@ contract Pausable is Context, PauserRole {
 // File: contracts/SpecificRBBToken.sol
 
 pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
 
 
 
@@ -1047,7 +1046,6 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 // File: contracts/FABndesToken.sol
 
 pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
 
 
 
