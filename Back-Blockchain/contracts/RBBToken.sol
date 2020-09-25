@@ -1,7 +1,6 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "./RBBLib.sol";
 import "./RBBRegistry.sol";
 import "./SpecificRBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
