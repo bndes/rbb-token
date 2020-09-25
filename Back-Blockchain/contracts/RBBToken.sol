@@ -43,7 +43,7 @@ contract BusinessContractRegistry is Ownable {
         require (!containsBusinessContract(businessContractAddr), "Contrato já registrado");
 
         SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
-        specificContract.setInitializationDataDuringRegistration(address(registry), address(this));
+        specificContract.setInitializationDataDuringRegistration(address(registry));
         address scOwnerAddr = specificContract.owner();
         uint scOwnerId = registry.getId(scOwnerAddr);
 

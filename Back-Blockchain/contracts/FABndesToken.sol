@@ -26,10 +26,13 @@ uint admFee = amount.mul(bndesFee).div(100);
 - período de validade para as autorizações de transferências extraordinárias
 - invalidar doador, cliente e fornecedor (por exemplo, em caso de CNPJ deixar de existir, contrato com BNDES acabar ou periodicamente)
 - permitir criar perfis diferenciados para contas dos clientes e fornecedores
+
 */
 
 
 contract FABndesToken is SpecificRBBToken {
+
+    RBBToken public rbbToken;
 
     //RBBId donor => true/false (registered or not)
     mapping (uint => bool) public donors;
@@ -91,8 +94,10 @@ contract FABndesToken is SpecificRBBToken {
     event FA_SupplierAdded(uint registeredBy, uint id);
 
 
-    constructor (uint fee) public {
+    constructor (address newrbbTokenAddr, uint fee) public {
         require (fee < 100, "Valor de Fee maior que 100%");
+
+        rbbToken = RBBToken(newrbbTokenAddr);
 
         responsibleForInitialAllocation = msg.sender;
         responsibleForDisbursement = msg.sender;

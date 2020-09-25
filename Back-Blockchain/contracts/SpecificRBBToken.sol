@@ -4,21 +4,18 @@ pragma experimental ABIEncoderV2;
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
-import "./RBBToken.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
 abstract contract SpecificRBBToken is Ownable, Pausable {
 
     RBBRegistry public registry;
-    RBBToken public rbbToken;
 
     constructor () public {
     }
 
-    function setInitializationDataDuringRegistration(address newRegistryAddr, address newrbbTokenAddr) public {
+    function setInitializationDataDuringRegistration(address newRegistryAddr) public {
         registry = RBBRegistry(newRegistryAddr);
-        rbbToken = RBBToken(newrbbTokenAddr);
     }
 
     function getHashToMintedAccount(bytes32 specificHash) virtual public returns (bytes32);

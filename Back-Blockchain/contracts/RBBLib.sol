@@ -71,13 +71,18 @@ library RBBLib {
 
 
   function stringtoUint(string memory _string) pure public returns(uint256){
+       uint256 outNumber;
        uint256 number;
        bytes memory b =bytes(_string);
         for(uint i=0;i<b.length;i++){
-            number = number*10;
-            number = number + (uint256(uint8(b[i]))-48);
+            outNumber = outNumber*10;
+            number = (uint256(uint8(b[i])));
+           // return number;
+            require(number  > 47  && number < 58, "essa string não é um numero");
+            number = number -48;
+            outNumber = outNumber + number;
         }
-       return number;
+       return outNumber;
    }
 
 
