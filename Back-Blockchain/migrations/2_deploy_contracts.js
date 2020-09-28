@@ -2,6 +2,8 @@ var RBBLib = artifacts.require("./RBBLib.sol");
 var RBBRegistry = artifacts.require("./RBBRegistry.sol");
 var RBBToken = artifacts.require("./RBBToken.sol");
 var FABndesToken = artifacts.require("./FABndesToken.sol");
+var GetDataToCallFABndesToken = artifacts.require("./GetDataToCallFABndesToken.sol");
+
 
 module.exports = async (deployer, network, accounts) => {
 
@@ -17,5 +19,8 @@ module.exports = async (deployer, network, accounts) => {
 	RBBTokenInstance = await deployer.deploy(RBBToken, RBBRegistry.address, 2); 
 
 	FABndesTokenInstance = await deployer.deploy(FABndesToken, RBBToken.address, 3); 
+
+	GetDataToCallFABndesTokenInstance = await deployer.deploy(GetDataToCallFABndesToken, FABndesToken.address); 
+
 	
 };

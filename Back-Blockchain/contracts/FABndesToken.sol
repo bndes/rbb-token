@@ -148,81 +148,11 @@ contract FABndesToken is SpecificRBBToken {
 
     }
 
-    /////////////////
 
     function getHashToMintedAccount(bytes32 specificHash) override public returns (bytes32) {
         //There is no difference of specificHash, all money should be minted in the same account
         return getCalculatedHash(RESERVED_MINTED_ACCOUNT);
     }
-
-
-    function getInitialAllocationToDisbusementData () public view
-        returns (bytes32, bytes32, string[] memory)  {
-
-        bytes32 fromHash = getCalculatedHash(RESERVED_MINTED_ACCOUNT);
-        bytes32 toHash = getCalculatedHash(RESERVED_USUAL_DISBURSEMENTS_ACCOUNT);
-
-        string[] memory data = new string[](1);
-        data[0] = INITIAL_ALLOCATION;
-        return (fromHash, toHash, data);
-    }
-
-    function getInitialAllocationToChargeFeeData () public view
-        returns (bytes32, bytes32, string[] memory)  {
-
-        bytes32 fromHash = getCalculatedHash(RESERVED_MINTED_ACCOUNT);
-        bytes32 toHash = getCalculatedHash(RESERVED_BNDES_ADMIN_FEE_TO_HASH);
-
-        string[] memory data = new string[](1);
-        data[0] = INITIAL_ALLOCATION;
-        return (fromHash, toHash, data);
-    }
-
-    function getDisbusementData (string memory idFinancialSupportAgreement) public view
-        returns (bytes32, bytes32, string[] memory)  {
-
-        bytes32 fromHash = getCalculatedHash(RESERVED_USUAL_DISBURSEMENTS_ACCOUNT);
-        bytes32 toHash = getCalculatedHash(idFinancialSupportAgreement);
-
-        string[] memory data = new string[](2);
-        data[0] = DISBURSEMENT_VERIFICATION;
-        data[1] = idFinancialSupportAgreement;
-        return (fromHash, toHash, data);
-    }
-
-    function getClientPaySupplierData (string memory idFinancialSupportAgreement) public view
-            returns (bytes32, bytes32, string[] memory) {
-
-        bytes32 fromHash = getCalculatedHash(idFinancialSupportAgreement);
-        bytes32 toHash = getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER);
-
-        string[] memory data = new string[](2);
-        data[0] = CLIENT_PAY_SUPPLIER_VERIFICATION;
-        data[1] = idFinancialSupportAgreement;
-        return (fromHash, toHash, data);
-    }
-
-    function getBNDESPaySupplierData () public view
-            returns (bytes32, bytes32, string[] memory) {
-
-        bytes32 fromHash = getCalculatedHash(RESERVED_USUAL_DISBURSEMENTS_ACCOUNT);
-        bytes32 toHash = getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER);
-
-        string[] memory data = new string[](1);
-        data[0] = BNDES_PAY_SUPPLIER_VERIFICATION;
-        return (fromHash, toHash, data);
-    }
-
-    function getRedeemData () public 
-            returns (bytes32, string[] memory) {
-
-        bytes32 fromHash = getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER);
-
-        string[] memory data = new string[](0);
-        return (fromHash, data);
-    }
-
-    /////////////////
 
     function verifyAndActForTransfer(address originalSender, uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, bytes32 docHash, string[] memory data) public override whenNotPaused onlyRBBToken {
@@ -244,8 +174,7 @@ contract FABndesToken is SpecificRBBToken {
             verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
         else if (RBBLib.isEqual(EXTRAORDINARY_TRANSFERS, specificMethod)) {
-//TODO: descomentar
-//            verifyAndActForTransfer_EXTRAORDINARY_TRANSFERS(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
+            verifyAndActForTransfer_EXTRAORDINARY_TRANSFERS(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
         else {
             require (false, "Nenhuma verificação específica encontrada para a transferência");
@@ -380,7 +309,7 @@ contract FABndesToken is SpecificRBBToken {
     function getCalculatedHash (string memory info) public view returns (bytes32) {
         return keccak256(abi.encodePacked(info));
     }
-/*
+
     function authorizeExtraordinaryTransfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, bytes32 docHash) public  {
         
@@ -462,6 +391,5 @@ contract FABndesToken is SpecificRBBToken {
         resposibleForApproveExtraordinaryTransfers = rs;
         emit FA_ManualIntervention_RoleOrAddress(rs, 3);
     }
-*/
 
 }
