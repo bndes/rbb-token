@@ -138,14 +138,16 @@ contract RBBToken is Pausable, BusinessContractRegistry {
         verifyContractIsRegisteredAndActive(businessContractAddr);
         
         uint businessContractId = getBusinessContractId(businessContractAddr);
-
+//TODO: balance
         balaceRequestedTokens[businessContractId][specificInvestimentHash] = 
             balaceRequestedTokens[businessContractId][specificInvestimentHash].add(amount);
     
+//TODO: uniformizar nome com token specificRBBToken
         emit RBBTokenMintRequested(businessContractAddr, specificInvestimentHash, idInvestor, amount, docHash);
 
     }
 
+//TODO: idInvestor oficial (e nao no data)
     function mint(address businessContractAddr, bytes32 specificHash, uint amount, bytes32 docHash,
         string[] memory data) public {
 
@@ -205,7 +207,8 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 
         uint businessContractId = getBusinessContractId(businessContractAddr);
 
-        rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Total de tokens a serem queimados é maior do que o balance");
+        rbbBalances[businessContractId][fromId][fromHash] = 
+            rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Total de tokens a serem queimados é maior do que o balance");
 
         emit RBBTokenBurn(businessContractAddr, originalSender, fromId, fromHash, amount, docHash);
     }

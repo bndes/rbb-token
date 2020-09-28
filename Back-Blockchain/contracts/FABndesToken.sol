@@ -288,7 +288,7 @@ contract FABndesToken is SpecificRBBToken {
     }
 
     function authorizeExtraordinaryTransfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
-            uint amount, bytes32 docHash) public  {
+                uint amount, bytes32 docHash) public  {
         
         require (bndesRoles.resposibleForApproveExtraordinaryTransfers() == msg.sender, 
             "Somente um responsável pelas transferências extraordinárias por enviar a transação");  

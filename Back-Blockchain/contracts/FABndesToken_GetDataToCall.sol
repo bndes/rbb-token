@@ -69,7 +69,7 @@ contract FABndesToken_GetDataToCall  {
         return (fromHash, toHash, data);
     }
 
-    function getRedeemData () public 
+    function getRedeemData () view public 
             returns (bytes32, string[] memory) {
 
         bytes32 fromHash = getCalculatedHash(faBndesToken.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER());
@@ -77,6 +77,8 @@ contract FABndesToken_GetDataToCall  {
         string[] memory data = new string[](0);
         return (fromHash, data);
     }
+
+    //Não criei getNotifyRedepmtion data porque não tinha nada especifico a fazer.
 
     function getCalculatedHash (uint info) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(info));
