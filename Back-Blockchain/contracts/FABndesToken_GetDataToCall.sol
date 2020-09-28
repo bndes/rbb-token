@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./FABndesToken.sol";
 
 
-contract GetDataToCallFABndesToken  {
+contract FABndesToken_GetDataToCall  {
 
     FABndesToken faBndesToken;
 
