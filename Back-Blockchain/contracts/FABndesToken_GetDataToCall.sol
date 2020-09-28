@@ -78,10 +78,10 @@ contract FABndesToken_GetDataToCall  {
         return (fromHash, data);
     }
 
-    function getCalculatedHash (uint info) public view returns (bytes32) {
+    function getCalculatedHash (uint info) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(info));
     }
-    function getCalculatedHash (string memory info) public view returns (bytes32) {
+    function getCalculatedHash (string memory info) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(info));
     }
 

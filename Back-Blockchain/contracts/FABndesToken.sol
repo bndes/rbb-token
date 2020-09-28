@@ -279,11 +279,11 @@ contract FABndesToken is SpecificRBBToken {
     }
 
     
-    function getCalculatedHash (uint info) public view returns (bytes32) {
+    function getCalculatedHash (uint info) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(info));
     }
 
-    function getCalculatedHash (string memory info) public view returns (bytes32) {
+    function getCalculatedHash (string memory info) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(info));
     }
 
@@ -308,7 +308,7 @@ contract FABndesToken is SpecificRBBToken {
         require (hasRoleInThisContract(fromId, fromHash), "Endereço de origem não incluído como papel nesse cadastro");
         require (hasRoleInThisContract(toId, toHash), "Endereço de destino não incluído como papel nesse cadastro");
 
-        string memory idFinancialSupportAgreement = data[1];
+//        string memory idFinancialSupportAgreement = data[1];
         bytes32 m = keccak256(abi.encodePacked(fromId, fromHash, toId, toHash, amount));
 
         bool transferApproved = false;
@@ -360,9 +360,9 @@ contract FABndesToken is SpecificRBBToken {
         }
     }
 
-    function hasRoleInThisContract (uint rbbId, bytes32 hashToAccount) private returns (bool) {
+    function hasRoleInThisContract (uint rbbId, bytes32 hashToAccount) private view returns (bool) {
 
-        bool hasRole = false;
+//        bool hasRole = false;
         if (donors[rbbId]==true) return true;
 
 //TODO: resolver -- preciso verificar se esse id jah estah cadastrado no mapping de clients.

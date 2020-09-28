@@ -742,7 +742,7 @@ library SafeMath {
 // File: contracts/RBBToken.sol
 
 pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
+//pragma experimental ABIEncoderV2;
 
 
 
@@ -1096,7 +1096,7 @@ contract FABndesToken_BNDESRoles is Ownable {
 // File: contracts/FABndesToken.sol
 
 pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
+//pragma experimental ABIEncoderV2;
 
 
 

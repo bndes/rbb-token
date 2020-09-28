@@ -33,7 +33,7 @@ contract BusinessContractRegistry is Ownable {
         _;
     }
 
-    function verifyContractIsRegisteredAndActive(address addr) public {
+    function verifyContractIsRegisteredAndActive(address addr) view public {
         require(containsBusinessContract(addr), "Método só pode ser chamado por contrato de negócio previamente cadastrado");
         require(isBusinessContractActive(addr), "Método só pode ser chamado por contrato de negócio ativo");
     }
