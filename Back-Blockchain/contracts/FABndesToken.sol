@@ -244,7 +244,8 @@ contract FABndesToken is SpecificRBBToken {
             verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
         else if (RBBLib.isEqual(EXTRAORDINARY_TRANSFERS, specificMethod)) {
-            verifyAndActForTransfer_EXTRAORDINARY_TRANSFERS(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
+//TODO: descomentar
+//            verifyAndActForTransfer_EXTRAORDINARY_TRANSFERS(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
         else {
             require (false, "Nenhuma verificação específica encontrada para a transferência");
@@ -379,7 +380,7 @@ contract FABndesToken is SpecificRBBToken {
     function getCalculatedHash (string memory info) public view returns (bytes32) {
         return keccak256(abi.encodePacked(info));
     }
-
+/*
     function authorizeExtraordinaryTransfer (uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, bytes32 docHash) public  {
         
@@ -461,6 +462,6 @@ contract FABndesToken is SpecificRBBToken {
         resposibleForApproveExtraordinaryTransfers = rs;
         emit FA_ManualIntervention_RoleOrAddress(rs, 3);
     }
-
+*/
 
 }

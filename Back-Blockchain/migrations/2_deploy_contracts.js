@@ -7,6 +7,8 @@ module.exports = async (deployer, network, accounts) => {
 
 	await deployer.deploy(RBBLib);
 	await deployer.link(RBBLib, RBBRegistry);
+	await deployer.link(RBBLib, FABndesToken);
+
 	await deployer.deploy(RBBRegistry, accounts[0]);
 
 	RBBRegistryInstance = await RBBRegistry.deployed();
@@ -14,7 +16,6 @@ module.exports = async (deployer, network, accounts) => {
 
 	RBBTokenInstance = await deployer.deploy(RBBToken, RBBRegistry.address, 2); 
 
-	deployer.link(RBBLib, FABndesToken);
-	deployer.deploy(FABndesToken, RBBToken.address, 3); 
+	FABndesTokenInstance = await deployer.deploy(FABndesToken, RBBToken.address, 3); 
 	
 };
