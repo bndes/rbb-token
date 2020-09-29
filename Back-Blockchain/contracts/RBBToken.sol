@@ -3,92 +3,18 @@ pragma experimental ABIEncoderV2;
 
 import "./RBBRegistry.sol";
 import "./SpecificRBBToken.sol";
+import "./SpecificRBBTokenRegistry.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-//TODO: framework de mudanca e como incluir um business contract com um id específico
-//TODO: avaliar se precisa ter totalSupply de cada contrato ou outras info derivadas para aumentar programabilidade
-contract BusinessContractRegistry is Ownable {
 
+contract RBBToken is Pausable, Ownable {
 
+//TODO: avaliar se deveria ter um set para modificar esses atributos
+    SpecificRBBTokenRegistry tokenRegistry;
     RBBRegistry public registry;
 
-    //It starts with 1, because 0 is the id value returned when the item is not found in the businessContractsRegistry
-    uint public idCount = 1;
-
-    struct BusinessContractInfo {
-        uint id;
-        bool isActive;
-    }
-
-    event BusinessContractRegistration (uint id, uint ownerId, address addr);
-    event BusinessContractStateChange (uint id, bool state);
-
-    //indexado pelo address pq serah a forma mais usada para consulta.
-    mapping (address => BusinessContractInfo) public businessContractsRegistry;
-
-    modifier onlyByRegisteredAndActiveContracts {
-        verifyContractIsRegisteredAndActive(msg.sender);
-        _;
-    }
-
-    function verifyContractIsRegisteredAndActive(address addr) view public {
-        require(containsBusinessContract(addr), "Método só pode ser chamado por contrato de negócio previamente cadastrado");
-        require(isBusinessContractActive(addr), "Método só pode ser chamado por contrato de negócio ativo");
-    }
-
-    function registerBusinessContract (address businessContractAddr) public onlyOwner returns (uint)  {
-        require (!containsBusinessContract(businessContractAddr), "Contrato já registrado");
-
-        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
-        specificContract.setInitializationDataDuringRegistration(address(registry));
-        address scOwnerAddr = specificContract.owner();
-        uint scOwnerId = registry.getId(scOwnerAddr);
-
-
-        businessContractsRegistry[businessContractAddr] = BusinessContractInfo(idCount, true);
-        emit BusinessContractRegistration (idCount, scOwnerId, businessContractAddr);
-        idCount++;
-    }
-
-    function getBusinessContractId (address addr) public view returns (uint) {
-        require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
-        BusinessContractInfo memory info = businessContractsRegistry[addr];
-        return info.id;
-    }
-
-    function getBusinessContractIdAndOwnerId (address addr) public view returns (uint, uint) {
-        require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
-        BusinessContractInfo memory info = businessContractsRegistry[addr];
-        SpecificRBBToken specificContract = SpecificRBBToken(addr);
-        address scOwnerAddr = specificContract.owner();
-        uint scOwnerId = registry.getId(scOwnerAddr);
-
-        return (info.id, scOwnerId);
-    }
-    
-    function containsBusinessContract(address addr) private view returns (bool) {
-        BusinessContractInfo memory info = businessContractsRegistry[addr];
-        if (info.id!=0) return true;
-        else return false;
-    }
-
-    function isBusinessContractActive(address addr) public view returns (bool) {
-        require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
-        BusinessContractInfo memory info = businessContractsRegistry[addr];
-        return info.isActive;
-    }
-
-    function setStatus(address addr, bool status) public onlyOwner returns (bool) {
-        require (containsBusinessContract(addr), "Contrato de negocio nao registrado");
-        BusinessContractInfo storage info = businessContractsRegistry[addr];
-        info.isActive = status;
-        emit BusinessContractStateChange(info.id, info.isActive);
-    }
-}
-
-contract RBBToken is Pausable, BusinessContractRegistry {
 
     using SafeMath for uint;
 
@@ -98,29 +24,30 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     address public responsibleForSettlement;
 
 
-    //businessContractId => (RBBid => (specificHash => amount)
+    //specificTokenId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
-    //businessContractId => (specificHash => amount)
-    mapping (uint => mapping (bytes32 => uint)) public balaceRequestedTokens;
+    //specificTokenId => (specificHash => amount)
+    mapping (uint => mapping (bytes32 => uint)) public balanceRequestedTokens;
 
-    event RBBTokenMintRequested(address businessContractAddr, bytes32 specificHash, uint idInvestor, 
+    event RBBTokenMintRequested(address specificTokenAddr, bytes32 specificHash, uint idInvestor, 
             uint amount, bytes32 docHash);
-    event RBBTokenMint(address businessContractAddr, bytes32 specificHash, uint amount, bytes32 docHash, string[] data);
-    event RBBTokenBurn(address businessContractAddr, address originalSender, uint fromId, bytes32 fromHash, 
+    event RBBTokenMint(address specificTokenAddr, bytes32 specificHash, uint amount, bytes32 docHash, string[] data);
+    event RBBTokenBurn(address specificTokenAddr, address originalSender, uint fromId, bytes32 fromHash, 
             uint amount, bytes32 docHash);
-    event RBBTokenTransfer (address businessContractAddr, address originalSender, uint fromId, bytes32 fromHash, uint toId,
+    event RBBTokenTransfer (address specificTokenAddr, address originalSender, uint fromId, bytes32 fromHash, uint toId,
             bytes32 toHash, uint amount, bytes32 docHash, string[] data);
-    event RBBTokenRedemptionRequested (address businessContractAddr, address originalSender, uint fromId, bytes32 fromHash, 
+    event RBBTokenRedemptionRequested (address specificTokenAddr, address originalSender, uint fromId, bytes32 fromHash, 
             uint amount, bytes32 docHash, string[] data);
-    event RBBTokenRedemptionSettlement(address businessContractAddr, bytes32 redemptionTransactionHash, 
+    event RBBTokenRedemptionSettlement(address specificTokenAddr, bytes32 redemptionTransactionHash, 
             bytes32 docHash, string[] data);
 
     event ManualIntervention_RoleOrAddress(address account, uint8 eventType);
 
 
-    constructor (address newRegistryAddr, uint8 _decimals) public {
+    constructor (address newRegistryAddr, address newSpecificRBBTokenAddr, uint8 _decimals) public {
         registry = RBBRegistry(newRegistryAddr);
+        tokenRegistry = SpecificRBBTokenRegistry(newSpecificRBBTokenAddr);
         decimals = _decimals;
         responsibleForInvestmentConfirmation = msg.sender;
         responsibleForSettlement = msg.sender;
@@ -130,129 +57,132 @@ contract RBBToken is Pausable, BusinessContractRegistry {
 ///******************************************************************* */
 
     function requestMint(bytes32 specificInvestimentHash, uint idInvestor, uint amount, bytes32 docHash) 
-        public onlyByRegisteredAndActiveContracts {
+        public {
     
         require (amount>0, "Valor a ser transacionado deve ser maior do que zero.");
-        address businessContractAddr = msg.sender;
+        address specificTokenAddr = msg.sender;
 
-        verifyContractIsRegisteredAndActive(businessContractAddr);
+        tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
         
-        uint businessContractId = getBusinessContractId(businessContractAddr);
-//TODO: balance
-        balaceRequestedTokens[businessContractId][specificInvestimentHash] = 
-            balaceRequestedTokens[businessContractId][specificInvestimentHash].add(amount);
+        uint specificTokenId = tokenRegistry.getSpecificRBBTokenId(specificTokenAddr);
+
+        balanceRequestedTokens[specificTokenId][specificInvestimentHash] = 
+            balanceRequestedTokens[specificTokenId][specificInvestimentHash].add(amount);
     
-//TODO: uniformizar nome com token specificRBBToken
-        emit RBBTokenMintRequested(businessContractAddr, specificInvestimentHash, idInvestor, amount, docHash);
+        emit RBBTokenMintRequested(specificTokenAddr, specificInvestimentHash, idInvestor, amount, docHash);
 
     }
 
-//TODO: idInvestor oficial (e nao no data)
-    function mint(address businessContractAddr, bytes32 specificHash, uint amount, bytes32 docHash,
+    function mint(address specificTokenAddr, uint idInvestor, bytes32 specificHash, uint amount, bytes32 docHash,
         string[] memory data) public {
 
-        verifyContractIsRegisteredAndActive(businessContractAddr);
+        tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
         require (responsibleForInvestmentConfirmation == msg.sender, 
             "Somente um responsável pela confirmação de investimento pode enviar a transação");
 
         require(amount>0, "Valor a mintar deve ser maior do que zero");
 
-        (uint businessContractId, uint businessContractOwnerId) = 
-                    getBusinessContractIdAndOwnerId(businessContractAddr);
+        (uint specificTokenId, uint businessContractOwnerId) = 
+                    tokenRegistry.getSpecificRBBTokenIdAndOwnerId(specificTokenAddr);
 
-        balaceRequestedTokens[businessContractId][specificHash] 
-            = balaceRequestedTokens[businessContractId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
+        balanceRequestedTokens[specificTokenId][specificHash] 
+            = balanceRequestedTokens[specificTokenId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
 
-        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
-        bytes32 calcHash = specificContract.getHashToMintedAccount(specificHash);
+        SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
 
-        rbbBalances[businessContractId][businessContractOwnerId][calcHash] = 
-            rbbBalances[businessContractId][businessContractOwnerId][calcHash].add(amount);
+        //Retorna a conta de mint associada ao hash especifico. 
+        bytes32 calcHash = specificToken.getHashToMintedAccount(specificHash);
 
-        specificContract.verifyAndActForMint(specificHash, amount, docHash, data);
+        rbbBalances[specificTokenId][businessContractOwnerId][calcHash] = 
+            rbbBalances[specificTokenId][businessContractOwnerId][calcHash].add(amount);
 
-        emit RBBTokenMint(businessContractAddr, specificHash, amount, docHash, data);
+        specificToken.verifyAndActForMint(idInvestor, specificHash, amount, docHash, data);
+
+        emit RBBTokenMint(specificTokenAddr, specificHash, amount, docHash, data);
     }
 
 
-    function burnOwnTokenBySpecificContracts (address originalSender, bytes32 hashToBurn, uint amount, 
-        bytes32 docHash) public onlyByRegisteredAndActiveContracts {
+    function burnOwnTokenBySpecificTokens (address originalSender, bytes32 hashToBurn, uint amount, 
+        bytes32 docHash) public {
 
-        address businessContractAddr = msg.sender;
-        (uint businessContractId, uint businessContractOwnerId) = 
-                    getBusinessContractIdAndOwnerId(businessContractAddr);
+        address specificTokenAddr = msg.sender;
+        tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
+
+        (uint specificTokenId, uint businessContractOwnerId) = 
+                    tokenRegistry.getSpecificRBBTokenIdAndOwnerId(specificTokenAddr);
         
-        _burn(businessContractAddr, originalSender, businessContractOwnerId, hashToBurn, amount, docHash);
+        _burn(specificTokenAddr, originalSender, businessContractOwnerId, hashToBurn, amount, docHash);
 
     }
 
 
-    function burnOwnToken (address businessContractAddr, bytes32 hashToBurn, uint amount, bytes32 docHash) 
-        public onlyByRegisteredAndActiveContracts {
+    function burnOwnToken (address specificTokenAddr, bytes32 hashToBurn, uint amount, bytes32 docHash) 
+        public {
 
-        verifyContractIsRegisteredAndActive(businessContractAddr);
+        tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
         uint idToBurn = registry.getId(msg.sender);
 
-        _burn(businessContractAddr, msg.sender, idToBurn, hashToBurn, amount, docHash);
+        _burn(specificTokenAddr, msg.sender, idToBurn, hashToBurn, amount, docHash);
 
     }
 
-    function _burn(address businessContractAddr, address originalSender, uint fromId, bytes32 fromHash, 
+    function _burn(address specificTokenAddr, address originalSender, uint fromId, bytes32 fromHash, 
         uint amount, bytes32 docHash) internal {
         
-        verifyContractIsRegisteredAndActive(businessContractAddr);
+        tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 //        require(amount>0, "Valor a queimar deve ser maior do que zero");
 
-        uint businessContractId = getBusinessContractId(businessContractAddr);
+        uint specificTokenId = tokenRegistry.getSpecificRBBTokenId(specificTokenAddr);
 
-        rbbBalances[businessContractId][fromId][fromHash] = 
-            rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Total de tokens a serem queimados é maior do que o balance");
+        rbbBalances[specificTokenId][fromId][fromHash] = 
+            rbbBalances[specificTokenId][fromId][fromHash].sub(amount, "Total de tokens a serem queimados é maior do que o balance");
 
-        emit RBBTokenBurn(businessContractAddr, originalSender, fromId, fromHash, amount, docHash);
+        emit RBBTokenBurn(specificTokenAddr, originalSender, fromId, fromHash, amount, docHash);
     }
 
 ///******************************************************************* */
 
 
-    function transfer (address businessContractAddr, bytes32 fromHash, uint toId, bytes32 toHash, 
+    function transfer (address specificTokenAddr, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, bytes32 docHash, string[] memory data) public whenNotPaused {
 
         uint fromId = registry.getId(msg.sender);
 
-        verifyContractIsRegisteredAndActive(businessContractAddr);
+        tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
         require(registry.isValidatedId(fromId), "Conta de origem precisa estar com cadastro validado");
         require(registry.isValidatedId(toId), "Conta de destino precisa estar com cadastro validado");
-        uint businessContractId = getBusinessContractId(businessContractAddr);
+        uint specificTokenId = tokenRegistry.getSpecificRBBTokenId(specificTokenAddr);
 
-        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
-        specificContract.verifyAndActForTransfer(msg.sender, fromId, fromHash, toId, toHash, amount, docHash, data);
+        SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
+        specificToken.verifyAndActForTransfer(msg.sender, fromId, fromHash, toId, toHash, amount, docHash, data);
 
         //altera valores de saldo
-        rbbBalances[businessContractId][fromId][fromHash] =
-                rbbBalances[businessContractId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
-        rbbBalances[businessContractId][toId][toHash] = rbbBalances[businessContractId][toId][toHash].add(amount);
+        rbbBalances[specificTokenId][fromId][fromHash] =
+                rbbBalances[specificTokenId][fromId][fromHash].sub(amount, "Saldo da origem não é suficiente para a transferência");
+        rbbBalances[specificTokenId][toId][toHash] = rbbBalances[specificTokenId][toId][toHash].add(amount);
 
-        emit RBBTokenTransfer (businessContractAddr, msg.sender, fromId, fromHash, toId, toHash, amount, docHash, data);
+        emit RBBTokenTransfer (specificTokenAddr, msg.sender, fromId, fromHash, toId, toHash, amount, docHash, data);
 
     }
 
-    function redeem (address businessContractAddr, bytes32 fromHash, uint amount, 
+    function redeem (address specificTokenAddr, bytes32 fromHash, uint amount, 
         bytes32 docHash, string[] memory data) public whenNotPaused  {
 
             uint fromId = registry.getId(msg.sender);
 
-            verifyContractIsRegisteredAndActive(businessContractAddr);
+            tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
+
             require(registry.isValidatedId(fromId), "Conta solicitante do redeem precisa estar com cadastro validado");
             require(amount>0, "Valor a resgatar deve ser maior do que zero");
     
-            SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
-            specificContract.verifyAndActForRedeem(msg.sender, fromId, fromHash, amount, docHash, data);
+            SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
+            specificToken.verifyAndActForRedeem(msg.sender, fromId, fromHash, amount, docHash, data);
 
-            emit RBBTokenRedemptionRequested(businessContractAddr, msg.sender, fromId, fromHash, amount, docHash, data);
-            _burn(businessContractAddr, msg.sender, fromId, fromHash, amount, docHash);
+            emit RBBTokenRedemptionRequested(specificTokenAddr, msg.sender, fromId, fromHash, amount, docHash, data);
+            _burn(specificTokenAddr, msg.sender, fromId, fromHash, amount, docHash);
     }
 
    /**
@@ -260,19 +190,18 @@ contract RBBToken is Pausable, BusinessContractRegistry {
     * @ param redemptionTransactionHash hash of the redeem transaction in which the FIAT money settlement occurred.
     * @ param receiptHash hash that proof the FIAT money transfer
     */ 
-    function notifyRedemptionSettlement(address businessContractAddr, bytes32 redemptionTransactionHash, 
+    function notifyRedemptionSettlement(address specificTokenAddr, bytes32 redemptionTransactionHash, 
         bytes32 docHash, string[] memory data) public whenNotPaused {
 
-        verifyContractIsRegisteredAndActive(businessContractAddr);
+        tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
         require (responsibleForSettlement == msg.sender, 
             "Somente um responsável pela liquidição pode enviar a transação");
 
+        SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
+        specificToken.verifyAndActForRedemptionSettlement(redemptionTransactionHash, docHash, data);
 
-        SpecificRBBToken specificContract = SpecificRBBToken(businessContractAddr);
-        specificContract.verifyAndActForRedemptionSettlement(redemptionTransactionHash, docHash, data);
-
-        emit RBBTokenRedemptionSettlement(businessContractAddr, redemptionTransactionHash, docHash, data);
+        emit RBBTokenRedemptionSettlement(specificTokenAddr, redemptionTransactionHash, docHash, data);
     }
     
 

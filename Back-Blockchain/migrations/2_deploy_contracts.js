@@ -1,5 +1,6 @@
 var RBBLib = artifacts.require("./RBBLib.sol");
 var RBBRegistry = artifacts.require("./RBBRegistry.sol");
+var SpecificRBBTokenRegistry = artifacts.require("./SpecificRBBTokenRegistry.sol");
 var RBBToken = artifacts.require("./RBBToken.sol");
 var FABndesToken = artifacts.require("./FABndesToken.sol");
 var FABndesToken_BNDESRoles = artifacts.require("./FABndesToken_BNDESRoles.sol");
@@ -17,9 +18,10 @@ module.exports = async (deployer, network, accounts) => {
 	RBBRegistryInstance = await RBBRegistry.deployed();
 	await RBBRegistryInstance.registryMock("123456789");
 
-	await deployer.deploy(RBBToken, RBBRegistry.address, 2);
+	await deployer.deploy(SpecificRBBTokenRegistry, RBBRegistry.address);
+	await deployer.deploy(RBBToken, RBBRegistry.address, SpecificRBBTokenRegistry.address, 2);
 	await deployer.deploy(FABndesToken_BNDESRoles, RBBRegistry.address);
-	await deployer.deploy(FABndesToken, RBBToken.address, FABndesToken_BNDESRoles.address, 3); 
+	await deployer.deploy(FABndesToken, RBBToken.address, FABndesToken_BNDESRoles.address); 
 	await deployer.deploy(FABndesToken_GetDataToCall, FABndesToken.address); 
 
 	

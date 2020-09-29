@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
-
 /*
 Todas as operações já supõem que a entidade de origem e destino estão cadastradas e validadas no RBB_Registry, pois isso é garantido pelo contrato genérico (RBB_Token)
 
@@ -29,8 +28,6 @@ uint admFee = amount.mul(bndesFee).div(100);
 - permitir criar perfis diferenciados para contas dos clientes e fornecedores
 
 */
-
-
 contract FABndesToken is SpecificRBBToken {
 
     RBBToken public rbbToken;
@@ -41,6 +38,7 @@ contract FABndesToken is SpecificRBBToken {
 
     //RBBId client => (idFinancialSupportAgreement Client => true/false (registered or not)
     mapping (uint => mapping (string => bool)) public clients;
+    mapping (bytes32 => string) public hashToIdFinancialSupportAgreement;
 
     //RBBId supplier => true/false (registered or not)
     mapping (uint => bool) public suppliers;
@@ -49,7 +47,7 @@ contract FABndesToken is SpecificRBBToken {
     bytes32[] public hashApprovedExtraordinaryTransfers;
 
     // BNDES Fee percentage
-    uint256 public bndesFee;    
+//   uint256 public bndesFee;    
 
     //Types of transfer operation
     string public INITIAL_ALLOCATION = "INITIAL_ALLOCATION";
@@ -85,29 +83,29 @@ contract FABndesToken is SpecificRBBToken {
     event FA_ExtraordinaryTransferExecuted(uint fromId, bytes32 fromHash, uint toId, bytes32 toHash, 
             uint amount, bytes32 docHash);
 
-    event FA_ManualIntervention_Fee(uint256 percent, bytes32 docHash);
+//    event FA_ManualIntervention_Fee(uint256 percent, bytes32 docHash);
 
     event FA_DonorAdded(uint id);
     event FA_ClientAdded(uint id);
     event FA_SupplierAdded(uint registeredBy, uint id);
 
 
-    constructor (address newrbbTokenAddr, address addrBndesRoles, uint fee) public {
-        require (fee < 100, "Valor de Fee maior que 100%");
+    constructor (address newrbbTokenAddr, address addrBndesRoles) public {
+//        require (fee < 100, "Valor de Fee maior que 100%");
 
         rbbToken = RBBToken(newrbbTokenAddr);
         bndesRoles = FABndesToken_BNDESRoles(addrBndesRoles);
 
-        bndesFee = fee;
+//        bndesFee = fee;
     }
 
-
+/*
     function setBNDESFee(uint256 newBndesFee, bytes32 docHash) public onlyOwner {
         require (newBndesFee < 100, "Valor de Fee maior que 100%");
         bndesFee = newBndesFee;
         emit FA_ManualIntervention_Fee(newBndesFee, docHash);
     }
-
+*/
 
     function bookDonation(uint amount, bytes32 docHash) public whenNotPaused  {        
         
@@ -123,13 +121,11 @@ contract FABndesToken is SpecificRBBToken {
     }
     
     /* confirms the donor's donation */
-    function verifyAndActForMint(bytes32 specificHash, uint amount, bytes32 docHash,
+    function verifyAndActForMint(uint idDonor, bytes32 specificHash, uint amount, bytes32 docHash,
         string[] memory data) public override whenNotPaused onlyRBBToken {
 
         require (getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_DIFF_MONEY)==specificHash, "Erro no cálculo do hash da doação");
 
-        string memory sidDonor = data[0];
-        uint idDonor = RBBLib.stringtoUint(sidDonor);
         require (donors[idDonor], "Somente doadores podem fazer doações, registro estah incorreto");
 
         emit FA_DonationConfirmed(idDonor, amount, docHash);
@@ -211,7 +207,7 @@ contract FABndesToken is SpecificRBBToken {
 
         emit FA_Disbursement (toId, idFinancialSupportAgreement, amount, docHash);
 
-    }
+    }   
 
     function verifyAndActForTransfer_CLIENT_PAY_SUPPLIER(address originalSender, uint fromId, bytes32 fromHash, 
             uint toId, bytes32 toHash, uint amount, bytes32 docHash, string[] memory data) internal whenNotPaused {
@@ -308,7 +304,6 @@ contract FABndesToken is SpecificRBBToken {
         require (hasRoleInThisContract(fromId, fromHash), "Endereço de origem não incluído como papel nesse cadastro");
         require (hasRoleInThisContract(toId, toHash), "Endereço de destino não incluído como papel nesse cadastro");
 
-//        string memory idFinancialSupportAgreement = data[1];
         bytes32 m = keccak256(abi.encodePacked(fromId, fromHash, toId, toHash, amount));
 
         bool transferApproved = false;
@@ -345,6 +340,8 @@ contract FABndesToken is SpecificRBBToken {
 
         if (!clients[id][idFinancialSupportAgreement]) {
             clients[id][idFinancialSupportAgreement] = true; //register the client
+            bytes32 h = getCalculatedHash(idFinancialSupportAgreement);
+            hashToIdFinancialSupportAgreement[h] = idFinancialSupportAgreement;
             emit FA_ClientAdded(id);
 
         }
@@ -362,11 +359,11 @@ contract FABndesToken is SpecificRBBToken {
 
     function hasRoleInThisContract (uint rbbId, bytes32 hashToAccount) private view returns (bool) {
 
-//        bool hasRole = false;
         if (donors[rbbId]==true) return true;
 
-//TODO: resolver -- preciso verificar se esse id jah estah cadastrado no mapping de clients.
-//        if (clients[rbbId]!=0) return true;
+        string memory idFinancialSupportAgreement = hashToIdFinancialSupportAgreement[hashToAccount];
+        if (clients[rbbId][idFinancialSupportAgreement]==true) return true;
+
         if (suppliers[rbbId]==true) return true;
 
         uint ownerId = registry.getId(owner());
