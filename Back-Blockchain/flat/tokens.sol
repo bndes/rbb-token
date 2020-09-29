@@ -1497,6 +1497,168 @@ contract FABndesToken is SpecificRBBToken {
 
 pragma solidity ^0.6.0;
 
+// File: @openzeppelin/contracts/GSN/Context.sol
+
+pragma solidity ^0.6.0;
+
+/*
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with GSN meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+
+// File: @openzeppelin/contracts/ownership/Ownable.sol
+
+pragma solidity ^0.6.0;
+
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+
+// File: contracts/RBBRegistry.sol
+
+pragma solidity ^0.6.0;
+
+
+
+/*
+Acho que LegalEntityInfo deveria conter id, ao invés de cnpj
+No caso de pessoa jurídica, o id é o cnpj
+No caso de pessoa física, um link para um cpf (por causa da LGPD).
+*/
+
+// File: @openzeppelin/contracts/access/Roles.sol
+
+pragma solidity ^0.6.0;
+
+/**
+ * @title Roles
+ * @dev Library for managing addresses assigned to a Role.
+ */
+
+// File: @openzeppelin/contracts/access/roles/PauserRole.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+// File: @openzeppelin/contracts/lifecycle/Pausable.sol
+
+pragma solidity ^0.6.0;
+
+
+
+/**
+ * @dev Contract module which allows children to implement an emergency stop
+ * mechanism that can be triggered by an authorized account.
+ *
+ * This module is used through inheritance. It will make available the
+ * modifiers `whenNotPaused` and `whenPaused`, which can be applied to
+ * the functions of your contract. Note that they will not be pausable by
+ * simply including this module, only once the modifiers are put in place.
+ */
+
+// File: contracts/SpecificRBBToken.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+
+// File: contracts/SpecificRBBTokenRegistry.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+
+// File: @openzeppelin/contracts/math/SafeMath.sol
+
+pragma solidity ^0.6.0;
+
+/**
+ * @dev Wrappers over Solidity's arithmetic operations with added overflow
+ * checks.
+ *
+ * Arithmetic operations in Solidity wrap on overflow. This can easily result
+ * in bugs, because programmers usually assume that an overflow raises an
+ * error, which is the standard behavior in high level programming languages.
+ * `SafeMath` restores this intuition by reverting the transaction when an
+ * operation overflows.
+ *
+ * Using this library instead of the unchecked operations eliminates an entire
+ * class of bugs, so it's recommended to use it always.
+ */
+
+// File: contracts/RBBToken.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+
+
+
+
+// File: contracts/FABndesToken_BNDESRoles.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+// File: contracts/FABndesToken.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+
+
+
+
+
+/*
+Todas as operações já supõem que a entidade de origem e destino estão cadastradas e validadas no RBB_Registry, pois isso é garantido pelo contrato genérico (RBB_Token)
+
+Não incluído (TBD):
+------------
+- requisito adicional de o cliente poder resgatar uma parte do valor (ao invés de ter que necessariamente transferir tudo ao fornecedor)
+- ideia de o fornecedor poder sacar mais de um saldo ao mesmo tempo.
+- pedido inicial de financiamento do cliente 
+- devolução de fornecedor para cliente sem anuência para o BNDES
+- controle que cada doacao realmente se transformou em duas transacoes, uma para a conta adm e outra para a conta usual
+uint admFee = amount.mul(bndesFee).div(100);
+- período de validade para as autorizações de transferências extraordinárias
+- invalidar doador, cliente e fornecedor (por exemplo, em caso de CNPJ deixar de existir, contrato com BNDES acabar ou periodicamente)
+- permitir criar perfis diferenciados para contas dos clientes e fornecedores
+
+*/
+// File: contracts/RBBLib.sol
+
+pragma solidity ^0.6.0;
+
 library RBBLib {
 
   function isEqual(string memory a, string memory b) public pure returns (bool) {
@@ -2042,6 +2204,7 @@ contract Pausable is Context, PauserRole {
 // File: contracts/SpecificRBBToken.sol
 
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 
 
@@ -2323,6 +2486,7 @@ library SafeMath {
 // File: contracts/RBBToken.sol
 
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 
 
@@ -2608,6 +2772,7 @@ contract FABndesToken_BNDESRoles is Ownable {
 // File: contracts/FABndesToken.sol
 
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 
 
