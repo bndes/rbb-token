@@ -41,7 +41,6 @@ contract SpecificRBBTokenRegistry is Ownable {
         address scOwnerAddr = specificToken.owner();
         uint scOwnerId = registry.getId(scOwnerAddr);
 
-
         specificRBBTokensRegistry[specificRBBTokenAddr] = SpecificRBBTokenInfo(idCount, true);
         emit SpecificRBBTokenRegistration (idCount, scOwnerId, specificRBBTokenAddr);
         idCount++;

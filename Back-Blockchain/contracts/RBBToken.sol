@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract RBBToken is Pausable, Ownable {
 
 //TODO: avaliar se deveria ter um set para modificar esses atributos
-    SpecificRBBTokenRegistry tokenRegistry;
+    SpecificRBBTokenRegistry public tokenRegistry;
     RBBRegistry public registry;
 
 
@@ -83,7 +83,7 @@ contract RBBToken is Pausable, Ownable {
 
         require(amount>0, "Valor a mintar deve ser maior do que zero");
 
-        (uint specificTokenId, uint businessContractOwnerId) = 
+        (uint specificTokenId, uint specificTokenOwnerId) = 
                     tokenRegistry.getSpecificRBBTokenIdAndOwnerId(specificTokenAddr);
 
         balanceRequestedTokens[specificTokenId][specificHash] 
@@ -94,8 +94,8 @@ contract RBBToken is Pausable, Ownable {
         //Retorna a conta de mint associada ao hash especifico. 
         bytes32 calcHash = specificToken.getHashToMintedAccount(specificHash);
 
-        rbbBalances[specificTokenId][businessContractOwnerId][calcHash] = 
-            rbbBalances[specificTokenId][businessContractOwnerId][calcHash].add(amount);
+        rbbBalances[specificTokenId][specificTokenOwnerId][calcHash] = 
+            rbbBalances[specificTokenId][specificTokenOwnerId][calcHash].add(amount);
 
         specificToken.verifyAndActForMint(idInvestor, specificHash, amount, docHash, data);
 
@@ -109,10 +109,10 @@ contract RBBToken is Pausable, Ownable {
         address specificTokenAddr = msg.sender;
         tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
-        (uint specificTokenId, uint businessContractOwnerId) = 
+        (uint specificTokenId, uint specificTokenOwnerId) = 
                     tokenRegistry.getSpecificRBBTokenIdAndOwnerId(specificTokenAddr);
         
-        _burn(specificTokenAddr, originalSender, businessContractOwnerId, hashToBurn, amount, docHash);
+        _burn(specificTokenAddr, originalSender, specificTokenOwnerId, hashToBurn, amount, docHash);
 
     }
 

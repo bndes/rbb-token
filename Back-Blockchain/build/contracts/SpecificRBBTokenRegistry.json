@@ -8239,12 +8239,12 @@
         }
       },
       "links": {},
-      "address": "0x44c5da4B907Dfa354A4212675fe4ed9930A3316F",
-      "transactionHash": "0x57e506c808c1594bc2a7a63c74fed1dcdf4777108e52f4d067426c55f191153c"
+      "address": "0xD11A8572d51628E04eaFD5572FA933982389be16",
+      "transactionHash": "0x3c3a81b07a77adf63ded2b9277f82d06d74e7eac6478ab42d18aae0497a1515f"
     }
   },
   "schemaVersion": "3.2.5",
-  "updatedAt": "2020-09-29T20:23:32.820Z",
+  "updatedAt": "2020-09-30T16:52:09.623Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

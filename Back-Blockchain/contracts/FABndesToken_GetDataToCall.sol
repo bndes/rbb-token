@@ -61,7 +61,7 @@ contract FABndesToken_GetDataToCall  {
     function getBNDESPaySupplierData () public view
             returns (bytes32, bytes32, string[] memory) {
 
-        bytes32 fromHash = getCalculatedHash(faBndesToken.RESERVED_USUAL_DISBURSEMENTS_ACCOUNT());
+        bytes32 fromHash = getCalculatedHash(faBndesToken.RESERVED_BNDES_ADMIN_FEE_TO_HASH());
         bytes32 toHash = getCalculatedHash(faBndesToken.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER());
 
         string[] memory data = new string[](1);
