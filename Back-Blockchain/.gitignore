@@ -3,5 +3,8 @@
 # compiled output
 /node_modules
 
+#to avoid exposing private info
+/migrations
+
 #Temporary solution: to allow json built truffle files to upload and make dockerhub build work
 #/build
