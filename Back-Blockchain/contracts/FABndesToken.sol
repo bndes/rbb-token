@@ -26,7 +26,7 @@ uint admFee = amount.mul(bndesFee).div(100);
 - período de validade para as autorizações de transferências extraordinárias
 - invalidar doador, cliente e fornecedor (por exemplo, em caso de CNPJ deixar de existir, contrato com BNDES acabar ou periodicamente)
 - permitir criar perfis diferenciados para contas dos clientes e fornecedores
-
+- incluir possibilidade de remover doadores, clientes e, talvez, fornecedores
 */
 contract FABndesToken is SpecificRBBToken {
 
@@ -112,7 +112,7 @@ contract FABndesToken is SpecificRBBToken {
         uint idDonor = registry.getId(msg.sender);
 
         require (donors[idDonor], "Somente doadores podem fazer doações");
-        require(registry.isValidatedId(idDonor), "Conta de doador precisa estar com cadastro validado");
+        require(registry.isRegistryOperational(idDonor), "Conta de doador precisa estar com cadastro validado");
         
         bytes32 specificHash = getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_DIFF_MONEY);
         rbbToken.requestMint(specificHash, idDonor, amount, docHash);
@@ -154,9 +154,10 @@ contract FABndesToken is SpecificRBBToken {
         else if (RBBLib.isEqual(CLIENT_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
             verifyAndActForTransfer_CLIENT_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
-        else if (RBBLib.isEqual(BNDES_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
-            verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
-        }
+//TODO: descomentar quando aumentar o gas limit
+//        else if (RBBLib.isEqual(BNDES_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
+//            verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
+//        }
         else if (RBBLib.isEqual(EXTRAORDINARY_TRANSFERS, specificMethod)) {
             verifyAndActForTransfer_EXTRAORDINARY_TRANSFERS(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
@@ -232,7 +233,8 @@ contract FABndesToken is SpecificRBBToken {
 
     }
 
-
+/*
+TODO: descomentar quando aumentar o tamanho do bloco
     function verifyAndActForTransfer_BNDES_PAY_SUPPLIER(address originalSender, uint fromId, bytes32 fromHash, 
             uint toId, bytes32 toHash, uint amount, bytes32 docHash, string[] memory data) internal whenNotPaused {
 
@@ -248,7 +250,7 @@ contract FABndesToken is SpecificRBBToken {
         emit FA_BNDES_TokenTransfer (toId, amount, docHash);
 
     }
-
+*/
     function verifyAndActForRedeem(address originalSender, uint fromId, bytes32 fromHash, uint amount, 
         bytes32 docHash, string[] memory data) public override whenNotPaused onlyRBBToken {
 
@@ -328,7 +330,7 @@ contract FABndesToken is SpecificRBBToken {
 //////////
 
     function addDonor (uint idDonor) public onlyOwner {
-        require(registry.isValidatedId(idDonor), "Conta de doador precisa estar com cadastro validado");
+        require(registry.isRegistryOperational(idDonor), "Conta de doador precisa estar com cadastro validado");
         if(!donors[idDonor]) {
             donors[idDonor] = true;
             emit FA_DonorAdded(idDonor);

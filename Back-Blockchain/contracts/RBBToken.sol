@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract RBBToken is Pausable, Ownable {
 
-//TODO: avaliar se deveria ter um set para modificar esses atributos
+//TODO: avaliar se deveria ter um set para modificar esses atributos. Ideal seria mudar apenas pela governanca
     SpecificRBBTokenRegistry public tokenRegistry;
     RBBRegistry public registry;
 
@@ -109,8 +109,7 @@ contract RBBToken is Pausable, Ownable {
         address specificTokenAddr = msg.sender;
         tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
-        (uint specificTokenId, uint specificTokenOwnerId) = 
-                    tokenRegistry.getSpecificRBBTokenIdAndOwnerId(specificTokenAddr);
+        uint specificTokenOwnerId = tokenRegistry.getSpecificOwnerId(specificTokenAddr);
         
         _burn(specificTokenAddr, originalSender, specificTokenOwnerId, hashToBurn, amount, docHash);
 
@@ -152,8 +151,8 @@ contract RBBToken is Pausable, Ownable {
 
         tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
-        require(registry.isValidatedId(fromId), "Conta de origem precisa estar com cadastro validado");
-        require(registry.isValidatedId(toId), "Conta de destino precisa estar com cadastro validado");
+        require(registry.isRegistryOperational(fromId), "Conta de origem precisa estar com cadastro validado");
+        require(registry.isRegistryOperational(toId), "Conta de destino precisa estar com cadastro validado");
         uint specificTokenId = tokenRegistry.getSpecificRBBTokenId(specificTokenAddr);
 
         SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
@@ -175,7 +174,7 @@ contract RBBToken is Pausable, Ownable {
 
             tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
-            require(registry.isValidatedId(fromId), "Conta solicitante do redeem precisa estar com cadastro validado");
+            require(registry.isRegistryOperational(fromId), "Conta solicitante do redeem precisa estar com cadastro validado");
             require(amount>0, "Valor a resgatar deve ser maior do que zero");
     
             SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);

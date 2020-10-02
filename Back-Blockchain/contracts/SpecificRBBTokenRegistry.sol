@@ -62,6 +62,15 @@ contract SpecificRBBTokenRegistry is Ownable {
         return (info.id, scOwnerId);
     }
     
+    function getSpecificOwnerId (address addr) public view returns (uint) {
+        require (containsSpecificRBBToken(addr), "Token específico nao registrado");
+        SpecificRBBToken specificToken = SpecificRBBToken(addr);
+        address scOwnerAddr = specificToken.owner();
+        uint scOwnerId = registry.getId(scOwnerAddr);
+
+        return scOwnerId;
+    }    
+
     function containsSpecificRBBToken(address addr) private view returns (bool) {
         SpecificRBBTokenInfo memory info = specificRBBTokensRegistry[addr];
         if (info.id!=0) return true;
