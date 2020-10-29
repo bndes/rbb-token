@@ -14,7 +14,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /*
 Todas as operações já supõem que a entidade de origem e destino estão cadastradas e validadas no RBB_Registry, pois isso é garantido pelo contrato genérico (RBB_Token)
-
 Não incluído (TBD):
 ------------
 - requisito adicional de o cliente poder resgatar uma parte do valor (ao invés de ter que necessariamente transferir tudo ao fornecedor)
@@ -155,9 +154,9 @@ contract FABndesToken is SpecificRBBToken {
             verifyAndActForTransfer_CLIENT_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
 //TODO: descomentar quando aumentar o gas limit
-//        else if (RBBLib.isEqual(BNDES_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
-//            verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
-//        }
+          else if (RBBLib.isEqual(BNDES_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
+              verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
+          }
         else if (RBBLib.isEqual(EXTRAORDINARY_TRANSFERS, specificMethod)) {
             verifyAndActForTransfer_EXTRAORDINARY_TRANSFERS(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
@@ -234,23 +233,18 @@ contract FABndesToken is SpecificRBBToken {
     }
 
 /*
-TODO: descomentar quando aumentar o tamanho do bloco
+TODO: descomentar quando aumentar o tamanho do bloco*/
     function verifyAndActForTransfer_BNDES_PAY_SUPPLIER(address originalSender, uint fromId, bytes32 fromHash, 
             uint toId, bytes32 toHash, uint amount, bytes32 docHash, string[] memory data) internal whenNotPaused {
-
         require (originalSender == bndesRoles.responsibleForDisbursement(), 
             "Esta transação só pode ser executada pelo responsável pelo desembolso");
-
         require (fromId==registry.getId(owner()), "Somente o BNDES pode executar o pagamento");
         require (getCalculatedHash(RESERVED_BNDES_ADMIN_FEE_TO_HASH)==fromHash, "Erro no cálculo do hash da conta de admin do contrato especifico");
         require (getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER)==toHash, "Erro no cálculo do hash da conta do fornecedor");
-
         require(fromId != toId, "Um BNDES não pode transferir token para si");
-
         emit FA_BNDES_TokenTransfer (toId, amount, docHash);
-
     }
-*/
+
     function verifyAndActForRedeem(address originalSender, uint fromId, bytes32 fromHash, uint amount, 
         bytes32 docHash, string[] memory data) public override whenNotPaused onlyRBBToken {
 
