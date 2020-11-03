@@ -6,7 +6,7 @@ import "./RBBLib.sol";
 import "./RBBRegistry.sol";
 import "./RBBToken.sol";
 import "./SpecificRBBToken.sol";
-import "./FABndesToken_BNDESRoles.sol";
+import "./ESGBndesToken_BNDESRoles.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -27,13 +27,13 @@ uint admFee = amount.mul(bndesFee).div(100);
 - permitir criar perfis diferenciados para contas dos clientes e fornecedores
 - incluir possibilidade de remover doadores, clientes e, talvez, fornecedores
 */
-contract FABndesToken is SpecificRBBToken {
+contract ESGBndesToken is SpecificRBBToken {
 
     RBBToken public rbbToken;
-    FABndesToken_BNDESRoles public bndesRoles;
+    ESGBndesToken_BNDESRoles public bndesRoles;
 
-    //RBBId donor => true/false (registered or not)
-    mapping (uint => bool) public donors;
+    //RBBId investor => true/false (registered or not)
+    mapping (uint => bool) public investors;
 
     //RBBId client => (idFinancialSupportAgreement Client => true/false (registered or not)
     mapping (uint => mapping (string => bool)) public clients;
@@ -59,21 +59,21 @@ contract FABndesToken is SpecificRBBToken {
     uint8 public RESERVED_MINTED_ACCOUNT = 0;
     uint8 public RESERVED_USUAL_DISBURSEMENTS_ACCOUNT = 1;
     uint8 public RESERVED_BNDES_ADMIN_FEE_TO_HASH = 2;
-    uint8 public RESERVED_NO_ADDITIONAL_FIELDS_TO_DONOR = 10;
+    uint8 public RESERVED_NO_ADDITIONAL_FIELDS_TO_INVESTOR = 10;
     uint8 public RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER = 20;
     uint8 public RESERVED_NO_ADDITIONAL_FIELDS_TO_DIFF_MONEY = 30;
 
     using SafeMath for uint;
    
-    event FA_DonationBooked(uint idDonor, uint amount, bytes32 docHash);
-    event FA_DonationConfirmed(uint idDonor, uint amount, bytes32 docHash);
+    event FA_InvestmentBooked(uint idInvestor, uint amount, bytes32 docHash);
+    event FA_InvestmentConfirmed(uint idInvestor, uint amount, bytes32 docHash);
 
     event FA_InitialAllocation_Disbursements(uint amount, bytes32 docHash);
     event FA_InitialAllocation_Fee(uint amount, bytes32 docHash);
 
     event FA_Disbursement  (uint idClient, string idFinancialSupportAgreement, uint amount, bytes32 docHash);
-    event FA_TokenTransfer (uint fromCnpj, string fromIdFinancialSupportAgreement, uint toCnpj, uint amount, bytes32 docHash);
-    event FA_BNDES_TokenTransfer(uint toCnpj, uint amount, bytes32 docHash);
+    event FA_TokenTransfer (uint fromId, string fromIdFinancialSupportAgreement, uint toId, uint amount, bytes32 docHash);
+    event FA_BNDES_TokenTransfer(uint toId, uint amount, bytes32 docHash);
     event FA_RedemptionRequested (uint idClaimer, uint amount, bytes32 docHash);
     event FA_RedemptionSettlement(bytes32 redemptionTransactionHash, bytes32 docHash);
  
@@ -84,7 +84,7 @@ contract FABndesToken is SpecificRBBToken {
 
 //    event FA_ManualIntervention_Fee(uint256 percent, bytes32 docHash);
 
-    event FA_DonorAdded(uint id);
+    event FA_InvestorAdded(uint id);
     event FA_ClientAdded(uint id);
     event FA_SupplierAdded(uint registeredBy, uint id);
 
@@ -93,7 +93,7 @@ contract FABndesToken is SpecificRBBToken {
 //        require (fee < 100, "Valor de Fee maior que 100%");
 
         rbbToken = RBBToken(newrbbTokenAddr);
-        bndesRoles = FABndesToken_BNDESRoles(addrBndesRoles);
+        bndesRoles = ESGBndesToken_BNDESRoles(addrBndesRoles);
 
 //        bndesFee = fee;
     }
@@ -106,28 +106,27 @@ contract FABndesToken is SpecificRBBToken {
     }
 */
 
-    function bookDonation(uint amount, bytes32 docHash) public whenNotPaused  {        
+    function bookInvestment(uint amount, bytes32 docHash) public whenNotPaused  {        
         
-        uint idDonor = registry.getId(msg.sender);
+        uint idInvestor = registry.getId(msg.sender);
 
-        require (donors[idDonor], "Somente doadores podem fazer doações");
-        require(registry.isRegistryOperational(idDonor), "Conta de doador precisa estar com cadastro validado");
+        require (investors[idInvestor], "Somente investidores cadastrados podem executar essa ação");
+ //       require(registry.isRegistryOperational(idInvestor), "Conta de investidor precisa estar com cadastro validado");
         
         bytes32 specificHash = getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_DIFF_MONEY);
-        rbbToken.requestMint(specificHash, idDonor, amount, docHash);
+        rbbToken.requestMint(specificHash, idInvestor, amount, docHash);
 
-        emit FA_DonationBooked(idDonor, amount, docHash);
+        emit FA_InvestmentBooked(idInvestor, amount, docHash);
     }
     
-    /* confirms the donor's donation */
-    function verifyAndActForMint(uint idDonor, bytes32 specificHash, uint amount, bytes32 docHash,
+    function verifyAndActForMint(uint idInvestor, bytes32 specificHash, uint amount, bytes32 docHash,
         string[] memory data) public override whenNotPaused onlyRBBToken {
 
         require (getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_DIFF_MONEY)==specificHash, "Erro no cálculo do hash da doação");
 
-        require (donors[idDonor], "Somente doadores podem fazer doações, registro estah incorreto");
+        require (investors[idInvestor], "Deveria ser um investidor, registro estah incorreto");
 
-        emit FA_DonationConfirmed(idDonor, amount, docHash);
+        emit FA_InvestmentConfirmed(idInvestor, amount, docHash);
 
     }
 
@@ -153,10 +152,9 @@ contract FABndesToken is SpecificRBBToken {
         else if (RBBLib.isEqual(CLIENT_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
             verifyAndActForTransfer_CLIENT_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
-//TODO: descomentar quando aumentar o gas limit
-          else if (RBBLib.isEqual(BNDES_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
-              verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
-          }
+        else if (RBBLib.isEqual(BNDES_PAY_SUPPLIER_VERIFICATION, specificMethod)) {
+            verifyAndActForTransfer_BNDES_PAY_SUPPLIER(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
+        }
         else if (RBBLib.isEqual(EXTRAORDINARY_TRANSFERS, specificMethod)) {
             verifyAndActForTransfer_EXTRAORDINARY_TRANSFERS(originalSender, fromId, fromHash, toId, toHash, amount, docHash, data);
         }
@@ -221,29 +219,30 @@ contract FABndesToken is SpecificRBBToken {
         require (getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER)==toHash, "Erro no cálculo do hash da conta do fornecedor");
 
         require(fromId != toId,
-            "Um CNPJ não pode transferir token para si, ainda que em papéis distintos (Cliente/Fornecedor)");
+            "Um instituição não pode transferir token para si, ainda que em papéis distintos (Cliente/Fornecedor)");
 
-        if (!suppliers[toId]) {
-            suppliers[toId] = true; //register the supplier
-            emit FA_SupplierAdded(fromId, toId);
-        }
+        addSupplier (fromId, toId);
 
         emit FA_TokenTransfer (fromId, idFinancialSupportAgreement, toId, amount, docHash);
 
     }
 
-/*
-TODO: descomentar quando aumentar o tamanho do bloco*/
     function verifyAndActForTransfer_BNDES_PAY_SUPPLIER(address originalSender, uint fromId, bytes32 fromHash, 
             uint toId, bytes32 toHash, uint amount, bytes32 docHash, string[] memory data) internal whenNotPaused {
-        require (originalSender == bndesRoles.responsibleForDisbursement(), 
-            "Esta transação só pode ser executada pelo responsável pelo desembolso");
         require (fromId==registry.getId(owner()), "Somente o BNDES pode executar o pagamento");
+        require (originalSender == bndesRoles.resposibleForPayingBNDESSuppliers(), 
+            "Esta transação só pode ser executada pelo responsável pelo do pagamento de fornecedores do BNDES");
         require (getCalculatedHash(RESERVED_BNDES_ADMIN_FEE_TO_HASH)==fromHash, "Erro no cálculo do hash da conta de admin do contrato especifico");
         require (getCalculatedHash(RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER)==toHash, "Erro no cálculo do hash da conta do fornecedor");
         require(fromId != toId, "Um BNDES não pode transferir token para si");
+
+        addSupplier (fromId, toId);
+
         emit FA_BNDES_TokenTransfer (toId, amount, docHash);
+
     }
+
+
 
     function verifyAndActForRedeem(address originalSender, uint fromId, bytes32 fromHash, uint amount, 
         bytes32 docHash, string[] memory data) public override whenNotPaused onlyRBBToken {
@@ -323,11 +322,11 @@ TODO: descomentar quando aumentar o tamanho do bloco*/
 
 //////////
 
-    function addDonor (uint idDonor) public onlyOwner {
-        require(registry.isRegistryOperational(idDonor), "Conta de doador precisa estar com cadastro validado");
-        if(!donors[idDonor]) {
-            donors[idDonor] = true;
-            emit FA_DonorAdded(idDonor);
+    function addInvestor (uint idInvestor) public onlyOwner {
+        require(registry.isRegistryOperational(idInvestor), "Conta de investidor precisa estar com cadastro validado");
+        if(!investors[idInvestor]) {
+            investors[idInvestor] = true;
+            emit FA_InvestorAdded(idInvestor);
         }
     }
 
@@ -344,18 +343,17 @@ TODO: descomentar quando aumentar o tamanho do bloco*/
     }
 
 
-    function addSupplier (uint id) public  {
+    function addSupplier (uint registererId, uint idSupplier) internal  {
 
-        require (msg.sender == bndesRoles.responsibleForDisbursement(), "Esta transação só pode ser executada pelo responsável pelo desembolso");
-        if (!suppliers[id]) {
-            suppliers[id] = true; //register the supplier
-            emit FA_SupplierAdded(registry.getId(owner()), id);
+        if (!suppliers[idSupplier]) {
+            suppliers[idSupplier] = true; //register the supplier
+            emit FA_SupplierAdded(registererId, idSupplier);
         }
     }
 
     function hasRoleInThisContract (uint rbbId, bytes32 hashToAccount) private view returns (bool) {
 
-        if (donors[rbbId]==true) return true;
+        if (investors[rbbId]==true) return true;
 
         string memory idFinancialSupportAgreement = hashToIdFinancialSupportAgreement[hashToAccount];
         if (clients[rbbId][idFinancialSupportAgreement]==true) return true;

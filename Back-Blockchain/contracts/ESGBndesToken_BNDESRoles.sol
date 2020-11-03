@@ -4,13 +4,14 @@ import "./RBBRegistry.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 
 
-contract FABndesToken_BNDESRoles is Ownable {
+contract ESGBndesToken_BNDESRoles is Ownable {
 
     RBBRegistry public registry;
 
     address public responsibleForInitialAllocation;
     address public responsibleForDisbursement;
     address public resposibleForApproveExtraordinaryTransfers;
+    address public resposibleForPayingBNDESSuppliers;
 
     event FA_ManualIntervention_RoleOrAddress(address account, uint8 eventType);
 
@@ -21,6 +22,7 @@ contract FABndesToken_BNDESRoles is Ownable {
         responsibleForInitialAllocation = msg.sender;
         responsibleForDisbursement = msg.sender;
         resposibleForApproveExtraordinaryTransfers = msg.sender;
+        resposibleForPayingBNDESSuppliers = msg.sender;
 
     } 
 
@@ -44,5 +46,14 @@ contract FABndesToken_BNDESRoles is Ownable {
         resposibleForApproveExtraordinaryTransfers = rs;
         emit FA_ManualIntervention_RoleOrAddress(rs, 3);
     }
+
+    function setResposibleForPayingBNDESSuppliers(address rs) onlyOwner public {
+        uint id = registry.getId(rs);
+        require(id==registry.getId(owner()), "O responsável pelo pagamento direto a suppliers deve ser da mesmo RBB_ID do contrato");
+        resposibleForPayingBNDESSuppliers = rs;
+        emit FA_ManualIntervention_RoleOrAddress(rs, 4);
+    }
+
+
 
 }
