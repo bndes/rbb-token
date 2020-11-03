@@ -1,0 +1,248 @@
+<div class="form-group" *ngIf="selectedAccount">
+<div class="title-loading">
+  <h2 class="page-header">Dashboard de Liberações e Resgates</h2>
+  <app-bn-loading class="loading" *ngIf="estadoLista === 'undefined'"></app-bn-loading>
+</div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-3 col-sm-3 border border-dark rounded">
+        <div class="">
+          <div class="row">
+             
+              <div >
+                <div >
+                  <div class="col-md-12 col-sm-12 titulo-dash">
+                    Tokens emitidos em doação
+                  </div>
+                </div>    
+                <div >
+                  <div class="col-md-12 col-sm-12 numero-dash">
+                    {{ tokensEmitidosDoacao | currency:'BND':'symbol':'1.2-2':'pt'}}
+                    <br>
+                    = 
+                    <br>
+                    {{ tokensEmitidosDoacao | currency:'R$':'symbol':'1.2-2':'pt'}}
+                    <br>
+                    <a class="titulo-dash" target="_blank" href="/sociedade/dash-doacao">
+                    ver detalhes
+                    </a>
+                  </div>
+                </div>    
+              </div>                
+             
+          </div>
+        </div>
+      </div>
+      <div class="col-md-9 col-sm-9">
+        <div class="">
+          <div class="row">
+            <div class="col-md-6 col-sm-6 border border-dark rounded titulo-dash">          
+              <div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 titulo-dash-green">
+                    Tokens disponíveis para apoio a projetos (saldo não utilizado)
+                  </div>
+                </div>    
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 numero-dash-green">
+                    {{saldoBNDESToken | currency:'BND':'symbol':'1.2-2':'pt'}}
+                  </div>
+                </div>    
+              </div>               
+            </div>
+            <div class="col-md-3 col-sm-3 border border-dark rounded titulo-dash">
+              <div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 titulo-dash-orange">
+                    Nº de Liberações
+                  </div>
+                </div>    
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 numero-dash-orange">
+                    {{contadorLiberacao}}
+                  </div>
+                </div>    
+              </div>              
+            </div>
+            <div class="col-md-3 col-sm-3 border border-dark rounded titulo-dash">
+              <div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 titulo-dash-yellow">
+                    Nº de Resgates
+                  </div>
+                </div>    
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 numero-dash-yellow">
+                    {{contadorSolicitacaoResgate}}
+                  </div>
+                </div>    
+              </div>                             
+            </div>
+
+          </div>
+          <div class="row">
+            <div class="col-md-6 col-sm-6 border border-dark rounded titulo-dash">          
+              <div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 titulo-dash-orange">
+                    Tokens liberados em apoio a projetos (liberações)
+                  </div>
+                </div>    
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 numero-dash-orange">
+                    {{ volumeLiberacao | currency:'BND':'symbol':'1.2-2':'pt' }}
+                  </div>
+                </div>    
+              </div>               
+            </div>
+              <div class="col-md-6 col-sm-6 border border-dark rounded titulo-dash">          
+                <div class="row">
+                  <div>
+                    <div >
+                      <div class="col-md-12 col-sm-12 titulo-dash-yellow">                        
+                        Tokens solicitados para Resgate
+                      </div>
+                    </div>    
+                    <div >
+                      <div class="col-md-12 col-sm-12 numero-dash-yellow">
+                        {{volumeResgate | currency:'BND':'symbol':'1.2-2':'pt'}}
+                      </div>
+                    </div>    
+                  </div> 
+                </div>
+                
+                <div class="row">
+                  <div>
+                    <div >
+                      <div class="col-md-12 col-sm-12 titulo-dash-yellow">                        
+                        Tokens em Circulação (liberações - resgates)
+                      </div>
+                    </div>    
+                    <div >
+                      <div class="col-md-12 col-sm-12 numero-dash-yellow">
+                        {{tokensEmCirculacao | currency:'BND':'symbol':'1.2-2':'pt'}}
+                      </div>
+                    </div>    
+                  </div>  
+                </div>
+
+                <div class="row" *ngIf="(saldoAjustesExtraordinarios!=0)">
+                  <div>
+                    <div >
+                      <div class="col-md-12 col-sm-12 titulo-dash-yellow">                        
+                        Saldo de ajustes extraordinários (<a class="titulo-dash" target="_blank" href="/sociedade/dash-manuais">ver detalhes</a>)
+                      </div>
+                    </div>    
+                    <div >
+                      <div class="col-md-12 col-sm-12 numero-dash-yellow">
+                        {{ saldoAjustesExtraordinarios | currency:'BND':'symbol':'1.2-2':'pt'}}
+                      </div>
+                    </div> 
+                  </div>                      
+                </div>
+
+
+              </div>              
+                      
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div *ngIf="estadoLista === 'cheia'"> 
+  
+  <input class="form-control barra-filtro" type="text" name="search" [(ngModel)]="filter" placeholder="Filtro">
+    <table class="table table-striped table-bordered table-sm">
+      <thead>
+        <tr *ngIf="listaTransferencias.length > 0">
+          <td>Razão Social origem
+          
+          </td>
+          <td>Contrato origem
+
+          </td>
+          <td>Razão Social destino
+  
+          </td>
+          <td>Contrato destino
+
+          </td>
+          <td >Valor em BNDESToken
+
+          </td>         
+          <td >Data/Hora
+ 
+          </td>
+          <td >Tipo
+       
+          </td>
+          <td>Liquidação
+                  
+            </td>
+          <td>HashId
+                   
+          </td>
+        </tr>
+      </thead>
+
+      <tbody>
+        
+        <tr *ngFor="let transferencia of listaTransferencias | orderBy: order :reverse: 'caseInsensitive':customComparator | filter:filter | paginate: { itemsPerPage: 10, currentPage: p } ; let i = index">
+          <td class="tooltipCaixa">{{transferencia.deRazaoSocial}}
+              <span class="tooltiptext">CNPJ: {{transferencia.deCnpj | cnpjMask}}</span>
+          </td>
+          <td><span *ngIf="transferencia.deConta>='00000000'">{{transferencia.deConta | contratoMask }}</span></td>
+          <td class="tooltipCaixa">{{transferencia.paraRazaoSocial}}
+              <span class="tooltiptext">CNPJ: {{transferencia.paraCnpj | cnpjMask}}</span>
+          </td>
+          <td><span *ngIf="transferencia.paraConta>='00000000'">{{transferencia.paraConta | contratoMask}}</span></td>
+          <td>{{transferencia.valor | currency:'BND':'symbol':'1.2-2':'pt' }}</td>
+          
+          <td>{{transferencia.dataHora | date: 'dd/MM/yyyy hh:mm a' }}</td>
+          <td>{{transferencia.tipo}}</td>
+          <td class="text-center">
+              <button type="button" class="btn btn-success btn-cabecalho" *ngIf="transferencia.tipo=='Solicitação de Resgate'"
+               ngbTooltip="Entrar" (click)="routeToLiquidacaoResgate(transferencia.hashID)">
+                 Entrar
+                </button>              
+          </td>
+          <td class="text-center">
+            <a target="_blank" href="https://{{blockchainNetworkPrefix}}etherscan.io/tx/{{transferencia.hashID}}">
+              <i class="fa fa-link" aria-hidden="true"></i>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="text-center">
+      <pagination-controls (pageChange)="p = $event" previousLabel="Anterior" nextLabel="Próximo" class="paginacao"></pagination-controls>
+    </div>
+  </div>
+<!--
+  <div class="mapa">
+    <agm-map [latitude]="latitudeInicial" [longitude]="longitudeInicial" [zoom]="zoom" [disableDefaultUI]="false" [zoomControl]="true"
+      [mapTypeControl]="true" [usePanning]="true">
+
+      <agm-polyline *ngFor="let ml of marcadoresLinha">
+        <agm-polyline-point [latitude]="ml.latA" [longitude]="ml.lngA"></agm-polyline-point>
+        <agm-polyline-point [latitude]="ml.latB" [longitude]="ml.lngB"></agm-polyline-point>
+      </agm-polyline>
+
+      <agm-marker *ngFor="let m of marcadores; let i = index" [latitude]="m.lat" [longitude]="m.lng" [label]="labelMap[i]" [markerDraggable]="m.draggable">
+
+        <agm-info-window>
+          <strong>{{m.info}}</strong>
+        </agm-info-window>
+      </agm-marker>
+    </agm-map>
+    <p>
+      <b>A: Origem B: Destino</b>
+    </p>
+  </div>
+-->
+</div>
+
+</div>
+<app-metamsg *ngIf="!selectedAccount"></app-metamsg>
