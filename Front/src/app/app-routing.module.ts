@@ -10,19 +10,14 @@ import { HabilitaCadastroComponent } from './habilita-cadastro/habilita-cadastro
 import { ValidacaoCadastroComponent } from './validacao-cadastro/validacao-cadastro.component';
 
 /* Cliente */
-import { AssociaContaClienteComponent } from './associa-conta-cliente/associa-conta-cliente.component';
 import { ConfirmaDoacaoComponent } from './confirma-doacao/confirma-doacao.component';
-import { RecuperaAcessoClienteComponent } from './recupera-acesso-cliente/recupera-acesso-cliente.component';
 import { ResgateComponent } from './resgate/resgate.component';
 
 
 /* Doador */
-import { AssociaContaDoadorComponent } from './associa-conta-doador/associa-conta-doador.component';
 import { RegistraDoacaoComponent } from './registra-doacao/registra-doacao.component';
-import { RecuperaAcessoDoadorComponent } from './recupera-acesso-doador/recupera-acesso-doador.component';
 
 /* Sociedade */
-//import { DashboardIdEmpresaComponent } from './dashboard-id-empresa/dashboard-id-empresa.component';
 import { DashboardDoacaoComponent } from './dashboard-doacao/dashboard-doacao.component';
 import { DashboardTransferenciasComponent } from './dashboard-transferencias/dashboard-transferencias.component';
 import {DashboardManualComponent } from './dashboard-manual/dashboard-manual.component';
@@ -37,13 +32,8 @@ const routes: Routes = [
   { path: 'bndes/habilita-cadastro', component: HabilitaCadastroComponent},
   { path: 'bndes/val-cadastro', component: ValidacaoCadastroComponent},
   { path: 'bndes/liquidar/:solicitacaoResgateId', component: LiquidacaoResgateComponent},
-  { path: 'cliente/associa-conta-cliente', component: AssociaContaClienteComponent },
-  { path: 'cliente/recupera-acesso-cliente', component: RecuperaAcessoClienteComponent},
-  { path: 'doador/associa-conta-doador', component: AssociaContaDoadorComponent},
   { path: 'doador/registra-doacao', component: RegistraDoacaoComponent},  
   { path: 'cliente/resgate', component: ResgateComponent },
-  { path: 'doador/recupera-acesso-doador', component: RecuperaAcessoDoadorComponent},
-//  { path: 'sociedade/dash-empresas', component: DashboardIdEmpresaComponent },
   { path: 'sociedade/dash-doacao', component: DashboardDoacaoComponent },
   { path: 'sociedade/dash-transf', component: DashboardTransferenciasComponent },
   { path: 'sociedade/dash-manuais', component: DashboardManualComponent },

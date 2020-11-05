@@ -28,14 +28,10 @@ import { LiberacaoComponent } from './liberacao/liberacao.component';
 import { LiquidacaoResgateComponent } from './liquidacao-resgate/liquidacao-resgate.component';
 
 /* Cliente */
-import { AssociaContaClienteComponent } from './associa-conta-cliente/associa-conta-cliente.component';
-import { RecuperaAcessoClienteComponent } from './recupera-acesso-cliente/recupera-acesso-cliente.component';
 import { ResgateComponent } from './resgate/resgate.component';
 
 /* Doador */
 import { RegistraDoacaoComponent } from './registra-doacao/registra-doacao.component'
-import { AssociaContaDoadorComponent } from './associa-conta-doador/associa-conta-doador.component';
-import { RecuperaAcessoDoadorComponent } from './recupera-acesso-doador/recupera-acesso-doador.component';
 
 /* Sociedade */
 //import { DashboardIdEmpresaComponent } from './dashboard-id-empresa/dashboard-id-empresa.component';
@@ -94,16 +90,11 @@ export const optionsMaskCurrencyBND: CurrencyMaskConfig = {
   declarations: [
     AppComponent,
     LiberacaoComponent,
-//    DashboardIdEmpresaComponent,
     DashboardTransferenciasComponent,
     HomeComponent,
     LiquidacaoResgateComponent,
-    AssociaContaClienteComponent,
-    RecuperaAcessoClienteComponent,
     ResgateComponent,
     HomeComponent,
-    AssociaContaDoadorComponent,
-    RecuperaAcessoDoadorComponent,
     BlocoAnimadoComponent,
     MetamsgComponent,
     AssinadorComponent,

@@ -256,27 +256,6 @@ export class Web3Service {
     }
 
 
-    async cadastra(cnpj: number, idSubcredito: number, hashdeclaracao: string,
-        fSuccess: any, fError: any) {
-/*
-TODO: Remover
-        let contaBlockchain = await this.getCurrentAccountSync();    
-
-        console.log("Web3Service - Cadastra")
-        console.log("CNPJ: " + cnpj + ", Contrato: " + idSubcredito + 
-            ", hashdeclaracao: " + hashdeclaracao
-            )
-
-        this.bndesTokenSmartContract.registryLegalEntity(cnpj, idSubcredito, 
-            hashdeclaracao, 
-            { from: contaBlockchain, gas: 500000 },
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });
-            */
-    }
-
     getVersao(fSuccess: any, fError: any): number {
 /*
         console.log("vai recuperar a versao. " );
