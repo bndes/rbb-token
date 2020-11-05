@@ -1,7 +1,6 @@
 // Set up
 const express = require('express');
 const app = express();                               // create our app w/ express
-//const mongoose = require('mongoose');                     // mongoose for mongodb
 const bodyParser = require('body-parser');    // pull information from HTML POST (express4)
 const methodOverride = require('method-override'); // simulate DELETE and PUT (express4)
 const cors = require('cors');
@@ -15,12 +14,9 @@ const https = require ('https');
 const multer = require('multer');
 
 const DIR_UPLOAD = config.infra.caminhoArquivos + config.infra.caminhoUpload;
-const DIR_CAMINHO_DECLARACAO = config.infra.caminhoArquivos + config.infra.caminhoDeclaracao;
+//const DIR_CAMINHO_DECLARACAO = config.infra.caminhoArquivos + config.infra.caminhoDeclaracao;
 const DIR_CAMINHO_COMPROVANTE_DOACAO = config.infra.caminhoArquivos + config.infra.caminhoComprovanteDoacao;
 const DIR_CAMINHO_COMPROVANTE_LIQUIDACAO = config.infra.caminhoArquivos + config.infra.caminhoComprovanteLiquidacao;
-
-const CAMINHO_MODELO_DECLARACAO_CONTA_DIGITAL = config.infra.caminhoModeloDeclaracaoContaBlockchain;
-const CAMINHO_ROTEIRO_ASSINATURA_DIGITAL = config.infra.caminhoRoteiroAssinaturaDigital;
 
 const MAX_FILE_SIZE = Number( config.negocio.maxFileSize );
 
@@ -74,74 +70,35 @@ app.use(function (req, res, next) {
 app.use(express.static(config.infra.caminhoPastaPublica));
 
 
-//Promise.promisifyAll(mongoose); // key part - promisification
-
-
-/*var PessoasJuridicas = mongoose.model('Pessoasjuridicas', {
-
-	cnpj: String,
-	dadosCadastrais: {
-		cidade: String,
-		razaoSocial: String,
-	},
-	subcreditos: [{
-		numero: Number,
-	}],
-});
-*/
-
-// Rotas
-/*
-	//use para pegar qq verbo hhtp
-	//verifica autenticacao para todas as rotas abaixo
-	app.use('/*', function(req, res, next) {
-		console.log("Sempre passa por aqui");
-		next();
-    });
-*/
-
 //Configuracao de acesso ao BD
 let configAcessoBDPJ = config.infra.acesso_BD_PJ;
 configAcessoBDPJ.password = process.env.BNC_BD_PJ_PASSWORD;
 
+let contrato_json_RBBToken = require(config.infra.contrato_json_RBBToken);
+let contrato_json_ESGBndesToken = require(config.infra.contrato_json_ESGBndesToken);
+let contrato_json_ESGBndesToken_GetDataToCall = require(config.infra.contrato_json_ESGBndesToken_GetDataToCall);
+let contrato_json_RBBRegistry = require(config.infra.contrato_json_RBBRegistry);
 
 
-var contrato_json_BNDESToken = require(config.infra.contrato_json_BNDESToken);
-var contrato_json_BNDESRegistry = require(config.infra.contrato_json_BNDESRegistry);
-
-var n = contrato_json_BNDESToken.networks;
+var n = contrato_json_RBBToken.networks;
 
 console.log("config.infra.rede_blockchain (1=Main|4=Rinkeby|4447=local) = " + config.infra.rede_blockchain);
 
-//ABI = contrato_json_BNDESToken['abi']
 
-let addrContratoBNDESToken;
-let addrContratoBNDESRegistry;
-if (config.infra.rede_blockchain < 10) {  
-	console.log ("config.infra.rede_blockchain=" + config.infra.rede_blockchain);
-	addrContratoBNDESToken = config.infra.endereco_BNDESToken;
-	addrContratoBNDESRegistry = config.infra.endereco_BNDESRegistry;
-}
-else { //TODO: testar localhost
-	
-	try {
-		console.log ("config.infra.rede_blockchain>10 -> rede local=" + config.infra.rede_blockchain);
-		let test = n[config.infra.rede_blockchain].address 
-	} catch (error) {
-		console.log ("ERROR. Consider: ")
-		console.log ("1) remove the back-blockchain/build and then migrate again...")
-		console.log ("2) the number of the network in your config.json")
-		console.log ("	networks = " + n)
-		console.log ("	config.infra.rede_blockchain = " + config.infra.rede_blockchain)
-		console.log ("	networks[config.infra.rede_blockchain] = " + n[config.infra.rede_blockchain])		
-		process.exit();
-	}
-	addrContratoBNDESToken = n[config.infra.rede_blockchain].address;
-	addrContratoBNDESRegistry = contrato_json_BNDESRegistry.networks[config.infra.rede_blockchain].address;
-}
+let addrContratoRBBToken;
+let addrContratoRBBRegistry;
 
-console.log("endereco do contrato BNDESToken=" + addrContratoBNDESToken);
-console.log("endereco do contrato BNDESRegistry=" + addrContratoBNDESRegistry);
+//USANDO REDE LACCHAIN
+console.log ("config.infra.rede_blockchain=" + config.infra.rede_blockchain);
+
+addrContratoRBBToken = config.infra.endereco_RBBToken;
+addrContratoESGBndesToken = config.infra.endereco_ESGBndesToken;
+addrContratoESGBndesToken_GetDataToCall = config.infra.endereco_ESGBndesToken_GetDataToCall;
+addrContratoRBBRegistry = config.infra.endereco_RBBRegistry;
+
+
+console.log("endereco do contrato RBBToken=" + addrContratoRBBToken);
+console.log("endereco do contrato RBBRegistry=" + addrContratoRBBRegistry);
 
 
 app.get('/api/abi', function (req, res) {
@@ -162,11 +119,18 @@ async function calculaHash(filename) {
 
 //recupera constantes front
 app.post('/api/constantesFront', function (req, res) {
-	res.json({ addrContratoBNDESToken: addrContratoBNDESToken, 
-		addrContratoBNDESRegistry: addrContratoBNDESRegistry,
-		blockchainNetwork: config.infra.rede_blockchain,
-		abiBNDESToken: contrato_json_BNDESToken['abi'],
-		abiBNDESRegistry: contrato_json_BNDESRegistry['abi']
+	res.json({ 
+		blockchainNetwork: config.infra.rede_blockchain,		
+		
+		addrContratoRBBToken: addrContratoRBBToken, 
+		addrContratoESGBndesToken: addrContratoESGBndesToken,
+		addrContratoESGBndesToken_GetDataToCall: addrContratoESGBndesToken_GetDataToCall,
+		addrContratoRBBRegistry: addrContratoRBBRegistry,
+
+		abiRBBToken: contrato_json_RBBToken['abi'],
+		abiESGBndesToken: contrato_json_ESGBndesToken['abi'],
+		abiESGBndesToken_GetDataToCall: contrato_json_ESGBndesToken_GetDataToCall['abi'], 
+		abiRBBRegistry: contrato_json_RBBRegistry['abi']
 	 });
 });
 
@@ -180,9 +144,7 @@ app.post('/api/constantesFrontPJ', function (req, res) {
 	let consts = { operationAPIURL: config.infra.operationAPIURL,  
 		mockMongoClient: config.negocio.mockMongoClient, 
 		mockPJ: mockPJ,
-		maxFileSize: MAX_FILE_SIZE,
-		CAMINHO_MODELO_DECLARACAO_CONTA_DIGITAL: CAMINHO_MODELO_DECLARACAO_CONTA_DIGITAL,
-		CAMINHO_ROTEIRO_ASSINATURA_DIGITAL: CAMINHO_ROTEIRO_ASSINATURA_DIGITAL		
+		maxFileSize: MAX_FILE_SIZE
 	}
 
 	res.json(consts);
@@ -290,10 +252,8 @@ app.post('/api/pj-por-cnpj', buscaPJPorCnpj);
 					res.status(500).send({ message: "${err}"})
 					sql.close();
 				});
-	
 
 		}
-
 
 	}	
 
@@ -317,7 +277,7 @@ function trataUpload(req, res, next) {
 				// No error occured.			
 				let cnpj     = req.body.cnpj;
 				let contrato = req.body.contrato;	
-				let conta    = req.body.contaBlockchain;
+//				let conta    = req.body.contaBlockchain;
 				let tipo     = req.body.tipo;
 
 				console.log("tipo=");
@@ -329,8 +289,8 @@ function trataUpload(req, res, next) {
 				let target_path = "";
 
 				if (tipo=="declaracao") {					
-					let fileName = montaNomeArquivoDeclaracao(cnpj, contrato, conta, hashedResult);
-					target_path = DIR_CAMINHO_DECLARACAO + fileName;
+//					let fileName = montaNomeArquivoDeclaracao(cnpj, contrato, conta, hashedResult);
+//					target_path = DIR_CAMINHO_DECLARACAO + fileName;
 				}
 				else if (tipo=="comp_doacao") {
 					let fileName = montaNomeArquivoComprovanteDoacao(cnpj, hashedResult);

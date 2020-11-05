@@ -38,7 +38,7 @@ import { AssociaContaDoadorComponent } from './associa-conta-doador/associa-cont
 import { RecuperaAcessoDoadorComponent } from './recupera-acesso-doador/recupera-acesso-doador.component';
 
 /* Sociedade */
-import { DashboardIdEmpresaComponent } from './dashboard-id-empresa/dashboard-id-empresa.component';
+//import { DashboardIdEmpresaComponent } from './dashboard-id-empresa/dashboard-id-empresa.component';
 import { DashboardDoacaoComponent } from './dashboard-doacao/dashboard-doacao.component';
 import { DashboardTransferenciasComponent } from './dashboard-transferencias/dashboard-transferencias.component';
 
@@ -94,7 +94,7 @@ export const optionsMaskCurrencyBND: CurrencyMaskConfig = {
   declarations: [
     AppComponent,
     LiberacaoComponent,
-    DashboardIdEmpresaComponent,
+//    DashboardIdEmpresaComponent,
     DashboardTransferenciasComponent,
     HomeComponent,
     LiquidacaoResgateComponent,

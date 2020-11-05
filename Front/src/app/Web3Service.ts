@@ -8,24 +8,34 @@ export class Web3Service {
 
     private serverUrl: string;
 
-    private addrContratoBNDESRegistry: string = '';
-    private addrContratoBNDESToken: string = '';    
+    //TODO : falta remover aqui e em todos os metodos abaixo
+    private bndesTokenSmartContract: any;
+    private bndesRegistrySmartContract: any;
+
+    private addrContratoRBBToken: string = '';
+    private addrContratoESGBndesToken: string = '';
+    private addrContratoESGBndesToken_GetDataToCall: string = '';
+    private addrContratoRBBRegistry: string = '';
+
+    private abiRBBToken: string = '';
+    private abiESGBndesToken: string = '';
+    private abiESGBndesToken_GetDataToCall: string = ''; 
+    private abiRBBRegistry: string = '';
+
+    private rbbTokenSmartContract: any;
+    private esgBndesTokenSmartContract: any;
+    private esgBndesToken_GetDataToCallSmartContract: any;
+    private rbbRegistrySmartContract: any;
+
+
     private blockchainNetwork: string = '';
     private ethereum: any;
     private web3Instance: any;                  // Current instance of web3
 
-    private bndesTokenSmartContract: any;
-    private bndesRegistrySmartContract: any;
+//    private vetorTxJaProcessadas : any[];
 
-    // Application Binary Interface so we can use the question contract
-    private ABIBndesToken;
-    private ABIBndesRegistry;
+    private eventoRBBToken: any;
 
-    private vetorTxJaProcessadas : any[];
-
-    private eventoBNDESToken: any;
-    private eventoBNDESRegistry: any;
-    private eventoCadastro: any;
     private eventoTransacao: any;
     private eventoDoacao: any;
 
@@ -35,7 +45,7 @@ export class Web3Service {
 
     constructor(private http: HttpClient, private constantes: ConstantesService) {
        
-        this.vetorTxJaProcessadas = [];
+//        this.vetorTxJaProcessadas = [];
 
         this.serverUrl = ConstantesService.serverUrl;
         console.log("Web3Service.ts :: Selecionou URL = " + this.serverUrl)
@@ -43,14 +53,21 @@ export class Web3Service {
         this.http.post<Object>(this.serverUrl + 'constantesFront', {}).subscribe(
             data => {
 
-                this.addrContratoBNDESRegistry = data["addrContratoBNDESRegistry"];
-                this.addrContratoBNDESToken = data["addrContratoBNDESToken"];
                 this.blockchainNetwork = data["blockchainNetwork"];
-                this.ABIBndesToken = data['abiBNDESToken'];
-                this.ABIBndesRegistry = data['abiBNDESRegistry'];
+    
+                this.addrContratoRBBToken = data["addrContratoRBBToken"];
+                this.addrContratoESGBndesToken = data["addrContratoESGBndesToken"];
+                this.addrContratoESGBndesToken_GetDataToCall = data["addrContratoESGBndesToken_GetDataToCall"];
+                this.addrContratoRBBRegistry = data["addrContratoRBBRegistry"];
+    
+                this.abiRBBToken = data['abiRBBToken'];
+                this.abiESGBndesToken = data['abiESGBndesToken'];
+                this.abiESGBndesToken_GetDataToCall = data['abiESGBndesToken_GetDataToCall']; 
+                this.abiRBBRegistry = data['abiRBBRegistry'];
+            
 
                 console.log("abis");
-                console.log(this.ABIBndesRegistry);
+                console.log(this.abiRBBToken);
 
                 this.intializeWeb3();
                 this.inicializaQtdDecimais();
@@ -74,13 +91,19 @@ export class Web3Service {
         else if (this.blockchainNetwork=="1") {
             blockchainNetworkAsString = "Mainnet";
         }
+        else if (this.blockchainNetwork=="648629") {
+            blockchainNetworkAsString = "RBB";
+            //TODO: FALTA DEFINIR CAMINHO PARA BLOCK EXPLORER DO RBB
+        }
 
         return {
             blockchainNetwork:this.blockchainNetwork,
             blockchainNetworkAsString:blockchainNetworkAsString,
             blockchainNetworkPrefix: blockchainNetworkPrefix,
-            contractAddr: this.addrContratoBNDESToken,
-            registryAddr: this.addrContratoBNDESRegistry
+
+            addrContratoRBBToken: this.addrContratoRBBToken,
+            addrContratoESGBndesToken: this.addrContratoESGBndesToken,
+            addrContratoRBBRegistry: this.addrContratoRBBRegistry,
         };
     }
 
@@ -110,14 +133,14 @@ export class Web3Service {
             return; 
         }
 
-        this.bndesTokenSmartContract = this.web3.eth.contract(this.ABIBndesToken).at(this.addrContratoBNDESToken);
-        this.bndesRegistrySmartContract = this.web3.eth.contract(this.ABIBndesRegistry).at(this.addrContratoBNDESRegistry);
+        this.rbbTokenSmartContract = this.web3.eth.contract(this.abiRBBToken).at(this.addrContratoRBBToken);
+        this.esgBndesTokenSmartContract = this.web3.eth.contract(this.abiESGBndesToken).at(this.addrContratoESGBndesToken);
+        this.esgBndesToken_GetDataToCallSmartContract = this.web3.eth.contract(this.abiESGBndesToken_GetDataToCall).at(this.addrContratoESGBndesToken_GetDataToCall);
+        this.rbbRegistrySmartContract = this.web3.eth.contract(this.abiRBBRegistry).at(this.addrContratoRBBRegistry);
 
-        console.log("INICIALIZOU O WEB3 - bndesTokenContract abaixo");
-        console.log("BNDESToken=");
-        console.log(this.bndesTokenSmartContract);        
-        console.log("BNDESRegistry=");
-        console.log(this.bndesRegistrySmartContract);
+        console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
+        console.log("rbbTokenSmartContract=");
+        console.log(this.rbbTokenSmartContract);        
 
         let self = this;
 
@@ -143,78 +166,48 @@ export class Web3Service {
     set web3(web3: any) {
         this.web3Instance = web3;
     }
-/*    get currentAddr(): string {
-        return this.contractAddr;
-    }
-    set currentAddr(contractAddr: string) {
-        if (contractAddr.length === 42 || contractAddr.length === 40) {
-            this.contractAddr = contractAddr;
-        } else {
-            console.log('Invalid address used');
-        }
-    }
-*/    
     get Web3(): any {
         return window['Web3'];
     }
-/*
-    getPastResgatesEvents() {
-        this.bndesTokenSmartContract.getPastLogs('Resgate', { fromBlock: 0, toBlock: 'latest' });
-    }
-*/
-    registraEventosCadastro(callback) {
-        this.eventoCadastro = this.bndesRegistrySmartContract.AccountRegistration({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoCadastro.watch(callback);
-    }
-    registraEventosTroca(callback) {
-        this.eventoCadastro = this.bndesRegistrySmartContract.AccountChange({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoCadastro.watch(callback);
-    }
-    registraEventosValidacao(callback) {
-        this.eventoCadastro = this.bndesRegistrySmartContract.AccountValidation({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoCadastro.watch(callback);
-    }
-    registraEventosInvalidacao(callback) {
-        this.eventoCadastro = this.bndesRegistrySmartContract.AccountInvalidation({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoCadastro.watch(callback);
-    }
+
+
     registraEventosLiberacao(callback) {
-        this.eventoTransacao = this.bndesTokenSmartContract.Disbursement({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTransacao.watch(callback);
+//        this.eventoTransacao = this.bndesTokenSmartContract.Disbursement({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoTransacao.watch(callback);
     }
     registraEventosResgate(callback) {
-        this.eventoTransacao = this.bndesTokenSmartContract.RedemptionRequested({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTransacao.watch(callback);
+//        this.eventoTransacao = this.bndesTokenSmartContract.RedemptionRequested({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoTransacao.watch(callback);
     }
     registraEventosLiquidacaoResgate(callback) {
-        this.eventoTransacao = this.bndesTokenSmartContract.RedemptionSettlement({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTransacao.watch(callback);
+//        this.eventoTransacao = this.bndesTokenSmartContract.RedemptionSettlement({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoTransacao.watch(callback);
     }
 
     registraEventosRegistrarDoacao(callback) {
         console.log("web3-registraEventosRegistrarDoacao");
-        this.eventoDoacao = this.bndesTokenSmartContract.DonationBooked({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoDoacao.watch(callback);
+//        this.eventoDoacao = this.bndesTokenSmartContract.DonationBooked({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoDoacao.watch(callback);
     }
     registraEventosRecebimentoDoacao(callback) {
         console.log("web3-registraEventosRecebimentoDoacao");        
-        this.eventoDoacao = this.bndesTokenSmartContract.DonationConfirmed({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoDoacao.watch(callback);
+//        this.eventoDoacao = this.bndesTokenSmartContract.DonationConfirmed({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoDoacao.watch(callback);
     }
     registraEventosIntervencaoManualMintBurn(callback) {
         console.log("web3-registraEventosIntervencaoManual");        
-        this.eventoDoacao = this.bndesTokenSmartContract.ManualIntervention_MintAndBurn({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoDoacao.watch(callback);
+//        this.eventoDoacao = this.bndesTokenSmartContract.ManualIntervention_MintAndBurn({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoDoacao.watch(callback);
     }
     registraEventosIntervencaoManualFee(callback) {
         console.log("web3-registraEventosIntervencaoManualFee");        
-        this.eventoDoacao = this.bndesTokenSmartContract.ManualIntervention_Fee({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoDoacao.watch(callback);
+//        this.eventoDoacao = this.bndesTokenSmartContract.ManualIntervention_Fee({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoDoacao.watch(callback);
     }
     registraEventosIntervencaoManualRoleOrAddress(callback) {
         console.log("web3-registraEventosIntervencaoManual-RoleOrAddress");        
-        this.eventoDoacao = this.bndesRegistrySmartContract.ManualIntervention_RoleOrAddress({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoDoacao.watch(callback);
+//        this.eventoDoacao = this.bndesRegistrySmartContract.ManualIntervention_RoleOrAddress({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoDoacao.watch(callback);
     }
 
     
@@ -224,17 +217,19 @@ export class Web3Service {
         console.info("Callback ", callback);
         const filtro = { fromBlock: 'latest', toBlock: 'pending' }; 
         
-        this.eventoBNDESToken = this.bndesTokenSmartContract.allEvents( filtro );                 
-        this.eventoBNDESToken.watch( function (error, result) {
+        this.eventoRBBToken = this.rbbTokenSmartContract.allEvents( filtro );                 
+        this.eventoRBBToken.watch( function (error, result) {
             console.log("Watcher BNDESToken executando...")
             self.procuraTransacao(error, result, txHashProcurado, self, callback);
         });
+        //TODO
+        /*
         this.eventoBNDESRegistry = this.bndesRegistrySmartContract.allEvents( filtro );                 
         this.eventoBNDESRegistry.watch( function (error, result) {
             console.log("Watcher BNDESRegistry executando...")
             self.procuraTransacao(error, result, txHashProcurado, self, callback);
         });
-     
+     */
         console.log("registrou o watcher de eventos");
     }
 
@@ -263,7 +258,8 @@ export class Web3Service {
 
     async cadastra(cnpj: number, idSubcredito: number, hashdeclaracao: string,
         fSuccess: any, fError: any) {
-
+/*
+TODO: Remover
         let contaBlockchain = await this.getCurrentAccountSync();    
 
         console.log("Web3Service - Cadastra")
@@ -278,10 +274,11 @@ export class Web3Service {
                 if (error) fError(error);
                 else fSuccess(result);
             });
+            */
     }
 
-
     getVersao(fSuccess: any, fError: any): number {
+/*
         console.log("vai recuperar a versao. " );
         let self = this;
         return this.bndesTokenSmartContract.getVersion(
@@ -289,20 +286,26 @@ export class Web3Service {
                 if (error) fError(error);
                 else fSuccess(   parseInt ( versao )  );
             });
+*/
+return 1;
     }
 
 
     getConfirmedTotalSupply(fSuccess: any, fError: any): number {
+        /*
         console.log("vai recuperar o confirmedtotalsupply. " );
         let self = this;
-        return this.bndesTokenSmartContract.getConfirmedTotalSupply(
+        return this.rbbTokenSmartContract.rbbBalances[]()
             (error, confirmedTotalSupply) => {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal(  parseInt ( confirmedTotalSupply ) ) );
             });
+            */
+           return 1;
     }
 
     getBookedBalanceOf(address: string, fSuccess: any, fError: any): number {
+        /*
         console.log("vai recuperar o balanceOf de " + address);
         let self = this;
         return this.bndesTokenSmartContract.bookedBalanceOf(address,
@@ -310,11 +313,14 @@ export class Web3Service {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
             });
+            */
+           return 1;
 
     }
 
 
     getConfirmedBalanceOf(address: string, fSuccess: any, fError: any): number {
+        /*
         console.log("vai recuperar o balanceOf de " + address);
         let self = this;
         return this.bndesTokenSmartContract.confirmedBalanceOf(address,
@@ -322,10 +328,13 @@ export class Web3Service {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
             });
+            */
+           return 1;
 
     }
 
     getDisbursementAddressBalance(fSuccess: any, fError: any): number {
+        /*
         console.log("disbursementAddress");
         
         let self = this;
@@ -334,14 +343,19 @@ export class Web3Service {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldo ) ) );
             });
+            */
+           return 1;
     }
 
     getCNPJ(addr: string, fSuccess: any, fError: any): number {
+        /*
         return this.bndesRegistrySmartContract.getCNPJ(addr,
             (error, result) => {
                 if (error) fError(error);
                 else fSuccess(result);
             });
+            */
+           return 1;
     }
 
     async isDoadorJaCadastrado(cnpj: number) {

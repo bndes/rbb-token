@@ -22,7 +22,7 @@ import { RegistraDoacaoComponent } from './registra-doacao/registra-doacao.compo
 import { RecuperaAcessoDoadorComponent } from './recupera-acesso-doador/recupera-acesso-doador.component';
 
 /* Sociedade */
-import { DashboardIdEmpresaComponent } from './dashboard-id-empresa/dashboard-id-empresa.component';
+//import { DashboardIdEmpresaComponent } from './dashboard-id-empresa/dashboard-id-empresa.component';
 import { DashboardDoacaoComponent } from './dashboard-doacao/dashboard-doacao.component';
 import { DashboardTransferenciasComponent } from './dashboard-transferencias/dashboard-transferencias.component';
 import {DashboardManualComponent } from './dashboard-manual/dashboard-manual.component';
@@ -43,7 +43,7 @@ const routes: Routes = [
   { path: 'doador/registra-doacao', component: RegistraDoacaoComponent},  
   { path: 'cliente/resgate', component: ResgateComponent },
   { path: 'doador/recupera-acesso-doador', component: RecuperaAcessoDoadorComponent},
-  { path: 'sociedade/dash-empresas', component: DashboardIdEmpresaComponent },
+//  { path: 'sociedade/dash-empresas', component: DashboardIdEmpresaComponent },
   { path: 'sociedade/dash-doacao', component: DashboardDoacaoComponent },
   { path: 'sociedade/dash-transf', component: DashboardTransferenciasComponent },
   { path: 'sociedade/dash-manuais', component: DashboardManualComponent },
