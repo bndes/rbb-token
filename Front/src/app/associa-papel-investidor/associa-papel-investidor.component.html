@@ -1,0 +1,30 @@
+<div class="form-group" *ngIf="selectedAccount">
+
+  <div class="form-group">
+    <h2>Associa Papel de Investidor</h2>
+  </div>
+
+  <div class="conteudo" >
+
+    <div class="row">
+      <div class="form-group col-md-4 col-sm-4">
+        <label>CNPJ do Investidor a ser associado:</label>
+        <input  #cnpj name="cnpjWithMask"  [(ngModel)]="cnpjWithMask" class="form-control form-control-sm" 
+        [textMask]="{mask: maskCnpj}" required/>
+      </div>
+    </div>
+
+  </div>
+
+
+
+  <div class="form-group">
+    <button type="button" class="btn btn-success btn-cabecalho" placement="bottom" ngbTooltip="Cadastrar" (click)="associaPapel()">
+      <i class="fa fa-floppy-o" aria-hidden="true"></i> Cadastrar
+    </button> 
+
+  </div>
+
+
+</div>
+<app-metamsg *ngIf="!selectedAccount"></app-metamsg>

@@ -10,18 +10,20 @@
 			"topo": true,
 			"subitem": [
 				{
-					"titulo": "Habilitar Cadastro",
-					"url": "bndes/habilita-cadastro",
-					"separador": false
-				},
-				{
-					"titulo": "Validar Cadastro",
-					"url": "bndes/val-cadastro",
-					"separador": true
-				},				
-				{
-					"titulo": "Confirmar Recebimento de Doação",
+					"titulo": "Confirmar Recebimento de Investimento",
 					"url": "/bndes/confirma-doacao",
+					"separador": false
+				}
+			]
+	},
+	{
+		"titulo": "Gestor de ESG",
+			"url":"",
+			"topo": true,
+			"subitem": [
+				{
+					"titulo": "Associa Papel Investidor",
+					"url": "bndes/associa-papel-investidor",
 					"separador": false
 				},
 				{
@@ -41,7 +43,7 @@
 				"separador": false
 			},
 			{
-				"titulo": "Dashboard Doação",
+				"titulo": "Dashboard Investimento",
 				"url": "/sociedade/dash-doacao",
 				"separador": false
 			},			

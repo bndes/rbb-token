@@ -354,6 +354,7 @@ return 1;
         })
     }    
 
+
     isChangeAccountEnabled(addr: string, fSuccess: any, fError: any): number {
         return this.bndesRegistrySmartContract.isChangeAccountEnabled(addr,
             (error, result) => {
@@ -643,6 +644,31 @@ return 1;
             });
         })
     }    
+
+    isResponsavelPorAssociarInvestidorSync (address: string) {
+        let self = this;
+
+        return new Promise (function(resolve) {
+            self.isResponsavelPorAssociarInvestidor(address, function(result) {
+                resolve(result);
+            }, function(reject) {
+                console.log("ERRO isResponsavelPorAssociarInvestidorSync  SYNC");
+                reject(false);
+            });
+        })        
+    }
+
+    isResponsavelPorAssociarInvestidor (address: string, fSuccess: any, fError: any): boolean {
+        return this.esgBndesTokenSmartContract.owner(
+            (error, ownerAddress) => {
+                if (error) fError(error);
+                else {
+                    console.log("ownerAddress=" + ownerAddress);
+                    fSuccess( address == ownerAddress);
+                }
+            });
+    }
+
 
     isResponsibleForSettlement(address: string, fSuccess: any, fError: any): boolean {
         return this.bndesRegistrySmartContract.isResponsibleForSettlement(address,

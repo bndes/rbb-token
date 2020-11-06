@@ -60,9 +60,8 @@ import { registerLocaleData } from '@angular/common';
 import localePT from '@angular/common/locales/pt';
 
 import { FileUploadModule } from 'ng2-file-upload';
-import { ValidacaoCadastroComponent } from './validacao-cadastro/validacao-cadastro.component';
-import { HabilitaCadastroComponent } from './habilita-cadastro/habilita-cadastro.component';
 import { DashboardManualComponent } from './dashboard-manual/dashboard-manual.component';
+import { AssociaPapelInvestidorComponent } from './associa-papel-investidor/associa-papel-investidor.component';
 
 
 
@@ -102,12 +101,11 @@ export const optionsMaskCurrencyBND: CurrencyMaskConfig = {
     CnpjPipe,
     ContratoPipe,
     HashPipe,
-    ValidacaoCadastroComponent,
     DashboardDoacaoComponent,
     RegistraDoacaoComponent,
     ConfirmaDoacaoComponent,
-    HabilitaCadastroComponent,
     DashboardManualComponent,
+    AssociaPapelInvestidorComponent,
   ],
   imports: [
     BrowserModule,

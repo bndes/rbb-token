@@ -3,7 +3,7 @@
   <div *ngIf="doacao">
 
     <div class="form-group">
-      <h2>Registrar Intenção de Doação</h2>
+      <h2>Registrar Intenção de Investimento</h2>
     </div>
 
     <div class="conteudo">
@@ -40,14 +40,14 @@
 
       <div class="row">
         <div class="form-group col-md-12 col-sm-12">
-          <h5>Dados da Doação:</h5>
+          <h5>Dados do Investimento:</h5>
         </div>
       </div>
 
       <div class="row">
         <div class="form-group col-md-4 col-sm-4">
           <app-input-validation errorMessage="Campo Obrigatório">
-            <label class="required">Valor a doar (em Reais):</label>
+            <label class="required">Valor (em Reais):</label>
             <input currencyMask [options]="{ prefix: 'R$ '}" [(ngModel)]="doacao.valor" class="form-control form-control-sm" required/>
           </app-input-validation>
         </div>
@@ -64,7 +64,7 @@
 
   <div class="form-group">
     <button class="btn btn-success btn-cabecalho" (click)="registrarDoacao()" [disabled]="doacao.valor === undefined || doacao.valor <= 0"
-      type="button" placement="bottom" ngbTooltip="Registrar Doação">
+      type="button" placement="bottom" ngbTooltip="Registrar Investimento">
       <i class="fa fa-floppy-o" aria-hidden="true"></i> Registrar
     </button>
   </div>
