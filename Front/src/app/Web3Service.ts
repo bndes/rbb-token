@@ -425,7 +425,7 @@ return 1;
     }
 
     getAddressOwner(fSuccess: any, fError: any): number {
-        return this.bndesRegistrySmartContract.owner(
+        return this.rbbTokenSmartContract.owner(
             (error, result) => {
                 if (error) fError(error);
                 else fSuccess(result);
@@ -443,12 +443,13 @@ return 1;
     }
 
     inicializaQtdDecimais() {
+
         let self = this;
 
         console.log( "**** Decimais : ");  
         console.log(this.bndesTokenSmartContract);          
 
-        this.bndesTokenSmartContract.getDecimals(
+        this.rbbTokenSmartContract.getDecimals(
             (error, result) => {
                 if (error) { 
                     console.log( "Decimais error: " +  error);  
@@ -462,6 +463,7 @@ return 1;
                 }
                     
             }); 
+
     }
 
     converteDecimalParaInteiro( _x : number ): number {
