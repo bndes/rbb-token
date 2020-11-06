@@ -4,8 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "./RBBLib.sol";
 import "./RBBRegistry.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
-import "@openzeppelin/contracts/lifecycle/Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 abstract contract SpecificRBBToken is Ownable, Pausable {
 
