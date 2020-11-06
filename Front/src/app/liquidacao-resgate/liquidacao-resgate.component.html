@@ -1,0 +1,141 @@
+<div class="form-group" *ngIf="selectedAccount">
+
+
+  <div *ngIf="liquidacaoResgate">
+
+
+        <div class="form-group">
+          <h2>Liquidação do Resgate</h2>
+        </div>
+    
+        <div class="conteudo form-group" >
+
+            <div class="row">
+                <div class="col-md-12 col-sm-12">
+                  <p>Identificação do Cliente</p>
+                </div>
+              </div>          
+
+            <div class="row">
+
+              <div class="form-group col-md-4 col-sm-4">
+                <label>CNPJ:</label>
+                <input [ngModel]="liquidacaoResgate.cnpj | cnpjMask" class="form-control form-control-sm" readonly  disabled />
+              </div>
+  
+              <div class="form-group col-md-4 col-sm-4" >
+              <label>Razão Social:</label>
+              <input name="razaoSocial" class="form-control form-control-sm" [ngModel]="liquidacaoResgate.razaoSocial" readonly  disabled/>
+            </div>
+  
+            <div class="form-group col-md-4 col-sm-4">
+              <label>Contrato Financeiro:</label>
+              <input [ngModel]="liquidacaoResgate.contratoFinanceiro | contratoMask" class="form-control form-control-sm" readonly  disabled />
+            </div>
+            
+ 
+            </div>
+          </div>
+        </div>
+    
+        <div class="conteudo form-group" *ngIf="liquidacaoResgate" >
+    
+          <div class="row">
+            <div class="col-md-12 col-sm-12">
+              <p>Dados do Evento de Resgate</p>
+            </div>
+          </div>
+    
+ 
+          <div class="row">
+
+              <div class="form-group col-md-6 col-sm-6 ">
+                  <label>Valor:</label>
+                  <input  name="valor" [ngModel]="liquidacaoResgate.valorResgate | currency:'R$':'symbol':'1.2-2':'pt'" class="form-control form-control-sm" required readonly/>
+              </div>          
+
+              <div class="form-group col-md-6 col-sm-6 ">
+                  <label>Data e hora:</label>
+                  <input  name="dataHora" [ngModel]="liquidacaoResgate.dataHoraResgate | date: 'dd/MM/yyyy hh:mm a'"  class="form-control form-control-sm" required readonly/>
+              </div>          
+          </div>
+
+        </div>
+
+        
+
+      <div class="conteudo form-group" *ngIf="!liquidacaoResgate.isLiquidado && liquidacaoResgate.isSelectedAccountResponsibleForSettlement">
+              <div class="row">
+                <div class="form-group col-md-12 col-sm-12">
+                  <p>Upload de Comprovante do Resgate</p>
+                </div>
+              </div>   
+              <div class="row">
+                <div class="form-group col-md-10 col-sm-10">
+                  <label>Faça upload do comprovante do resgate</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-10 col-sm-10">
+                    <input ng2FileSelect id="arquivo" type="file" accept=".pdf" [uploader]="this.fileHandleService.uploader" (change)="this.fileHandleService.chamaUpload()" /> 
+                    <div class="msg-hash-declaracao" *ngIf="hashdeclaracao">
+                      Hash do Comprovante: {{hashdeclaracao}}
+                    </div>
+                </div>
+              </div>
+       </div>
+      
+   
+            <div class="row">
+  
+  
+                <div class="form-group col-md-6 col-sm-6 " *ngIf="liquidacaoResgate.isLiquidado">
+                    <label>Data e hora:</label>
+                    <input  name="dataHoraLiquidacao" [ngModel]="liquidacaoResgate.dataHoraLiquidacao | date: 'dd/MM/yyyy hh:mm a'" class="form-control form-control-sm" required readonly />
+                </div>          
+            </div>
+
+
+            <div class="row" *ngIf="liquidacaoResgate.isLiquidado">
+
+              <div class="form-group col-md-6 col-sm-6 ">
+              <label>Comprovante:</label>             
+                <a target="_blank" href="{{liquidacaoResgate.filePathAndName}}">{{liquidacaoResgate.hashComprovacao}}
+                </a>
+              </div>
+
+              <div class="form-group col-md-6 col-sm-6 ">
+                <label>Link Etherscan:</label>
+                <a href="https://{{blockchainNetworkPrefix}}etherscan.io/tx/{{liquidacaoResgate.hashID}}">
+                  <i class="fa fa-link" aria-hidden="true"></i>
+                </a>
+              </div>
+                
+
+           </div>            
+
+
+                
+        <div class="form-group" >
+          <button type="button" class="btn btn-success btn-cabecalho" placement="bottom" ngbTooltip="Liquidar" 
+          (click)="liquidar()" *ngIf="!liquidacaoResgate.isLiquidado && liquidacaoResgate.isSelectedAccountResponsibleForSettlement">
+            <i class="fa fa-floppy-o" aria-hidden="true"></i> Liquidar
+          </button>   
+
+          <!--
+          <button type="button" class="btn btn-success btn-cabecalho" placement="bottom" ngbTooltip="cancelar" (click)="cancelar()">
+            Cancelar
+          </button>          
+          -->
+          
+        </div>
+
+        <div class="conteudo" *ngIf="!liquidacaoResgate.isLiquidado && !liquidacaoResgate.isSelectedAccountResponsibleForSettlement" >
+          <label>Solicitação de Resgate ainda não liquidada</label>
+        </div>
+        
+</div>
+<app-metamsg *ngIf="!selectedAccount"></app-metamsg>
+        
+    
+

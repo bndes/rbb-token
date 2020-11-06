@@ -151,8 +151,8 @@ contract RBBToken is Pausable, Ownable {
 
         tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
-        require(registry.isRegistryOperational(fromId), "Conta de origem precisa estar com cadastro validado");
-        require(registry.isRegistryOperational(toId), "Conta de destino precisa estar com cadastro validado");
+//        require(registry.isRegistryOperational(fromId), "Conta de origem precisa estar com cadastro validado");
+//        require(registry.isRegistryOperational(toId), "Conta de destino precisa estar com cadastro validado");
         uint specificTokenId = tokenRegistry.getSpecificRBBTokenId(specificTokenAddr);
 
         SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
@@ -174,7 +174,7 @@ contract RBBToken is Pausable, Ownable {
 
             tokenRegistry.verifyTokenIsRegisteredAndActive(specificTokenAddr);
 
-            require(registry.isRegistryOperational(fromId), "Conta solicitante do redeem precisa estar com cadastro validado");
+//            require(registry.isRegistryOperational(fromId), "Conta solicitante do redeem precisa estar com cadastro validado");
             require(amount>0, "Valor a resgatar deve ser maior do que zero");
     
             SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
