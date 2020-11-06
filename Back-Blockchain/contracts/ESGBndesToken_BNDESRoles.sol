@@ -1,7 +1,7 @@
 pragma solidity ^0.6.0;
 
 import "./RBBRegistry.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol"
 
 
 contract ESGBndesToken_BNDESRoles is Ownable {

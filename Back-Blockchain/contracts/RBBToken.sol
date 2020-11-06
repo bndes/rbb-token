@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./RBBRegistry.sol";
 import "./SpecificRBBToken.sol";
 import "./SpecificRBBTokenRegistry.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol"
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
