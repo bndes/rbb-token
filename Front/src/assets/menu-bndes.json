@@ -5,7 +5,7 @@
     	"topo": true
 	},
 	{
-		"titulo": "BNDES",
+		"titulo": "Financeiro",
 			"url":"",
 			"topo": true,
 			"subitem": [
@@ -33,6 +33,17 @@
 				}
 			]
 	},
+	{
+		"titulo": "Fornecedores",
+			"url":"",
+			"topo": true,
+			"subitem": [
+				{
+					"titulo": "Realizar Pagamento",
+					"url": "bndes/realizar-pagamento",
+					"separador": false
+				}			]
+	},	
 	{
     	"titulo": "Sociedade",
     	"topo": true,

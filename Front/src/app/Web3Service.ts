@@ -337,6 +337,27 @@ return 1;
            return 1;
     }
 
+    async getRBBIDSync(cnpj: string) {
+        let self = this;
+
+        return new Promise (function(resolve) {
+            self.getRBBID(cnpj, function(result) {
+                resolve(result);
+            }, function(reject) {
+                console.log("ERRO getRBBIDSync");
+                reject(-1);
+            });
+        })
+    }    
+
+    getRBBID(cnpj: string, fSuccess: any, fError: any): number {
+        return this.bndesRegistrySmartContract.CNPJ_RBBId(cnpj, 
+            (error, result) => {
+                if (error) fError(error);
+                else fSuccess(result);
+            });
+    }
+
     async isDoadorJaCadastrado(cnpj: number) {
         let contaBlockchain = await this.getContaBlockchainFromDoadorSync(cnpj+"");
         let contaBlockchainAsNumber = +contaBlockchain;

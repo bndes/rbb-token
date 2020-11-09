@@ -19,6 +19,7 @@ export class AssociaPapelInvestidorComponent implements OnInit {
 
   cnpj: string;
   cnpjWithMask: string;  
+  razaoSocial: string;
 
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
@@ -48,6 +49,46 @@ export class AssociaPapelInvestidorComponent implements OnInit {
       }
   }
 
+  recuperaInformacoesDerivadasCNPJ() {
+    this.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
+
+    if ( this.cnpj.length == 14 ) { 
+      console.log (" Buscando o CNPJ do cliente (14 digitos fornecidos)...  ")
+      this.recuperaClientePorCNPJ(this.cnpj);
+    } 
+    else {
+      this.razaoSocial="";
+    }
+
+  }
+
+  recuperaClientePorCNPJ(cnpj) {
+    console.log(cnpj);
+
+    this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
+      empresa => {
+        if (empresa && empresa.dadosCadastrais) {
+          console.log("empresa encontrada abaixo ");
+          console.log(empresa);
+
+          this.razaoSocial = empresa.dadosCadastrais.razaoSocial;
+        }
+        else {
+          let texto = "Nenhuma empresa encontrada com o cnpj " + cnpj;
+          console.log(texto);
+          Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);
+
+        }
+      },
+      error => {
+        let texto = "Erro ao buscar dados da empresa";
+        console.log(texto);
+        Utils.criarAlertaErro( this.bnAlertsService, texto,error);
+      });
+
+  }  
+
+
   async associaPapel() {
 
     let self = this;
@@ -55,18 +96,28 @@ export class AssociaPapelInvestidorComponent implements OnInit {
 
 
     console.log("conta selecionada na associacao do papel="  + this.selectedAccount);
-    
+
     let b = await this.web3Service.isResponsavelPorAssociarInvestidorSync(this.selectedAccount);    
     if (!b) 
     {
-      let s = "Conta selecionada no Metamask não pode executar a Confirmação.";
+        let s = "Conta selecionada no Metamask não pode executar a Confirmação.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
     } 
 
+    //recupera ID do CNPJ
+    let rbbID = await this.web3Service.getRBBIDSync(this.cnpj);
+
+    if (!isCNPJOk) {
+      let s = "CNPJ não está com cadastro válido.";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+    } 
 
 
-    //TODO
+//TODO: associar
+
+
   }  
 
 
