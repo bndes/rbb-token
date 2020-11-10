@@ -7,8 +7,8 @@ import "./RBBRegistry.sol";
 import "./RBBToken.sol";
 import "./SpecificRBBToken.sol";
 import "./ESGBndesToken_BNDESRoles.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
-import "@openzeppelin/contracts/lifecycle/Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol"
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
