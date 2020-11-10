@@ -15,7 +15,7 @@ import { Utils } from '../shared/utils';
 export class AssociaPapelInvestidorComponent implements OnInit {
 
   selectedAccount: any;
-  maskCnpj            : any;
+  maskCnpj : any;
 
   cnpj: string;
   cnpjWithMask: string;  
@@ -106,17 +106,34 @@ export class AssociaPapelInvestidorComponent implements OnInit {
     } 
 
     //recupera ID do CNPJ
-    let rbbID = await this.web3Service.getRBBIDSync(this.cnpj);
+    let rbbID = <number> (await this.web3Service.getRBBIDSync(parseInt(this.cnpj)));
 
-    if (!isCNPJOk) {
-      let s = "CNPJ não está com cadastro válido.";
+    if (!rbbID) {
+      let s = "CNPJ não está cadastrado.";
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     } 
 
-
-//TODO: associar
-
+    this.web3Service.associaInvestidor(rbbID,
+    (txHash) => {
+  
+      Utils.criarAlertasAvisoConfirmacao( txHash, 
+                                          self.web3Service, 
+                                          self.bnAlertsService, 
+                                          "O solicitação de associação do cnpj " + this.cnpj + " como papel de investidor foi enviada. Aguarde a confirmação.", 
+                                          "A associação foi confirmada na blockchain.", 
+                                          self.zone) 
+      self.router.navigate(['sociedade/dash-papeis']);
+      
+      }        
+    ,(error) => {
+      Utils.criarAlertaErro( self.bnAlertsService, 
+                              "Erro ao associar investidor na blockchain", 
+                              error)  
+    });
+    Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
+                                "Confirme a operação no metamask e aguarde a confirmação da associação da conta.")
+   
 
   }  
 

@@ -1,19 +1,19 @@
 <div class="form-group" *ngIf="selectedAccount">
 
   <div class="form-group">
-    <h2>Confirma Recebimento de Doação</h2>
+    <h2>Confirma Recebimento de Investimento</h2>
   </div>
 
   <div class="conteudo" >
     <div class="row">
       <div class="form-group col-md-12 col-sm-12">
-        <h5>Dados do Doador:</h5>
+        <h5>Dados do Investidor:</h5>
       </div>
     </div>
 
     <div class="row">
       <div class="form-group col-md-4 col-sm-4">
-        <label>CNPJ do Doador:</label>
+        <label>CNPJ do Investidor:</label>
         <input  #cnpj name="cnpjWithMask"  [(ngModel)]="doacao.cnpjWithMask" class="form-control form-control-sm" (input)="changeCnpj()"
         [textMask]="{mask: maskCnpj}" required [disabled]="this.flagUploadConcluido"/>
       </div>
@@ -63,12 +63,12 @@
 
         <div class="row">
           <div class="form-group col-md-12 col-sm-12">
-            <p>Upload de Comprovante da Doação</p>
+            <p>Upload de Comprovante de Investimento</p>
           </div>
         </div>   
         <div class="row">
           <div class="form-group col-md-10 col-sm-10">
-            <label>Faça upload do comprovante do pagamento do boleto de doação</label>
+            <label>Faça upload do comprovante do pagamento do boleto de investimento</label>
           </div>
         </div>
         <div class="row">

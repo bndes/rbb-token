@@ -1,17 +1,17 @@
 [
 	{
 		"titulo": "Home",
-    	"url": "/cliente",
+    	"url": "/fornecedor",
     	"topo": true
 	},
 	{
-		"titulo": "Cliente",
+		"titulo": "Fornecedor",
     	"url":"",
     	"topo": true,
 			"subitem": [
 				{
-					"titulo": "Realizar Pagamento",
-					"url": "/cliente/realizar-pagamento",
+					"titulo": "Solicitar Resgate",
+					"url": "/fornecedor/resgate",
 					"separador": false
 				}
 			]

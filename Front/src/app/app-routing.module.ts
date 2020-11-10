@@ -3,23 +3,26 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { HomeComponent } from './home/home.component';
 
-/* BNDES */
 import { LiberacaoComponent } from './liberacao/liberacao.component';
 import { LiquidacaoResgateComponent } from './liquidacao-resgate/liquidacao-resgate.component';
+import { AssociaPapelInvestidorComponent } from './associa-papel-investidor/associa-papel-investidor.component';
+import { RealizarPagamentoComponent } from './realizar-pagamento/realizar-pagamento.component';
 
-/* Cliente */
 import { ConfirmaDoacaoComponent } from './confirma-doacao/confirma-doacao.component';
 import { ResgateComponent } from './resgate/resgate.component';
 
 
-/* Doador */
 import { RegistraDoacaoComponent } from './registra-doacao/registra-doacao.component';
 
 /* Sociedade */
 import { DashboardDoacaoComponent } from './dashboard-doacao/dashboard-doacao.component';
 import { DashboardTransferenciasComponent } from './dashboard-transferencias/dashboard-transferencias.component';
 import {DashboardManualComponent } from './dashboard-manual/dashboard-manual.component';
-import { AssociaPapelInvestidorComponent } from './associa-papel-investidor/associa-papel-investidor.component';
+import {DashboardPapeisComponent } from './dashboard-papeis/dashboard-papeis.component';
+
+
+
+
 
 const routes: Routes = [
   { path: 'bndes', component: HomeComponent },
@@ -28,10 +31,12 @@ const routes: Routes = [
   { path: 'sociedade', component: HomeComponent },
   { path: 'bndes/confirma-doacao', component:ConfirmaDoacaoComponent },
   { path: 'bndes/liberacao', component: LiberacaoComponent },
-  { path: 'bndes/associa-papel-investidor', component: AssociaPapelInvestidorComponent}
+  { path: 'bndes/associa-papel-investidor', component: AssociaPapelInvestidorComponent},
   { path: 'bndes/liquidar/:solicitacaoResgateId', component: LiquidacaoResgateComponent},
   { path: 'doador/registra-doacao', component: RegistraDoacaoComponent},  
-  { path: 'cliente/resgate', component: ResgateComponent },
+  { path: 'fornecedor/resgate', component: ResgateComponent },
+  { path: 'cliente/realizar-pagamento', component: RealizarPagamentoComponent},
+  { path: 'sociedade/dash-papeis', component: DashboardPapeisComponent },
   { path: 'sociedade/dash-doacao', component: DashboardDoacaoComponent },
   { path: 'sociedade/dash-transf', component: DashboardTransferenciasComponent },
   { path: 'sociedade/dash-manuais', component: DashboardManualComponent },

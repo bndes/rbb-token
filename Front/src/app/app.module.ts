@@ -62,6 +62,8 @@ import localePT from '@angular/common/locales/pt';
 import { FileUploadModule } from 'ng2-file-upload';
 import { DashboardManualComponent } from './dashboard-manual/dashboard-manual.component';
 import { AssociaPapelInvestidorComponent } from './associa-papel-investidor/associa-papel-investidor.component';
+import { DashboardPapeisComponent } from './dashboard-papeis/dashboard-papeis.component';
+import { RealizarPagamentoComponent } from './realizar-pagamento/realizar-pagamento.component';
 
 
 
@@ -106,6 +108,8 @@ export const optionsMaskCurrencyBND: CurrencyMaskConfig = {
     ConfirmaDoacaoComponent,
     DashboardManualComponent,
     AssociaPapelInvestidorComponent,
+    DashboardPapeisComponent,
+    RealizarPagamentoComponent,
   ],
   imports: [
     BrowserModule,

@@ -255,18 +255,18 @@ export class Web3Service {
         });     
     }
 
+    async associaInvestidor(rbbID: number, fSuccess: any, fError: any) {
 
-    getVersao(fSuccess: any, fError: any): number {
-/*
-        console.log("vai recuperar a versao. " );
-        let self = this;
-        return this.bndesTokenSmartContract.getVersion(
-            (error, versao) => {
+        let contaBlockchain = await this.getCurrentAccountSync();   
+
+        console.log("Web3Service - AssociaInvestidor");
+
+        this.esgBndesTokenSmartContract.addInvestor(rbbID, 
+            { from: contaBlockchain },
+            (error, result) => {
                 if (error) fError(error);
-                else fSuccess(   parseInt ( versao )  );
+                else fSuccess(result);
             });
-*/
-return 1;
     }
 
 
@@ -337,7 +337,7 @@ return 1;
            return 1;
     }
 
-    async getRBBIDSync(cnpj: string) {
+    async getRBBIDSync(cnpj: number) {
         let self = this;
 
         return new Promise (function(resolve) {
@@ -350,8 +350,11 @@ return 1;
         })
     }    
 
-    getRBBID(cnpj: string, fSuccess: any, fError: any): number {
-        return this.bndesRegistrySmartContract.CNPJ_RBBId(cnpj, 
+    getRBBID(cnpj: number, fSuccess: any, fError: any): number {
+        console.log("contrato");
+        console.log(this.rbbRegistrySmartContract);
+
+        return this.rbbRegistrySmartContract.getIdFromCNPJ(cnpj, 
             (error, result) => {
                 if (error) fError(error);
                 else fSuccess(result);
