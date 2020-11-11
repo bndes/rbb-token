@@ -36,6 +36,7 @@ export class Web3Service {
 
     private eventoRBBToken: any;
 
+    private eventoPapeis: any;
     private eventoTransacao: any;
     private eventoDoacao: any;
 
@@ -170,6 +171,10 @@ export class Web3Service {
         return window['Web3'];
     }
 
+    registraEventosAdicionaInvestidor(callback) {
+        this.eventoPapeis = this.esgBndesTokenSmartContract.FA_InvestorAdded({}, { fromBlock: 0, toBlock: 'latest' });
+        this.eventoPapeis.watch(callback);
+    }
 
     registraEventosLiberacao(callback) {
 //        this.eventoTransacao = this.bndesTokenSmartContract.Disbursement({}, { fromBlock: 0, toBlock: 'latest' });

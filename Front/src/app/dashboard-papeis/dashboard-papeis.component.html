@@ -1,3 +1,56 @@
-<p>
-  dashboard-papeis works!
-</p>
+<div class="form-group" *ngIf="selectedAccount">
+  <div class="title-loading">
+  <h2 class="page-header">Dashboard de Papeis</h2>
+  <app-bn-loading class="loading" *ngIf="estadoLista === 'undefined'"></app-bn-loading>
+</div>
+
+<div *ngIf="estadoLista === 'vazia'">
+  <p>Não foi encontrado nenhum Papel Associado!</p>
+</div>
+
+<div *ngIf="estadoLista === 'cheia'">
+<!--  <input class="form-control barra-filtro" type="text" name="search" [(ngModel)]="filter" placeholder="Filtro">
+-->
+
+  <div class="table-responsive-md">
+    <table class="table table-striped table-bordered table-sm">
+      <thead>
+        <tr *ngIf="listaTransacoes.length > 0">
+          <td>RBBID
+
+          </td>          
+          <td >CNPJ
+          </td>
+          <td >Tipo Papel
+        
+          </td>
+          <td>Data/Hora
+       
+          </td>
+          <td>Link Etherscan</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let transacao of listaTransacoes | orderBy: order: reverse: 'caseInsensitive':customComparator | filter:filter | paginate: { itemsPerPage: 10, currentPage: p } ; let i = index">
+          <td>{{transacao.rbbId}}</td>
+          <td>{{transacao.cnpj}}</td>
+          <td>{{transacao.tipo}}</td>
+          <td>{{transacao.dataHora | date: 'dd/MM/yyyy hh:mm a' }}</td>
+          <td class="text-center">
+            <a target="_blank" href="https://{{blockchainNetworkPrefix}}etherscan.io/tx/{{transacao.hashID}}">
+              <i class="fa fa-link" aria-hidden="true"></i>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="text-center">
+    <pagination-controls (pageChange)="p = $event" previousLabel="Anterior" nextLabel="Próximo" class="paginacao"></pagination-controls>
+  </div>
+</div>
+
+</div>
+<app-metamsg *ngIf="!selectedAccount"></app-metamsg>

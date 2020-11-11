@@ -9,12 +9,12 @@
     	"topo": true,
 		"subitem": [
 			{
-				"titulo": "Dashboard Cadastro",
-				"url": "/sociedade/dash-empresas",
+				"titulo": "Dashboard Papeis",
+				"url": "/sociedade/dash-papeis",
 				"separador": false
 			},
 			{
-				"titulo": "Dashboard Doação",
+				"titulo": "Dashboard Investimentos",
 				"url": "/sociedade/dash-doacao",
 				"separador": false
 			},			
