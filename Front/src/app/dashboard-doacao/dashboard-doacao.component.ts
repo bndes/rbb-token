@@ -45,12 +45,12 @@ export class DashboardDoacaoComponent implements OnInit {
   ngOnInit() {
       setTimeout(() => {
           this.listaDoacoes = [];
-          console.log("Zerou lista de doacoes");
+          console.log("Zerou lista de investimentos");
 
           this.registrarExibicaoEventos();
-      }, 1500)
+      }, 2000)
 
-      setTimeout(() => {
+      setInterval(() => {
           this.estadoLista = this.estadoLista === "undefined" ? "vazia" : "cheia"
           this.ref.detectChanges()
       }, 2300)
@@ -89,34 +89,35 @@ export class DashboardDoacaoComponent implements OnInit {
     console.log("*** Executou o metodo de registrar eventos REGISTRAR DOACAO");
 
     let self = this;        
-    this.web3Service.registraEventosRegistrarDoacao(function (error, event) {
+    this.web3Service.registraEventosRegistrarInvestimento(function (error, event) {
 
         if (!error) {
 
             let transacao: DashboardDoacao;
 
-            console.log("Evento Registrar Doacao");
+            console.log("Evento Registrar Investimento");
             console.log(event);
 
-            let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
+//            let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
             self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted));
                  
             transacao = {
-                cnpj: event.args.cnpj,
+                rbbId: event.args.idInvestor, 
+                cnpj: "FALTA RECUPERAR DO REGISTRY",
                 razaoSocial: "",
                 valor: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),                
-                tokenMinted: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted)),                
-                txAdm: txAdm,
+                tokenMinted: 0,                
+                txAdm: 0,
                 dataHora: null,
                 tipo: "Intenção Registrada",
                 hashID: event.transactionHash,
                 uniqueIdentifier: event.transactionHash,
-                hashComprovante: "",
+                hashComprovante: event.args.docHash+"",
                 filePathAndName: ""
             }
 
             self.includeIfNotExists(transacao);
-            self.recuperaInfoDerivadaPorCnpj(self, transacao);
+//            self.recuperaInfoDerivadaPorCnpj(self, transacao);
             self.recuperaDataHora(self, event, transacao);
 
 
@@ -146,6 +147,7 @@ export class DashboardDoacaoComponent implements OnInit {
                     self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted));
                  
             transacao = {
+                rbbId: 0,
                 cnpj: event.args.cnpj,
                 razaoSocial: "",
                 valor      : self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),

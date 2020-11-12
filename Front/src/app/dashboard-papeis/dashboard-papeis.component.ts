@@ -37,24 +37,25 @@ export class DashboardPapeisComponent implements OnInit {
     }
 
     ngOnInit() {
+  
+      //TODO: ajustar esse codigo em todos os dashboards. Precisa do primeiro timeout? Não eh perigoso usar uma dependencia fixa de tempo? 
       setTimeout(() => {
           this.listaTransacoes = [];
-
-          console.log("Zerou lista de transacoes");
-
           this.registrarExibicaoEventos();
-      }, 1500)
+      }, 2000);
 
-      setTimeout(() => {
+      setInterval(() => {
           this.estadoLista = this.estadoLista === "undefined" ? "vazia" : "cheia"
           this.verificaExisteEventos();
           this.ref.detectChanges()
-      }, 2300)
+      }, 2300);
   }
 
 
   verificaExisteEventos() {
-    if (this.listaTransacoes.length >0)  {
+    console.log("*** verifica se existe evento");
+
+    if (this.listaTransacoes.length > 0)  {
               this.estadoLista = "cheia";
           }
   }
@@ -114,8 +115,13 @@ registrarExibicaoEventos() {
 
 
   includeIfNotExists(transacao) {
+    console.log("include if not exists");
     let result = this.listaTransacoes.find(tr => tr.uniqueIdentifier == transacao.uniqueIdentifier);
-    if (!result) this.listaTransacoes.push(transacao);        
+    if (!result) {
+      this.listaTransacoes.push(transacao); 
+      console.log("include" + this.listaTransacoes.length);
+
+    }        
 }
 
 

@@ -1,4 +1,5 @@
 export class DashboardDoacao {
+    rbbId: number;  
     razaoSocial: string;
     cnpj: string;
     valor: number;    

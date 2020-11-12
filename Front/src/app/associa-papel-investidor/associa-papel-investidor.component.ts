@@ -105,8 +105,7 @@ export class AssociaPapelInvestidorComponent implements OnInit {
         return;
     } 
 
-    //recupera ID do CNPJ
-    let rbbID = <number> (await this.web3Service.getRBBIDSync(parseInt(this.cnpj)));
+    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.cnpj)));
 
     if (!rbbID) {
       let s = "CNPJ não está cadastrado.";
@@ -114,6 +113,8 @@ export class AssociaPapelInvestidorComponent implements OnInit {
       return;
     } 
 
+    console.log("rbbID=" + rbbID);
+    
     this.web3Service.associaInvestidor(rbbID,
     (txHash) => {
   

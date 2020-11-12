@@ -55,7 +55,7 @@ export class RegistraDoacaoComponent implements OnInit {
 
   }  
 
-  recuperaInformacoesDerivadasConta() {
+  async recuperaInformacoesDerivadasConta() {
 
     let self = this;
 
@@ -65,20 +65,16 @@ export class RegistraDoacaoComponent implements OnInit {
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
-      this.web3Service.getPJInfo(contaBlockchain,
+      let cnpjContaOrigem = <string> (await this.web3Service.getCNPJByAddressSync(this.doacao.contaBlockchainOrigem));      
+  
+      if ( cnpjContaOrigem != "") { //encontrou uma PJ valida  
 
-          (result) => {
-
-            if ( result.cnpj != 0 ) { //encontrou uma PJ valida  
-
-              console.log(result);
-              self.doacao.cnpjOrigem = result.cnpj;
+              console.log(cnpjContaOrigem);
+              self.doacao.cnpjOrigem = cnpjContaOrigem;
 
               this.pessoaJuridicaService.recuperaEmpresaPorCnpj(self.doacao.cnpjOrigem).subscribe(
                 data => {
                     if (data && data.dadosCadastrais) {
-                    console.log("RECUPERA EMPRESA ORIGEM")
-                    console.log(data)
                     self.doacao.razaoSocialOrigem = data.dadosCadastrais.razaoSocial;
                 }
                 else {
@@ -98,19 +94,12 @@ export class RegistraDoacaoComponent implements OnInit {
 
            } //fecha if de PJ valida
 
-           else {
+      else {
             let texto = "Nenhuma empresa encontrada associada a conta blockchain";
             console.log(texto);
             Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);
             this.inicializaDoacao();
-           }
-           
-          },
-          (error) => {
-            this.inicializaDoacao();
-            console.warn("Erro ao buscar dados da conta na blockchain")
-          })
-
+      }
                  
     } 
     else {
@@ -123,21 +112,30 @@ async registrarDoacao() {
 
   let self = this;
 
-  let bDoador = await this.web3Service.isDoadorSync(this.doacao.contaBlockchainOrigem);
+
+  let idContaOrigem = await this.web3Service.getIdByAddressSync(this.doacao.contaBlockchainOrigem);
+  console.log("idContaOrigem");
+  console.log(idContaOrigem);
+
+  if (!idContaOrigem) {
+    let s = "Investidor não está cadastrado.";
+    this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+    return;
+  } 
+
+/*
+
+//TODO: verificar se possui papel de investidor
+
+let bDoador = await this.web3Service.isDoadorSync(this.doacao.contaBlockchainOrigem);
   if (!bDoador) {
     let s = "O registro da doação deve ser realizado para a conta de um doador.";
     this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
     return;
   }
+*/
 
-  let bValidadaOrigem = await this.web3Service.isContaValidadaSync(this.doacao.contaBlockchainOrigem);
-  if (!bValidadaOrigem) {
-    let s = "Conta do doador não validada";
-    this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
-    return;
-  }
-
-  this.web3Service.registrarDoacao(this.doacao.valor,
+  this.web3Service.registrarInvestimento(this.doacao.valor,
 
       (txHash) => {
 
