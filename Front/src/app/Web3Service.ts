@@ -399,21 +399,20 @@ export class Web3Service {
         
     }
 
-    
-    getBookedBalanceOf(address: string, fSuccess: any, fError: any): number {
-        /*
-        console.log("vai recuperar o balanceOf de " + address);
+
+    getBookedBalanceOf(rbbId: number, fSuccess: any, fError: any): number {
+        
+        console.log("vai recuperar o balanceOf de " + rbbId);
         let self = this;
-        return this.bndesTokenSmartContract.bookedBalanceOf(address,
+        return this.rbbTokenSmartContract.balanceRequestedTokens(1,address,
             (error, valorSaldoCNPJ) => {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
             });
-            */
+            
            return 1;
 
     }
-
 
 
     async receberDoacao(cnpj: string, amount: number, docHash: string, fSuccess: any, fError: any) {
