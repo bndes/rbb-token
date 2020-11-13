@@ -130,8 +130,11 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
   
       let contaBlockchainDoador = await this.web3Service.getContaBlockchainFromDoadorSync(this.doacao.cnpj);
       console.log("contaBlockchainDoador=" + contaBlockchainDoador);
+
+      //TODO: recupera ID a partir da conta e ajeitar id
+      let rbbID = 2;
       
-      this.web3Service.getBookedBalanceOf(contaBlockchainDoador+"",
+      this.web3Service.getBookedBalanceOf(rbbID,
   
         function (result) {
           console.log("Saldo do endereco " + cnpj + " eh " + result);

@@ -404,14 +404,12 @@ export class Web3Service {
         
         console.log("vai recuperar o balanceOf de " + rbbId);
         let self = this;
-        return this.rbbTokenSmartContract.balanceRequestedTokens(1,address,
+        return this.rbbTokenSmartContract.balanceRequestedTokens(1,rbbId,
             (error, valorSaldoCNPJ) => {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
             });
             
-           return 1;
-
     }
 
 
