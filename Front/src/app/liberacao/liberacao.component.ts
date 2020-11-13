@@ -203,8 +203,8 @@ async recuperaSaldoBNDESToken() {
       function (result) {
         console.log("CNPJ " + self.liberacao.cnpj + " tem conta blockchain " + result);
         self.liberacao.contaBlockchainCNPJ = result;
-
-        self.web3Service.getConfirmedBalanceOf(self.liberacao.contaBlockchainCNPJ,
+/*
+        self.web3Service.getBalanceOf(rbbId, self.liberacao.numeroSubcreditoSelecionado,
             function (result) {
               console.log("Saldo do endereco " + self.liberacao.contaBlockchainCNPJ + " eh " + result);
               self.liberacao.saldoCNPJ = result;
@@ -215,7 +215,7 @@ async recuperaSaldoBNDESToken() {
             console.log(error);
             self.liberacao.saldoCNPJ = 0;
         });
-
+*/
       },
       function (error) {
         console.log("Erro ao ler conta blockchain " + this.liberacao.cnpj);

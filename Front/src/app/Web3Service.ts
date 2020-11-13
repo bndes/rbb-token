@@ -187,9 +187,6 @@ export class Web3Service {
                     self.decimais = -1 ;
                 } 
                 else {
-                    console.log ( "Decimais result: " +  result );
-                    //console.log ( "Decimais .c[0]: " +  result.c[0] );
-                    //self.decimais = result.c[0] ;
                     self.decimais = result;
                 }
                     
@@ -429,7 +426,6 @@ export class Web3Service {
 
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
         let specificHash = <string> (await this.getSpecificHashSync(30));
-        console.log("specificHash=" + specificHash);
 
         return this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,specificHash,
             (error, valorSaldoCNPJ) => {
@@ -464,6 +460,7 @@ export class Web3Service {
 
 
 /* 
+//TODO: avaliar se precisa incluir isso ou se consiguimos emitir o erro no metamask
     isDoador(address: string, fSuccess: any, fError: any): boolean {
         return this.bndesRegistrySmartContract.isDonor(address,
             (error, result) => {
@@ -489,36 +486,37 @@ export class Web3Service {
 
     ////////////////// FIM INVESTIDOR
 
-
-
-
-    getConfirmedTotalSupply(fSuccess: any, fError: any): number {
-        /*
-        console.log("vai recuperar o confirmedtotalsupply. " );
+    async getBalanceOf(rbbId: number, numeroContrato: number, fSuccess: any, fError: any) {
+        
+        console.log("vai recuperar o balanceOf de " + rbbId);
         let self = this;
-        return this.rbbTokenSmartContract.rbbBalances[]()
-            (error, confirmedTotalSupply) => {
-                if (error) fError(error);
-                else fSuccess( self.converteInteiroParaDecimal(  parseInt ( confirmedTotalSupply ) ) );
-            });
-            */
-           return 1;
-    }
 
+        //TODO: resolver constantes
+        let valorToHash = numeroContrato?numeroContrato:20;
+        let specificHash =  <string> (await this.getSpecificHashSync(valorToHash));
 
-    getConfirmedBalanceOf(address: string, fSuccess: any, fError: any): number {
-        /*
-        console.log("vai recuperar o balanceOf de " + address);
-        let self = this;
-        return this.bndesTokenSmartContract.confirmedBalanceOf(address,
+        return this.rbbTokenSmartContract.balanceOf(this.ID_SPECIFIC_TOKEN,rbbId,specificHash,
             (error, valorSaldoCNPJ) => {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
             });
-            */
-           return 1;
-
     }
+
+
+    getConfirmedTotalSupply(fSuccess: any, fError: any): number {
+        /*        
+                console.log("vai recuperar o confirmedtotalsupply. " );
+                let self = this;
+        
+        
+                return this.rbbTokenSmartContract.rbbBalances[]()
+                    (error, confirmedTotalSupply) => {
+                        if (error) fError(error);
+                        else fSuccess( self.converteInteiroParaDecimal(  parseInt ( confirmedTotalSupply ) ) );
+                    });
+         */
+        return -1;           
+            }
 
     getDisbursementAddressBalance(fSuccess: any, fError: any): number {
         /*
@@ -604,8 +602,6 @@ export class Web3Service {
             });        
 
     }
-
-
 
 
     async resgata(transferAmount: number, fSuccess: any, fError: any) {
@@ -732,10 +728,6 @@ export class Web3Service {
         })
     }
 
-
-
-    
-
     isResponsibleForRegistryValidation(address: string, fSuccess: any, fError: any): boolean {
 
         return this.bndesRegistrySmartContract.isResponsibleForRegistryValidation(address,
@@ -782,8 +774,5 @@ export class Web3Service {
         })
     }       
 
-    public isContaValidadaSync(address: string) {
-        
-        return false;
-    }
+
 }

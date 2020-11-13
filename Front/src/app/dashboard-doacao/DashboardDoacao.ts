@@ -3,8 +3,6 @@ export class DashboardDoacao {
     razaoSocial: string;
     cnpj: string;
     valor: number;    
-    tokenMinted: number;    
-    txAdm: number;    
     dataHora: Date;
     tipo: string;
     hashID: string;

@@ -26,12 +26,6 @@
           <td>Valor Investido
           </td>
 
-          <td>Recursos para Custeio
-          </td>
-
-          <td>Tokens Emitidos
-          </td>
-
           <td>Comprovante
           </td>
 
@@ -49,8 +43,6 @@
           <td>{{transacao.razaoSocial}}</td>
           <td>{{transacao.cnpj | cnpjMask}}</td>
           <td>{{transacao.valor | currency:"BRL":"symbol":'1.2-2':'pt' }}</td>   
-          <td>{{transacao.txAdm | currency:'BRL':'symbol':'1.2-2':'pt' }}</td>                       
-          <td>{{transacao.tokenMinted | currency:'BND':'symbol':'1.2-2':'pt' }}</td>                       
           <td class="tooltipCaixa">
             <a *ngIf="transacao.hashComprovante.length > 1" target="_blank" href="{{transacao.filePathAndName}}">
               {{transacao.hashComprovante | hashMask}}

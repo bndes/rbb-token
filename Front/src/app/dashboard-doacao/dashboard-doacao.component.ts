@@ -106,8 +106,6 @@ export class DashboardDoacaoComponent implements OnInit {
                 cnpj: "FALTA RECUPERAR DO REGISTRY",
                 razaoSocial: "",
                 valor: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),                
-                tokenMinted: 0,                
-                txAdm: 0,
                 dataHora: null,
                 tipo: "Intenção Registrada",
                 hashID: event.transactionHash,
@@ -151,8 +149,6 @@ export class DashboardDoacaoComponent implements OnInit {
                 cnpj: "FALTA RECUPERAR DO REGISTRY",
                 razaoSocial: "",
                 valor      : self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),
-                tokenMinted: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted)),
-                txAdm: txAdm,
                 dataHora: null,
                 tipo: "Investimento Confirmado",
                 hashID: event.transactionHash,
@@ -205,7 +201,6 @@ recuperaInfoDerivadaPorCnpj(self, pj) {
             // Colocar dentro da zona do Angular para ter a atualização de forma correta
             self.zone.run(() => {
                 self.estadoLista = "cheia"
-                console.log("inseriu transacao Troca");
             });
 
         },

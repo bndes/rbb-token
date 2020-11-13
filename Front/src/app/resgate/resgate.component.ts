@@ -130,7 +130,8 @@ export class ResgateComponent implements OnInit {
   recuperaSaldoOrigem(contaBlockchain) {
 
     let self = this;
-
+/*
+//TODO: mudar
     this.web3Service.getConfirmedBalanceOf(contaBlockchain,
       function (result) {
         console.log("Saldo do endereco " + contaBlockchain + " eh " + result);
@@ -142,6 +143,7 @@ export class ResgateComponent implements OnInit {
         console.log(error);
         self.resgate.saldoOrigem = 0;
       });
+*/
   }
 
 
@@ -156,12 +158,15 @@ export class ResgateComponent implements OnInit {
       return;
     }
 
+    /*
+  TODO: ajustar
     let bValidadaOrigem = await this.web3Service.isContaValidadaSync(this.resgate.contaBlockchainOrigem);
     if (!bValidadaOrigem) {
       let s = "Conta do cliente não validada";
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     }
+    */
 
     if ((this.resgate.valor * 1) > (Number(this.resgate.saldoOrigem) * 1)) {
       let s = "Não é possível resgatar mais do que o valor do saldo de origem.";
