@@ -85,7 +85,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
       let cnpj = this.doacao.cnpj;
   
       if ( cnpj.length == 14 ) { 
-        console.log (" Buscando o CNPJ do doador (14 digitos fornecidos)...  " + cnpj)
+        console.log (" Buscando o CNPJ  (14 digitos fornecidos)...  " + cnpj)
         this.recuperaDoadorPorCNPJ(cnpj);
       } 
 
@@ -127,14 +127,10 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
     async recuperaSaldo(cnpj) {
 
       let self = this;
-  
-      let contaBlockchainDoador = await this.web3Service.getContaBlockchainFromDoadorSync(this.doacao.cnpj);
-      console.log("contaBlockchainDoador=" + contaBlockchainDoador);
 
-      //TODO: recupera ID a partir da conta e ajeitar id
-      let rbbID = 2;
+      this.doacao.rbbId = <number> (await this.web3Service.getRBBIDByCNPJSync (cnpj));
       
-      this.web3Service.getBookedBalanceOf(rbbID,
+      this.web3Service.getBalanceRequestedToken(this.doacao.rbbId,
   
         function (result) {
           console.log("Saldo do endereco " + cnpj + " eh " + result);
@@ -161,21 +157,21 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
           return;
       } 
 
-      let contaBlockchainDoador = await this.web3Service.getContaBlockchainFromDoadorSync(this.doacao.cnpj);
-      console.log("contaBlockchainDoador=" + contaBlockchainDoador);
-
+/*
+//TODO: verificar se é um doador
       if (!contaBlockchainDoador) {
         let s = "CNPJ não é de um doador";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
       }
-  
-      let bDoadorValidado = await this.web3Service.isContaValidadaSync(contaBlockchainDoador+"");
-      if (!bDoadorValidado) {
-        let s = "CNPJ não está associado a conta blockchain validada";
+ */ 
+
+      if (!this.doacao.rbbId) {
+        let s = "CNPJ do investidor não está cadastrado.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
-      }
+      } 
+
       if (this.hashdeclaracao==undefined || this.hashdeclaracao==null || this.hashdeclaracao == "") {
         let s = "O envio da declaração é obrigatório";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)

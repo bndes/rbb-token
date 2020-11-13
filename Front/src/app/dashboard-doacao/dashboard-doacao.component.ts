@@ -86,7 +86,7 @@ export class DashboardDoacaoComponent implements OnInit {
 
   registraEventosRegistroDoacao() {
 
-    console.log("*** Executou o metodo de registrar eventos REGISTRAR DOACAO");
+    console.log("*** Executou o metodo de registrar eventos REGISTRAR INV");
 
     let self = this;        
     this.web3Service.registraEventosRegistrarInvestimento(function (error, event) {
@@ -131,30 +131,30 @@ export class DashboardDoacaoComponent implements OnInit {
 
   registraEventosRecebimentoDoacao() {
 
-    console.log("*** Executou o metodo de registrar eventos RECEBER DOACAO");
+    console.log("*** Executou o metodo de registrar eventos RECEBER INV");
 
     let self = this;        
-    this.web3Service.registraEventosRecebimentoDoacao(function (error, event) {
+    this.web3Service.registraEventosRecebimentoInvestimento(function (error, event) {
 
         if (!error) {
 
             let transacao: DashboardDoacao;
 
-            console.log("Evento Receber Doacao");
+            console.log("------->>> Evento Receber Doacao");
             console.log(event);
 
             let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
                     self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted));
                  
             transacao = {
-                rbbId: 0,
-                cnpj: event.args.cnpj,
+                rbbId: event.args.idInvestor,
+                cnpj: "FALTA RECUPERAR DO REGISTRY",
                 razaoSocial: "",
                 valor      : self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),
                 tokenMinted: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted)),
                 txAdm: txAdm,
                 dataHora: null,
-                tipo: "Doação Confirmada",
+                tipo: "Investimento Confirmado",
                 hashID: event.transactionHash,
                 uniqueIdentifier: event.transactionHash,
                 hashComprovante: event.args.docHash,
@@ -162,7 +162,7 @@ export class DashboardDoacaoComponent implements OnInit {
             }
 
             self.includeIfNotExists(transacao);
-            self.recuperaInfoDerivadaPorCnpj(self, transacao);
+//            self.recuperaInfoDerivadaPorCnpj(self, transacao);
             self.recuperaDataHora(self, event, transacao);
             self.recuperaFilePathAndName(self,transacao);
 

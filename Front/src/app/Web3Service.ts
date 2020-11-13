@@ -46,6 +46,9 @@ export class Web3Service {
 
     private FAKE_HASH: number= 0;
 
+    //Id do token especifico
+    private ID_SPECIFIC_TOKEN: number = 1;
+
     constructor(private http: HttpClient, private constantes: ConstantesService) {
        
 //        this.vetorTxJaProcessadas = [];
@@ -213,14 +216,12 @@ export class Web3Service {
     }
 
     registraEventosRegistrarInvestimento(callback) {
-        console.log("web3-registraEventosRegistrarDoacao");
         this.eventoInvestimento = this.esgBndesTokenSmartContract.FA_InvestmentBooked({}, { fromBlock: 0, toBlock: 'latest' });
         this.eventoInvestimento.watch(callback);
     }
 
-    registraEventosRecebimentoDoacao(callback) {
-        console.log("web3-registraEventosRecebimentoDoacao");        
-        this.eventoInvestimento = this.rbbTokenSmartContract.RBBTokenMintRequested({}, { fromBlock: 0, toBlock: 'latest' });
+    registraEventosRecebimentoInvestimento(callback) {
+        this.eventoInvestimento = this.esgBndesTokenSmartContract.FA_InvestmentConfirmed({}, { fromBlock: 0, toBlock: 'latest' });
         this.eventoInvestimento.watch(callback);
     }
 
@@ -400,11 +401,11 @@ export class Web3Service {
     }
 
 
-    getBookedBalanceOf(rbbId: number, fSuccess: any, fError: any): number {
+    getBalanceRequestedToken(rbbId: number, fSuccess: any, fError: any): number {
         
         console.log("vai recuperar o balanceOf de " + rbbId);
         let self = this;
-        return this.rbbTokenSmartContract.balanceRequestedTokens(1,rbbId,
+        return this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,rbbId,
             (error, valorSaldoCNPJ) => {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
@@ -414,7 +415,7 @@ export class Web3Service {
 
 
     async receberDoacao(cnpj: string, amount: number, docHash: string, fSuccess: any, fError: any) {
-
+/*
         let contaSelecionada = await this.getCurrentAccountSync();    
         
         console.log("conta selecionada=" + contaSelecionada);
@@ -431,18 +432,8 @@ export class Web3Service {
                 if (error) fError(error);
                 else fSuccess(result);
             });  
-        
+        */
     } 
-
-    public getContaBlockchainFromDoadorSync(cnpj:string) {
-        let self = this;
-        return new Promise(function(resolve, reject) {
-            self.bndesRegistrySmartContract.getBlockchainAccountOfDonor(cnpj, function(error, result) {
-                resolve(result);
-            })
-        })
-    }    
-
 
     ////////////////////// FIM INVESTIDOR
 
