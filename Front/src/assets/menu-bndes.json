@@ -27,6 +27,11 @@
 					"separador": false
 				},
 				{
+					"titulo": "Alocar Investimentos",
+					"url": "/bndes/alocar-investimentos",
+					"separador": false
+				},
+				{
 					"titulo": "Liberar",
 					"url": "/bndes/liberacao",
 					"separador": false

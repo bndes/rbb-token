@@ -147,8 +147,8 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
     async receberDoacao() {
 
       let self = this;
-
-
+/*
+//TODO: verificar se eh quem pode confirmar
       let bRD = await this.web3Service.isResponsibleForDonationConfirmationSync(this.selectedAccount);    
       if (!bRD) 
       {
@@ -156,7 +156,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
           this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
           return;
       } 
-
+*/
 /*
 //TODO: verificar se é um doador
       if (!contaBlockchainDoador) {
@@ -182,8 +182,6 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
         return;
       }
-  
-  
         
       //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
       if ((this.doacao.valor * 1) > (this.doacao.saldo * 1)) {
@@ -197,7 +195,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
       }
   
   
-      this.web3Service.receberDoacao(this.doacao.cnpj, this.doacao.valor, this.hashdeclaracao,
+      this.web3Service.receberDoacao(this.doacao.rbbId, this.doacao.valor, this.hashdeclaracao,
   
           (txHash) => {
           Utils.criarAlertasAvisoConfirmacao( txHash, 

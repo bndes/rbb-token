@@ -11,6 +11,7 @@ import { RealizarPagamentoComponent } from './realizar-pagamento/realizar-pagame
 import { ConfirmaDoacaoComponent } from './confirma-doacao/confirma-doacao.component';
 import { ResgateComponent } from './resgate/resgate.component';
 
+import { AlocaValoresContasBndesComponent } from './aloca-valores-contas-bndes/aloca-valores-contas-bndes.component';
 
 import { RegistraDoacaoComponent } from './registra-doacao/registra-doacao.component';
 
@@ -31,6 +32,7 @@ const routes: Routes = [
   { path: 'sociedade', component: HomeComponent },
   { path: 'bndes/confirma-doacao', component:ConfirmaDoacaoComponent },
   { path: 'bndes/liberacao', component: LiberacaoComponent },
+  { path: 'bndes/alocar-investimentos', component: AlocaValoresContasBndesComponent},
   { path: 'bndes/associa-papel-investidor', component: AssociaPapelInvestidorComponent},
   { path: 'bndes/liquidar/:solicitacaoResgateId', component: LiquidacaoResgateComponent},
   { path: 'doador/registra-doacao', component: RegistraDoacaoComponent},  

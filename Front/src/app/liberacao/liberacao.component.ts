@@ -259,7 +259,7 @@ async recuperaSaldoBNDESToken() {
     else {
       console.log(this.liberacao.contaBlockchainCNPJ);
       console.log(this.liberacao.valor);
-
+/*
       this.web3Service.isContaValidada(this.liberacao.contaBlockchainCNPJ, 
     
         (result) => {
@@ -300,6 +300,7 @@ async recuperaSaldoBNDESToken() {
             error);
   
         });
-      }      
+*/
+      }    
   }
 }

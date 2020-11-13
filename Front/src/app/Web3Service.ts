@@ -32,7 +32,7 @@ export class Web3Service {
     private ethereum: any;
     private web3Instance: any;                  // Current instance of web3
 
-//    private vetorTxJaProcessadas : any[];
+    private vetorTxJaProcessadas : any[];
 
     private eventoRBBToken: any;
 
@@ -400,42 +400,94 @@ export class Web3Service {
         
     }
 
-
-    getBalanceRequestedToken(rbbId: number, fSuccess: any, fError: any): number {
-        
-        console.log("vai recuperar o balanceOf de " + rbbId);
+    async getSpecificHashSync(info: number) {
         let self = this;
-        return this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,rbbId,
-            (error, valorSaldoCNPJ) => {
-                if (error) fError(error);
-                else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
+
+        return new Promise (function(resolve) {
+            self.getSpecificHash(info, function(result) {
+                resolve(result);
+            }, function(reject) {
+                console.log("ERRO getIdByAddressSync");
+                reject(-1);
             });
-            
+        })
+    }    
+
+    getSpecificHash (info: number, fSuccess: any, fError: any)  {
+        return this.esgBndesToken_GetDataToCallSmartContract.getCalculatedHash(info,
+            (error, result) => {
+                if (error) fError(error);
+                else fSuccess(result);
+            });
     }
 
 
-    async receberDoacao(cnpj: string, amount: number, docHash: string, fSuccess: any, fError: any) {
-/*
+    async getBalanceRequestedToken(rbbId: number, fSuccess: any, fError: any) {
+        
+        console.log("vai recuperar o balanceOf de " + rbbId);
+        let self = this;
+
+        //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
+        let specificHash = <string> (await this.getSpecificHashSync(30));
+        console.log("specificHash=" + specificHash);
+
+        return this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,specificHash,
+            (error, valorSaldoCNPJ) => {
+                if (error) fError(error);
+                else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
+            });            
+    }
+
+
+    async receberDoacao(rbbIDInvestor: number, amount: number, docHash: string, fSuccess: any, fError: any) {
+
         let contaSelecionada = await this.getCurrentAccountSync();    
         
-        console.log("conta selecionada=" + contaSelecionada);
-        console.log("Web3Service - ReceberDoacao");
+        console.log("***** Web3Service - ReceberDoacao");
         amount = this.converteDecimalParaInteiro(amount); 
+        console.log("conta selecionada=" + contaSelecionada);
+        console.log("inv=" + rbbIDInvestor);
         console.log("amount=" + amount);
+        console.log("addr=" + this.addrContratoESGBndesToken);
 
-        let contaBlockchain = await this.getContaBlockchainFromDoadorSync(cnpj);
-        console.log("cnpj=" + cnpj);
-        console.log("contaBlockchain=" + contaBlockchain);
+        //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
+        let specificHash = <string> (await this.getSpecificHashSync(30));
 
-        this.bndesTokenSmartContract.confirmDonation(contaBlockchain, amount, docHash, { from: contaSelecionada, gas: 500000 },
+        //TODO: Trocar fake hash pelo hash
+        this.rbbTokenSmartContract.mint(this.addrContratoESGBndesToken, rbbIDInvestor, specificHash, 
+             amount, this.FAKE_HASH, [], { from: contaSelecionada},
             (error, result) => {
                 if (error) fError(error);
                 else fSuccess(result);
             });  
-        */
     } 
 
-    ////////////////////// FIM INVESTIDOR
+
+/* 
+    isDoador(address: string, fSuccess: any, fError: any): boolean {
+        return this.bndesRegistrySmartContract.isDonor(address,
+            (error, result) => {
+                if (error) fError(error);
+                else fSuccess(result);
+            });
+    }
+
+    isDoadorSync(address: string) {
+        let self = this;
+
+        return new Promise (function(resolve) {
+            self.isDoador(address, function(result) {
+                resolve(result);
+            }, function(reject) {
+                console.log("ERRO IS DONOR SYNC");
+                reject(false);
+            });
+        })
+    }
+*/   
+
+
+    ////////////////// FIM INVESTIDOR
 
 
 
@@ -490,20 +542,8 @@ export class Web3Service {
             (error, result) => {
                 if (error) fError(error);
                 else {
-                    let pjInfo = self.montaPJInfo(result);
+                    let pjInfo = null;
                     fSuccess(pjInfo);
-                }
-            });
-    }
-
-
-    isAccountEnabled(addr: string, fSuccess: any, fError: any): number {
-        let self = this;
-        return this.bndesRegistrySmartContract.isChangeAccountEnabled(addr,
-            (error, result) => {
-                if (error) fError(error);
-                else {
-                    fSuccess(result);
                 }
             });
     }
@@ -515,7 +555,7 @@ export class Web3Service {
             (error, result) => {
                 if (error) fError(error);
                 else {
-                    let pjInfo = self.montaPJInfo(result);
+                    let pjInfo = null;
                     fSuccess(pjInfo);
                 }
             });
@@ -596,23 +636,6 @@ export class Web3Service {
             });
     }
 
-    async trocaAssociacaoDeConta(cnpj: number, idSubcredito: number, hashdeclaracao: string,
-        fSuccess: any, fError: any) {
-
-        console.log("Web3Service - Troca Associacao")
-        console.log("CNPJ: " + cnpj + ", Contrato: " + idSubcredito + ", cnpj: " + cnpj)
-        console.log("hash= " + hashdeclaracao);
-
-        let contaBlockchain = await this.getCurrentAccountSync();    
-
-        this.bndesTokenSmartContract.changeAccountLegalEntity(cnpj, idSubcredito, hashdeclaracao, 
-            { from: contaBlockchain, gas: 500000 },
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });
-    }
-
     getBlockTimestamp(blockHash: number, fResult: any) {
 
         this.web3.eth.getBlock(blockHash, fResult);
@@ -640,50 +663,7 @@ export class Web3Service {
             });
         })
     }
-        
-    isDoador(address: string, fSuccess: any, fError: any): boolean {
-        return this.bndesRegistrySmartContract.isDonor(address,
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });
-    }
-
-
-    isDoadorSync(address: string) {
-        let self = this;
-
-        return new Promise (function(resolve) {
-            self.isDoador(address, function(result) {
-                resolve(result);
-            }, function(reject) {
-                console.log("ERRO IS DONOR SYNC");
-                reject(false);
-            });
-        })
-    }
     
-
-    isReservedAccount(address: string, fSuccess: any, fError: any): boolean {
-        return this.bndesRegistrySmartContract.isReservedAccount(address,
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });
-    }
-
-    isReservedAccountSync(address: string) {
-        let self = this;
-
-        return new Promise (function(resolve) {
-            self.isReservedAccount(address, function(result) {
-                resolve(result);
-            }, function(reject) {
-                console.log("ERRO IS reserved account SYNC");
-                reject(false);
-            });
-        })
-    }    
 
     isResponsavelPorAssociarInvestidorSync (address: string) {
         let self = this;
@@ -708,8 +688,29 @@ export class Web3Service {
                 }
             });
     }
+/*
+//TODO:
+    isResponsibleForDonationConfirmation(address: string, fSuccess: any, fError: any): boolean {
+        return this.esgBndesTokenSmartContract.isResponsibleForDonationConfirmation(address,
+            (error, result) => {
+                if (error) fError(error);
+                else fSuccess(result);
+            });
+    }
 
+    isResponsibleForDonationConfirmationSync(address: string) {
+        let self = this;
 
+        return new Promise (function(resolve) {
+            self.isResponsibleForDonationConfirmation(address, function(result) {
+                resolve(result);
+            }, function(reject) {
+                console.log("ERRO IS responsible for Donation Confirmation  SYNC");
+                reject(false);
+            });
+        })
+    }    
+*/
     isResponsibleForSettlement(address: string, fSuccess: any, fError: any): boolean {
         return this.bndesRegistrySmartContract.isResponsibleForSettlement(address,
             (error, result) => {
@@ -731,26 +732,7 @@ export class Web3Service {
         })
     }
 
-    isResponsibleForDonationConfirmation(address: string, fSuccess: any, fError: any): boolean {
-        return this.bndesRegistrySmartContract.isResponsibleForDonationConfirmation(address,
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });
-    }
 
-    isResponsibleForDonationConfirmationSync(address: string) {
-        let self = this;
-
-        return new Promise (function(resolve) {
-            self.isResponsibleForDonationConfirmation(address, function(result) {
-                resolve(result);
-            }, function(reject) {
-                console.log("ERRO IS responsible for Donation Confirmation  SYNC");
-                reject(false);
-            });
-        })
-    }
 
     
 
@@ -800,219 +782,8 @@ export class Web3Service {
         })
     }       
 
-    
-
-    accountIsActive(address: string, fSuccess: any, fError: any): boolean {
-        return this.bndesRegistrySmartContract.isValidatedAccount(address, 
-        (error, result) => {
-            if(error) fError(error);
-            else fSuccess(result);
-        });
-    }
-
-    async isSelectedAccountOwner() {
-        let contaSelecionada = await this.getCurrentAccountSync();    
-        return contaSelecionada == this.addressOwner;
-    }
-
-    isContaDisponivel(address: string, fSuccess: any, fError: any): boolean {
-        return this.bndesRegistrySmartContract.isAvailableAccount(address, 
-            (error, result) => {
-                if(error) fError(error);
-                else fSuccess(result);
-            });
-    }
-
-    public isContaDisponivelSync(address: string) {
-        
-        let self = this;
-
-        return new Promise (function(resolve) {
-            self.isContaDisponivel(address, function(result) {
-                resolve(result);
-            }, function(reject) {
-                console.log("ERRO IS CONTA DISPONIVEL SYNC");
-                reject(false);
-            });
-        })
-    }
-
-
-    isContaAguardandoValidacao(address: string, fSuccess: any, fError: any): boolean {
-        return this.bndesRegistrySmartContract.isWaitingValidationAccount(address, 
-            (error, result) => {
-                if(error) fError(error);
-                else fSuccess(result);
-            });
-    }
-
-    public isContaAguardandoValidacaoSync(address: string) {
-        
-        let self = this;
-
-        return new Promise (function(resolve) {
-            self.isContaAguardandoValidacao(address, function(result) {
-                resolve(result);
-            }, function(reject) {
-                console.log("ERRO IS CONTA AGUARDANDO VALIDACAO SYNC");
-                reject(false);
-            });
-        })
-    }
-
-    isContaValidada(address: string, fSuccess: any, fError: any): boolean {
-        return this.bndesRegistrySmartContract.isValidatedAccount(address, 
-            (error, result) => {
-                if(error) fError(error);
-                else fSuccess(result);
-            });
-    }
-
     public isContaValidadaSync(address: string) {
         
-        let self = this;
-
-        return new Promise (function(resolve) {
-            self.isContaValidada(address, function(result) {
-                resolve(result);
-            }, function(reject) {
-                console.log("ERRO IS CONTA VALIDADA SYNC");
-                reject(false);
-            });
-        })
-    }
-
-    async habilitarCadastro(address: string, fSuccess: any, fError: any) {
-        
-        let contaBlockchain = await this.getCurrentAccountSync();    
-
-        this.bndesRegistrySmartContract.enableChangeAccount(address,
-            { from: contaBlockchain, gas: 500000 },
-            (error, result) => {
-                if(error) { fError(error); return false; }
-                else { fSuccess(result); return true; }
-            });
-    }
-    
-
-    async validarCadastro(address: string, hashTentativa: string, fSuccess: any, fError: any) {
-        
-        let contaBlockchain = await this.getCurrentAccountSync();    
-
-        this.bndesRegistrySmartContract.validateRegistryLegalEntity(address, hashTentativa, 
-            { from: contaBlockchain, gas: 500000 },
-            (error, result) => {
-                if(error) { fError(error); return false; }
-                else { fSuccess(result); return true; }
-            });
-    }
-
-    async invalidarCadastro(address: string, fSuccess: any, fError: any) {
-
-        let contaBlockchain = await this.getCurrentAccountSync();    
-
-        this.bndesRegistrySmartContract.invalidateRegistryLegalEntity(address, 
-            { from: contaBlockchain, gas: 500000 },
-            (error, result) => {
-                if(error) { fError(error); return false; }
-                else { fSuccess(result); return true; }
-            });
         return false;
     }
-
-    
-
-    getEstadoContaAsString(address: string, fSuccess: any, fError: any): string {
-        let self = this;
-        console.log("getEstadoContaAsString no web3:" + address);
-        return this.bndesRegistrySmartContract.getAccountState(address, 
-        (error, result) => {
-            if(error) {
-                console.log("Mensagem de erro ao chamar BNDESRegistry:");
-                console.log(error);                
-                fError(error);
-            }
-            else {
-                console.log("Sucesso ao recuperar valor - getAccountState no web3:" + result);
-                let str = self.getEstadoContaAsStringByCodigo (result);
-                fSuccess(str);
-            }   
-        });
-    }
-
-
-
-    //Métodos de tradução back-front
-
-    montaPJInfo(result): any {
-        let pjInfo: any;
-
-        console.log(result);
-        pjInfo  = {};
-        pjInfo.cnpj = result[0].c[0];
-        pjInfo.idSubcredito = result[1].c[0];
-        pjInfo.hashDeclaracao = result[2];
-        pjInfo.status = result[3].c[0];
-        pjInfo.address = result[4];
-
-        pjInfo.statusAsString = this.getEstadoContaAsStringByCodigo(pjInfo.status);
-
-        if (pjInfo.status == 2) {
-            pjInfo.isValidada =  true;
-        }
-        else {
-            pjInfo.isValidada = false;
-        }
-
-
-        if (pjInfo.status == 0) {
-            pjInfo.isAssociavel =  true;
-        }
-        else {
-            pjInfo.isAssociavel = false;
-        }
-
-
-        if (pjInfo.status == 1 || pjInfo.status == 2 || pjInfo.status == 3 || pjInfo.status == 4) {
-            pjInfo.isTrocavel =  true;
-        }
-        else {
-            pjInfo.isTrocavel = false;
-        }
-
-
-        return pjInfo;
-    }
-
-
-    getEstadoContaAsStringByCodigo(result): string {
-        if (result==100) {
-            return "Conta Reservada";
-        }
-        else if (result==0) {
-            return "Disponível";
-        }
-        else if (result==1) {
-            return "Aguardando validação do Cadastro";
-        }                
-        else if (result==2) {
-            return "Validada";
-        }    
-        else if (result==3) {
-            return "Conta invalidada pelo Validador";
-        }    
-        else if (result==4) {
-            return "Conta invalidada por Troca de Conta";
-        }                                                       
-        else {
-            return "N/A";
-        }        
-    }
-
-
-
-
-    
-
-
 }
