@@ -137,7 +137,7 @@ export class DashboardTransferenciasComponent implements OnInit {
 
     let self = this;
   
-    this.web3Service.getDisbursementAddressBalance(
+    this.web3Service.getDisbursementBalance(
       function (result) {
         console.log("Saldo eh " + result);
         self.saldoBNDESToken = result;

@@ -75,7 +75,7 @@ async recuperaSaldoBNDESToken() {
 
   let self = this;
 
-  this.web3Service.getDisbursementAddressBalance(
+  this.web3Service.getDisbursementBalance(
     function (result) {
       console.log("Saldo eh " + result);
       self.liberacao.saldoBNDESToken = result;
@@ -192,7 +192,7 @@ async recuperaSaldoBNDESToken() {
   }
 
 
-
+/*
   recuperaContaBlockchainCliente() {
 
     let self = this;
@@ -203,19 +203,6 @@ async recuperaSaldoBNDESToken() {
       function (result) {
         console.log("CNPJ " + self.liberacao.cnpj + " tem conta blockchain " + result);
         self.liberacao.contaBlockchainCNPJ = result;
-/*
-        self.web3Service.getBalanceOf(rbbId, self.liberacao.numeroSubcreditoSelecionado,
-            function (result) {
-              console.log("Saldo do endereco " + self.liberacao.contaBlockchainCNPJ + " eh " + result);
-              self.liberacao.saldoCNPJ = result;
-              self.ref.detectChanges();
-        },
-        function (error) {
-            console.log("Erro ao ler o saldo do endereco " + self.liberacao.contaBlockchainCNPJ);
-            console.log(error);
-            self.liberacao.saldoCNPJ = 0;
-        });
-*/
       },
       function (error) {
         console.log("Erro ao ler conta blockchain " + this.liberacao.cnpj);
@@ -228,7 +215,7 @@ async recuperaSaldoBNDESToken() {
   atualizaInfoPorMudancaSubcredito() {
     this.recuperaContaBlockchainCliente();
   }
-
+*/
 
   async liberar() {
 
