@@ -9,7 +9,7 @@
     <div class="conteudo">
       <div class="row">
         <div class="form-group col-md-12 col-sm-12">
-          <h5>Informações da Origem:</h5>
+          <h5>Informações da Conta de Emissão:</h5>
         </div>
       </div>
 
@@ -21,7 +21,7 @@
         </div>
       -->
         <div class="form-group col-md-4 col-sm-4">
-          <label>Saldo total de ESG Tokens:</label>
+          <label>Saldo de ESG Tokens:</label>
           <input currencyMask type="text" class="form-control form-control-sm" [ngModel]="liberacao.saldoBNDESToken" readonly disabled/>
         </div>
 
@@ -98,7 +98,8 @@
 
     <div class="form-group">
       <button (click)="liberar()" type="button" class="btn btn-success btn-cabecalho" placement="bottom" ngbTooltip="Liberar" 
-      [disabled]="liberacao.numeroSubcreditoSelecionado === undefined || liberacao.valor <= 0 || liberacao.contaBlockchainCNPJ == '' ">
+      [disabled]="liberacao.numeroSubcreditoSelecionado === undefined">
+      <!-- || liberacao.valor <= 0-->
         <i class="fa fa-floppy-o" aria-hidden="true"></i> Liberar
       </button>
     </div>

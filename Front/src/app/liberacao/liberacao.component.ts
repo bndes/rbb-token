@@ -75,7 +75,7 @@ async recuperaSaldoBNDESToken() {
 
   let self = this;
 
-  this.web3Service.getDisbursementBalance(
+  this.web3Service.getDisbursementBalance (
     function (result) {
       console.log("Saldo eh " + result);
       self.liberacao.saldoBNDESToken = result;
@@ -96,21 +96,28 @@ async recuperaSaldoBNDESToken() {
       this.ultimoCNPJ = this.liberacao.cnpj;
 
       if ( this.liberacao.cnpj.length == 14 ) { 
-        console.log (" Buscando o CNPJ do cliente (14 digitos fornecidos)...  ")
+        console.log (" Buscando o CNPJ do cliente (14 digitos fornecidos)...  ");
         this.recuperaClientePorCNPJ(this.liberacao.cnpj);
       } 
       else {
         this.inicializaLiberacao();
       }  
-  
-
     }
   }
 
-  recuperaClientePorCNPJ(cnpj) {
+  async recuperaClientePorCNPJ(cnpj) {
     console.log(cnpj);
 
     let self = this;
+
+    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpj)));
+
+    if (!rbbID) {
+      let s = "CNPJ não está cadastrado.";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+    } 
+    this.liberacao.rbbId = rbbID; 
 
     this.pessoaJuridicaService.recuperaClientePorCnpj(cnpj).subscribe(
       empresa => {
@@ -126,7 +133,14 @@ async recuperaSaldoBNDESToken() {
             for (var i = 0; i < empresa["subcreditos"].length; i++) {
             
               let subStr = JSON.parse(JSON.stringify(empresa["subcreditos"][i]));
-              self.includeAccountIfAssociated(self, cnpj, subStr);
+
+              self.includeIfNotExists(self.liberacao.subcreditos, subStr);
+
+              //TODO: otimizar para fazer isso apenas uma vez
+              if (i==0) {
+                self.liberacao.numeroSubcreditoSelecionado = self.liberacao.subcreditos[0].numero;
+                self.atualizaInfoPorMudancaSubcredito();
+              }
             }
                
           }
@@ -153,32 +167,16 @@ async recuperaSaldoBNDESToken() {
 
   }
 
-
-  includeAccountIfAssociated (self, cnpj, sub) {
-
-    self.web3Service.getPJInfoByCnpj(cnpj, sub.numero,
-              
-      (pjInfo) => {
-
-        console.log("####### estado da conta");        
-        console.log(pjInfo);   
-        
-        //so pode incluir se estiver validada
-      if (pjInfo.isValidada) { 
-            self.includeIfNotExists(self.liberacao.subcreditos, sub);
-
-            //TODO: otimizar para fazer isso apenas uma vez
-            self.liberacao.numeroSubcreditoSelecionado = self.liberacao.subcreditos[0].numero;
-            self.recuperaContaBlockchainCliente();
-
-        }
+  atualizaInfoPorMudancaSubcredito() {
+    this.web3Service.getBalanceOf(this.liberacao.rbbId, this.liberacao.numeroSubcreditoSelecionado,
+      result => {
+        this.liberacao.saldoCNPJ = result;
       },
-      (error) => {
-        console.log("Erro ao verificar se contrato estah associado na blockhain");
-      })
-  
+      error => {
+        console.log("Nao conseguiu recuperar valor");
+        this.liberacao.saldoCNPJ = 0;
+      });
   }
-
 
   includeIfNotExists(subcreditos, sub) {
 
@@ -192,35 +190,11 @@ async recuperaSaldoBNDESToken() {
   }
 
 
-/*
-  recuperaContaBlockchainCliente() {
-
-    let self = this;
-
-    console.log("Recupera conta blockchain");
-
-    this.web3Service.getContaBlockchain(self.liberacao.cnpj, self.liberacao.numeroSubcreditoSelecionado,
-      function (result) {
-        console.log("CNPJ " + self.liberacao.cnpj + " tem conta blockchain " + result);
-        self.liberacao.contaBlockchainCNPJ = result;
-      },
-      function (error) {
-        console.log("Erro ao ler conta blockchain " + this.liberacao.cnpj);
-        console.log(error);
-        self.liberacao.saldoCNPJ = 0;
-      });  
-
-  }
-
-  atualizaInfoPorMudancaSubcredito() {
-    this.recuperaContaBlockchainCliente();
-  }
-*/
-
   async liberar() {
 
     let self = this;
 
+/*    
     let bRD = await this.web3Service.isResponsibleForDisbursementSync();    
     if (!bRD) 
     {
@@ -228,66 +202,43 @@ async recuperaSaldoBNDESToken() {
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
     }
-    else if (!this.liberacao.contaBlockchainCNPJ) {
+*/
 
-      let s = "Não encontrada uma conta blockchain associada.";
-      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
-      console.log(s);
-    }
 
-      //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
-    else if ((this.liberacao.valor * 1) > (this.liberacao.saldoBNDESToken * 1)) {
-    
+    //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
+    if ((this.liberacao.valor * 1) > (this.liberacao.saldoBNDESToken * 1)) {
+/*    
         let s = "Não é possível liberar um valor maior do que o saldo de BNDESToken.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
+*/
     }
 
-    else {
-      console.log(this.liberacao.contaBlockchainCNPJ);
-      console.log(this.liberacao.valor);
-/*
-      this.web3Service.isContaValidada(this.liberacao.contaBlockchainCNPJ, 
-    
-        (result) => {
+        console.log(this.liberacao.valor);          
 
-          if (!result) {
-          
-            let msg = "A conta "+ this.liberacao.contaBlockchainCNPJ +" não está validada e portanto não pode receber tokens."; 
-            Utils.criarAlertaErro( self.bnAlertsService, msg, msg);  
-          }
-          else {
 
-              console.log(result);
+        this.web3Service.liberacao(this.liberacao.rbbId, this.liberacao.numeroSubcreditoSelecionado+"", this.liberacao.valor,
+          (txHash) => {
+          self.liberacao.hashID = txHash;
 
-              this.web3Service.liberacao(this.liberacao.contaBlockchainCNPJ, this.liberacao.valor,
-                (txHash) => {
-                self.liberacao.hashID = txHash;
-      
-                Utils.criarAlertasAvisoConfirmacao( txHash, 
-                                                    self.web3Service, 
-                                                    self.bnAlertsService, 
-                                                    "A liberação está sendo enviada para a blockchain.", 
-                                                    "A liberação foi confirmada na blockchain.", 
-                                                    self.zone) 
-                self.router.navigate(['sociedade/dash-transf']);                                                          
-                }        
-              ,(error) => {
-                Utils.criarAlertaErro( self.bnAlertsService, 
-                                        "Erro ao liberar na blockchain. Uma possibilidade é a conta selecionada não ser a do BNDES", 
-                                        error )  
-              }
-            );
-            Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
-                                          "Confirme a operação no metamask e aguarde a confirmação da liberação." )
-          }
-        }, (error) => {
+          Utils.criarAlertasAvisoConfirmacao( txHash, 
+                                              self.web3Service, 
+                                              self.bnAlertsService, 
+                                              "A liberação está sendo enviada para a blockchain.", 
+                                              "A liberação foi confirmada na blockchain.", 
+                                              self.zone) 
+          self.router.navigate(['sociedade/dash-transf']);                                                          
+          }        
+        ,(error) => {
           Utils.criarAlertaErro( self.bnAlertsService, 
-            "Erro ao verificar se conta está validada", 
-            error);
+                                  "Erro ao liberar na blockchain. Uma possibilidade é a conta selecionada não ser a do BNDES", 
+                                  error )  
+        }
+      );
+
+      Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
+                                    "Confirme a operação no metamask e aguarde a confirmação da liberação." )
+
+    }    
   
-        });
-*/
-      }    
-  }
 }

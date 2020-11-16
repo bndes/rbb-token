@@ -493,19 +493,18 @@ export class Web3Service {
         let valorToHash = numeroContrato?numeroContrato:this.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER;
         let specificHash =  <string> (await this.getSpecificHashSync(valorToHash));
 
-        return this.rbbTokenSmartContract.balanceOf(this.ID_SPECIFIC_TOKEN,rbbId,specificHash,
+        return this.rbbTokenSmartContract.rbbBalances(this.ID_SPECIFIC_TOKEN,rbbId,specificHash,
             (error, valorSaldoCNPJ) => {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
             });
     }
 
-    async getBalanceOfAllAccounts(rbbId: number, valorToHash: number, fSuccess: any, fError: any) {
+    async getBalanceOfAllAccounts(self: any, rbbId: number, valorToHash: number, fSuccess: any, fError: any) {
         
-        let self = this;
-        let specificHash =  <string> (await this.getSpecificHashSync(valorToHash));
+        let specificHash =  <string> (await self.getSpecificHashSync(valorToHash));
 
-        return this.rbbTokenSmartContract.balanceOf(this.ID_SPECIFIC_TOKEN,rbbId,specificHash,
+        return self.rbbTokenSmartContract.rbbBalances(self.ID_SPECIFIC_TOKEN,rbbId,specificHash,
             (error, valorSaldoCNPJ) => {
                 if (error) fError(error);
                 else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
@@ -514,74 +513,82 @@ export class Web3Service {
 
     async getMintedBalance(fSuccess: any, fError: any) {
 
-        return this.getBalanceOfAllAccounts(this.ID_BNDES, this.RESERVED_MINTED_ACCOUNT, 
+        return this.getBalanceOfAllAccounts(this, this.ID_BNDES, this.RESERVED_MINTED_ACCOUNT, 
             fSuccess, fError);
 
     }
 
     async getDisbursementBalance(fSuccess: any, fError: any) {
 
-        return this.getBalanceOfAllAccounts(this.ID_BNDES, this.RESERVED_USUAL_DISBURSEMENTS_ACCOUNT, 
+        return this.getBalanceOfAllAccounts(this, this.ID_BNDES, this.RESERVED_USUAL_DISBURSEMENTS_ACCOUNT, 
             fSuccess, fError);
 
     }
 
     async getAdminFeeBalance(fSuccess: any, fError: any) {
 
-        return this.getBalanceOfAllAccounts(this.ID_BNDES, this.RESERVED_BNDES_ADMIN_FEE_TO_HASH, 
+        return this.getBalanceOfAllAccounts(this, this.ID_BNDES, this.RESERVED_BNDES_ADMIN_FEE_TO_HASH, 
             fSuccess, fError);
 
     }
 
     ////////////////// FIM SALDOS
 
-    
-    getPJInfo(addr: string, fSuccess: any, fError: any): number {
+    ////////////////// INÍCIO TRANSAÇÕES
+
+    getDisbursementDataSync(nContrato: string) {
         let self = this;
-        console.log("getPJInfo com addr=" + addr);
-        console.log("bndesRegistrySmartContract=" + this.bndesRegistrySmartContract);
-        return this.bndesRegistrySmartContract.getLegalEntityInfo(addr,
+
+        return new Promise (function(resolve) {
+            self.getDisbursementData(nContrato, function(result) {
+                resolve(result);
+            }, function(reject) {
+                console.log("ERRO getDisbursementDataSync");
+                reject(-1);
+            });
+        })
+    }
+
+    getDisbursementData(nContrato: string, fSuccess: any, fError: any) {
+
+        console.log("Web3Service - getDisbursementData");
+
+        return this.esgBndesToken_GetDataToCallSmartContract.getDisbusementData(nContrato,
             (error, result) => {
                 if (error) fError(error);
                 else {
-                    let pjInfo = null;
-                    fSuccess(pjInfo);
+                    fSuccess(result);
                 }
             });
     }
- 
-    getConfirmedTotalSupply(fSuccess: any, fError: any): number {
-        /*        
-                console.log("vai recuperar o confirmedtotalsupply. " );
-                let self = this;
+
+    async liberacao(rbbIdDestino: number, nContrato: string, transferAmount: number, fSuccess: any, fError: any) {
+        console.log("Web3Service - Liberacao");
+
+        let contaSelecionada = await this.getCurrentAccountSync(); 
         
-        
-                return this.rbbTokenSmartContract.rbbBalances[]()
-                    (error, confirmedTotalSupply) => {
-                        if (error) fError(error);
-                        else fSuccess( self.converteInteiroParaDecimal(  parseInt ( confirmedTotalSupply ) ) );
-                    });
-         */
-        return -1;           
-    }
+        let disbursementData = await this.getDisbursementDataSync(nContrato);
+        console.log(disbursementData);
+        let fromHash = disbursementData[0];
+        console.log(fromHash);
+
+        let toHash = disbursementData[1];
+        console.log(toHash);
+
+        let dataFromDD = disbursementData[2];
+        console.log(dataFromDD);
 
 
-    async liberacao(target: string, transferAmount: number, fSuccess: any, fError: any) {
-        console.log("Web3Service - Liberacao")
-
-        let contaSelecionada = await this.getCurrentAccountSync();        
-        transferAmount = this.converteDecimalParaInteiro(transferAmount);     
-        console.log('target=' + target);
+        transferAmount = this.converteDecimalParaInteiro(transferAmount);  
         console.log('TransferAmount(after)=' + transferAmount);
 
-        this.bndesTokenSmartContract.makeDisbursement(target, transferAmount, { from: contaSelecionada, gas: 500000 },
+        this.rbbTokenSmartContract.transfer(this.ID_SPECIFIC_TOKEN, fromHash, rbbIdDestino, toHash,
+            transferAmount, this.FAKE_HASH, dataFromDD, { from: contaSelecionada },
             (error, result) => {
                 if (error) fError(error);
                 else fSuccess(result);
-            });        
-
+            });
     }
-
 
     async resgata(transferAmount: number, fSuccess: any, fError: any) {
 
@@ -611,14 +618,33 @@ export class Web3Service {
             });
     }
 
+    ////////////////// FIM TRANSAÇÕES
+
+
     getBlockTimestamp(blockHash: number, fResult: any) {
 
         this.web3.eth.getBlock(blockHash, fResult);
 
     }
 
-    // **************
+    /*
+    getConfirmedTotalSupply(fSuccess: any, fError: any): number {
 
+    console.log("vai recuperar o confirmedtotalsupply. " );
+    let self = this;
+
+
+    return this.rbbTokenSmartContract.rbbBalances[]()
+        (error, confirmedTotalSupply) => {
+            if (error) fError(error);
+            else fSuccess( self.converteInteiroParaDecimal(  parseInt ( confirmedTotalSupply ) ) );
+        });
+       return -1;           
+         
+ 
+    }
+
+*/
 
     isCliente(address: string, fSuccess: any, fError: any): boolean {
         return this.bndesRegistrySmartContract.isClient(address,

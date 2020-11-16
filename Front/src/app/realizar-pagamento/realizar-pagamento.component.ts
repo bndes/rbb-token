@@ -72,7 +72,7 @@ export class RealizarPagamentoComponent implements OnInit {
   
   }  
   
-  recuperaEmpresaOrigemPorContaBlockchain(contaBlockchain) {
+  async recuperaEmpresaOrigemPorContaBlockchain(contaBlockchain) {
 
     let self = this;
 
@@ -80,15 +80,13 @@ export class RealizarPagamentoComponent implements OnInit {
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
-      this.web3Service.getPJInfo(contaBlockchain,
+      let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain));      
 
-          (result) => {
+            if ( cnpjConta != "" ) { //encontrou uma PJ valida  
 
-            if ( result.cnpj != 0 ) { //encontrou uma PJ valida  
-
-              console.log(result);
-              self.cnpjOrigem = result.cnpj;
-              self.transferencia.subcredito = result.idSubcredito;
+              console.log(cnpjConta);
+              self.cnpjOrigem = cnpjConta;
+//              self.transferencia.subcredito = result.idSubcredito;
               self.ref.detectChanges();
 
            } //fecha if de PJ valida
@@ -97,16 +95,9 @@ export class RealizarPagamentoComponent implements OnInit {
              self.inicializaDadosOrigem();
              console.log("Não encontrou PJ valida para a conta blockchain");
            }
-           
-          },
-          (error) => {
-            self.inicializaDadosOrigem();
-            console.warn("Erro ao buscar dados da conta na blockchain")
-          })
+      this.recuperaSaldoOrigem(contaBlockchain);                   
+    }
 
-      this.recuperaSaldoOrigem(contaBlockchain);        
-
-    } 
     else {
         self.inicializaDadosOrigem();      
     }
@@ -132,7 +123,7 @@ export class RealizarPagamentoComponent implements OnInit {
       */
   }
 
-  recuperaInformacoesDerivadasConta() {
+  async recuperaInformacoesDerivadasConta() {
 
     let self = this;
 
@@ -142,14 +133,12 @@ export class RealizarPagamentoComponent implements OnInit {
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
-      this.web3Service.getPJInfo(contaBlockchain,
+      let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain));      
 
-          (result) => {
+            if ( cnpjConta != "" ) { //encontrou uma PJ valida  
 
-            if ( result.cnpj != 0 ) { //encontrou uma PJ valida  
-
-              console.log(result);
-              self.transferencia.cnpjDestino = result.cnpj;
+              console.log(cnpjConta);
+              self.transferencia.cnpjDestino = cnpjConta;
               if ( self.cnpjOrigem == self.transferencia.cnpjDestino) {
                 let texto = "Erro: não é possível transferir entre o mesmo CNPJ: " + self.cnpjOrigem;
                 console.log(texto);
@@ -164,7 +153,7 @@ export class RealizarPagamentoComponent implements OnInit {
                       console.log("RECUPERA EMPRESA DESTINO")
                       console.log(data)
                       self.transferencia.razaoSocialDestino = data.dadosCadastrais.razaoSocial;
-                      this.validaEmpresaDestino(contaBlockchain);
+//                      this.validaEmpresaDestino(contaBlockchain);
                   }
                   else {
                     let texto = "Nenhuma empresa encontrada associada ao CNPJ";
@@ -194,23 +183,13 @@ export class RealizarPagamentoComponent implements OnInit {
 
              console.log("Não encontrou PJ valida para a conta blockchain");
            }
-           
-          },
-          (error) => {
-            let texto = "Erro ao buscar dados da conta";
-            console.log(texto);
-            Utils.criarAlertaErro( this.bnAlertsService, texto,error);       
-
-            this.inicializaDadosDestino();
-            console.warn("Erro ao buscar dados da conta na blockchain")
-          })
-
                  
     } 
     else {
         this.inicializaDadosDestino();
     }
 }
+
 
   validaEmpresaDestino(contaBlockchainDestino) {
 

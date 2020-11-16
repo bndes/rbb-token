@@ -39,6 +39,9 @@ export class PessoaJuridicaService {
   }
 
   recuperaClientePorCnpj(cnpj: string): Observable<any> {
+
+console.log("######  recuperaClientePorCnpj" + cnpj);
+
     let str_cnpj = new String(cnpj)
 
     if (str_cnpj.length < 14) {

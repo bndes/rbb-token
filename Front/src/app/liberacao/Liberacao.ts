@@ -1,4 +1,5 @@
 export class Liberacao {
+  rbbId: number;
   contaBlockchainBNDES: string;
   cnpj: string;
   cnpjWithMask: string;  
@@ -7,7 +8,6 @@ export class Liberacao {
   razaoSocial: string;
   valor: number;
   saldoCNPJ: number;
-  contaBlockchainCNPJ: string;
   saldoBNDESToken: number;
   hashID: string;
 }
