@@ -111,7 +111,9 @@ export class DashboardTransferenciasComponent implements OnInit {
 
   getConfirmedTotalSupply() {
     let self = this;
-
+    return -1;
+    //TODO: implementar, precisa alterar o smart contract para manter o total supply
+/*
     this.web3Service.getConfirmedTotalSupply(
 
       function (result) {
@@ -124,7 +126,7 @@ export class DashboardTransferenciasComponent implements OnInit {
         console.log("Erro ao ler getConfirmedTotalSupply ");
         console.log(error);
       });
-
+*/
   }
 
   calculaSaldos() {
@@ -137,7 +139,7 @@ export class DashboardTransferenciasComponent implements OnInit {
 
     let self = this;
   
-    this.web3Service.getDisbursementAddressBalance(
+    this.web3Service.getDisbursementBalance(
       function (result) {
         console.log("Saldo eh " + result);
         self.saldoBNDESToken = result;

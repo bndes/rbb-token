@@ -15,10 +15,11 @@ import { Utils } from '../shared/utils';
 export class AssociaPapelInvestidorComponent implements OnInit {
 
   selectedAccount: any;
-  maskCnpj            : any;
+  maskCnpj : any;
 
   cnpj: string;
   cnpjWithMask: string;  
+  razaoSocial: string;
 
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
@@ -48,6 +49,46 @@ export class AssociaPapelInvestidorComponent implements OnInit {
       }
   }
 
+  recuperaInformacoesDerivadasCNPJ() {
+    this.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
+
+    if ( this.cnpj.length == 14 ) { 
+      console.log (" Buscando o CNPJ do cliente (14 digitos fornecidos)...  ")
+      this.recuperaClientePorCNPJ(this.cnpj);
+    } 
+    else {
+      this.razaoSocial="";
+    }
+
+  }
+
+  recuperaClientePorCNPJ(cnpj) {
+    console.log(cnpj);
+
+    this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
+      empresa => {
+        if (empresa && empresa.dadosCadastrais) {
+          console.log("empresa encontrada abaixo ");
+          console.log(empresa);
+
+          this.razaoSocial = empresa.dadosCadastrais.razaoSocial;
+        }
+        else {
+          let texto = "Nenhuma empresa encontrada com o cnpj " + cnpj;
+          console.log(texto);
+          Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);
+
+        }
+      },
+      error => {
+        let texto = "Erro ao buscar dados da empresa";
+        console.log(texto);
+        Utils.criarAlertaErro( this.bnAlertsService, texto,error);
+      });
+
+  }  
+
+
   async associaPapel() {
 
     let self = this;
@@ -55,18 +96,46 @@ export class AssociaPapelInvestidorComponent implements OnInit {
 
 
     console.log("conta selecionada na associacao do papel="  + this.selectedAccount);
-    
+
     let b = await this.web3Service.isResponsavelPorAssociarInvestidorSync(this.selectedAccount);    
     if (!b) 
     {
-      let s = "Conta selecionada no Metamask não pode executar a Confirmação.";
+        let s = "Conta selecionada no Metamask não pode executar a Confirmação.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
     } 
 
+    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.cnpj)));
 
+    if (!rbbID) {
+      let s = "CNPJ não está cadastrado.";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+    } 
 
-    //TODO
+    console.log("rbbID=" + rbbID);
+    
+    this.web3Service.associaInvestidor(rbbID,
+    (txHash) => {
+  
+      Utils.criarAlertasAvisoConfirmacao( txHash, 
+                                          self.web3Service, 
+                                          self.bnAlertsService, 
+                                          "O solicitação de associação do cnpj " + this.cnpj + " como papel de investidor foi enviada. Aguarde a confirmação.", 
+                                          "A associação foi confirmada na blockchain.", 
+                                          self.zone) 
+      self.router.navigate(['sociedade/dash-papeis']);
+      
+      }        
+    ,(error) => {
+      Utils.criarAlertaErro( self.bnAlertsService, 
+                              "Erro ao associar investidor na blockchain", 
+                              error)  
+    });
+    Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
+                                "Confirme a operação no metamask e aguarde a confirmação da associação da conta.")
+   
+
   }  
 
 

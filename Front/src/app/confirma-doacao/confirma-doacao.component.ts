@@ -85,7 +85,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
       let cnpj = this.doacao.cnpj;
   
       if ( cnpj.length == 14 ) { 
-        console.log (" Buscando o CNPJ do doador (14 digitos fornecidos)...  " + cnpj)
+        console.log (" Buscando o CNPJ  (14 digitos fornecidos)...  " + cnpj)
         this.recuperaDoadorPorCNPJ(cnpj);
       } 
 
@@ -127,11 +127,10 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
     async recuperaSaldo(cnpj) {
 
       let self = this;
-  
-      let contaBlockchainDoador = await this.web3Service.getContaBlockchainFromDoadorSync(this.doacao.cnpj);
-      console.log("contaBlockchainDoador=" + contaBlockchainDoador);
+
+      this.doacao.rbbId = <number> (await this.web3Service.getRBBIDByCNPJSync (cnpj));
       
-      this.web3Service.getBookedBalanceOf(contaBlockchainDoador+"",
+      this.web3Service.getBalanceRequestedToken(this.doacao.rbbId,
   
         function (result) {
           console.log("Saldo do endereco " + cnpj + " eh " + result);
@@ -148,8 +147,8 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
     async receberDoacao() {
 
       let self = this;
-
-
+/*
+//TODO: verificar se eh quem pode confirmar
       let bRD = await this.web3Service.isResponsibleForDonationConfirmationSync(this.selectedAccount);    
       if (!bRD) 
       {
@@ -157,22 +156,22 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
           this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
           return;
       } 
-
-      let contaBlockchainDoador = await this.web3Service.getContaBlockchainFromDoadorSync(this.doacao.cnpj);
-      console.log("contaBlockchainDoador=" + contaBlockchainDoador);
-
+*/
+/*
+//TODO: verificar se é um doador
       if (!contaBlockchainDoador) {
         let s = "CNPJ não é de um doador";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
       }
-  
-      let bDoadorValidado = await this.web3Service.isContaValidadaSync(contaBlockchainDoador+"");
-      if (!bDoadorValidado) {
-        let s = "CNPJ não está associado a conta blockchain validada";
+ */ 
+
+      if (!this.doacao.rbbId) {
+        let s = "CNPJ do investidor não está cadastrado.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
-      }
+      } 
+
       if (this.hashdeclaracao==undefined || this.hashdeclaracao==null || this.hashdeclaracao == "") {
         let s = "O envio da declaração é obrigatório";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
@@ -183,8 +182,6 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
         return;
       }
-  
-  
         
       //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
       if ((this.doacao.valor * 1) > (this.doacao.saldo * 1)) {
@@ -198,7 +195,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
       }
   
   
-      this.web3Service.receberDoacao(this.doacao.cnpj, this.doacao.valor, this.hashdeclaracao,
+      this.web3Service.receberDoacao(this.doacao.rbbId, this.doacao.valor, this.hashdeclaracao,
   
           (txHash) => {
           Utils.criarAlertasAvisoConfirmacao( txHash, 

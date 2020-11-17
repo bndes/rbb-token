@@ -2,7 +2,7 @@ export class Resgate {
 
   contaBlockchainOrigem: string;
   cnpjOrigem: string;
-  contratoFinanceiro: string;
+//  contratoFinanceiro: string;
   razaoSocialOrigem: string;
   saldoOrigem: number;
   

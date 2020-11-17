@@ -36,9 +36,12 @@ export class AppComponent implements OnInit {
     } else if (path.indexOf("/cliente") != -1) {
       console.log("Perfil Cliente")
       this.url = 'assets/menu-cliente.json';
-    } else if (path.indexOf("/doador") != -1) {
-      console.log("Perfil Doador")
-      this.url = 'assets/menu-doador.json';
+    } else if (path.indexOf("/fornecedor") != -1) {
+      console.log("Perfil Fornecedor")
+      this.url = 'assets/menu-fornecedor.json';
+    } else if (path.indexOf("/investidor") != -1) {
+      console.log("Perfil Investidor")
+      this.url = 'assets/menu-investidor.json';
     } else {
       console.log("Perfil Sociedade")
       this.url = 'assets/menu-sociedade.json';

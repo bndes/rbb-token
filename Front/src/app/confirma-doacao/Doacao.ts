@@ -1,5 +1,6 @@
 export class Doacao {
   
+  rbbId: number;
   cnpj: string;
   cnpjWithMask: string;  
   dadosCadastrais: {

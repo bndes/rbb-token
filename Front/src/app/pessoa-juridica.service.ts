@@ -39,6 +39,9 @@ export class PessoaJuridicaService {
   }
 
   recuperaClientePorCnpj(cnpj: string): Observable<any> {
+
+console.log("######  recuperaClientePorCnpj" + cnpj);
+
     let str_cnpj = new String(cnpj)
 
     if (str_cnpj.length < 14) {
@@ -61,6 +64,7 @@ export class PessoaJuridicaService {
 
 
   recuperaEmpresaPorCnpj(cnpj: string, ): Observable<any> {
+
     let str_cnpj = new String(cnpj)
 
     if (str_cnpj.length < 14) {
@@ -69,6 +73,7 @@ export class PessoaJuridicaService {
     let self = this;
 
     if (!this.mockMongoPJ) { 
+
       return this.http.post<Object>(this.serverUrl + 'pj-por-cnpj', { cnpj: str_cnpj })
         //.do(pessoaJuridica => self.formatPJ(pessoaJuridica))
         .catch(this.handleError);

@@ -45,12 +45,12 @@ export class DashboardDoacaoComponent implements OnInit {
   ngOnInit() {
       setTimeout(() => {
           this.listaDoacoes = [];
-          console.log("Zerou lista de doacoes");
+          console.log("Zerou lista de investimentos");
 
           this.registrarExibicaoEventos();
-      }, 1500)
+      }, 2000)
 
-      setTimeout(() => {
+      setInterval(() => {
           this.estadoLista = this.estadoLista === "undefined" ? "vazia" : "cheia"
           this.ref.detectChanges()
       }, 2300)
@@ -86,37 +86,36 @@ export class DashboardDoacaoComponent implements OnInit {
 
   registraEventosRegistroDoacao() {
 
-    console.log("*** Executou o metodo de registrar eventos REGISTRAR DOACAO");
+    console.log("*** Executou o metodo de registrar eventos REGISTRAR INV");
 
     let self = this;        
-    this.web3Service.registraEventosRegistrarDoacao(function (error, event) {
+    this.web3Service.registraEventosRegistrarInvestimento(function (error, event) {
 
         if (!error) {
 
             let transacao: DashboardDoacao;
 
-            console.log("Evento Registrar Doacao");
+            console.log("Evento Registrar Investimento");
             console.log(event);
 
-            let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
+//            let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
             self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted));
                  
             transacao = {
-                cnpj: event.args.cnpj,
+                rbbId: event.args.idInvestor, 
+                cnpj: "FALTA RECUPERAR DO REGISTRY",
                 razaoSocial: "",
                 valor: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),                
-                tokenMinted: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted)),                
-                txAdm: txAdm,
                 dataHora: null,
                 tipo: "Intenção Registrada",
                 hashID: event.transactionHash,
                 uniqueIdentifier: event.transactionHash,
-                hashComprovante: "",
+                hashComprovante: event.args.docHash+"",
                 filePathAndName: ""
             }
 
             self.includeIfNotExists(transacao);
-            self.recuperaInfoDerivadaPorCnpj(self, transacao);
+//            self.recuperaInfoDerivadaPorCnpj(self, transacao);
             self.recuperaDataHora(self, event, transacao);
 
 
@@ -130,29 +129,28 @@ export class DashboardDoacaoComponent implements OnInit {
 
   registraEventosRecebimentoDoacao() {
 
-    console.log("*** Executou o metodo de registrar eventos RECEBER DOACAO");
+    console.log("*** Executou o metodo de registrar eventos RECEBER INV");
 
     let self = this;        
-    this.web3Service.registraEventosRecebimentoDoacao(function (error, event) {
+    this.web3Service.registraEventosRecebimentoInvestimento(function (error, event) {
 
         if (!error) {
 
             let transacao: DashboardDoacao;
 
-            console.log("Evento Receber Doacao");
+            console.log("------->>> Evento Receber Doacao");
             console.log(event);
 
             let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
                     self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted));
                  
             transacao = {
-                cnpj: event.args.cnpj,
+                rbbId: event.args.idInvestor,
+                cnpj: "FALTA RECUPERAR DO REGISTRY",
                 razaoSocial: "",
                 valor      : self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),
-                tokenMinted: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted)),
-                txAdm: txAdm,
                 dataHora: null,
-                tipo: "Doação Confirmada",
+                tipo: "Investimento Confirmado",
                 hashID: event.transactionHash,
                 uniqueIdentifier: event.transactionHash,
                 hashComprovante: event.args.docHash,
@@ -160,7 +158,7 @@ export class DashboardDoacaoComponent implements OnInit {
             }
 
             self.includeIfNotExists(transacao);
-            self.recuperaInfoDerivadaPorCnpj(self, transacao);
+//            self.recuperaInfoDerivadaPorCnpj(self, transacao);
             self.recuperaDataHora(self, event, transacao);
             self.recuperaFilePathAndName(self,transacao);
 
@@ -203,7 +201,6 @@ recuperaInfoDerivadaPorCnpj(self, pj) {
             // Colocar dentro da zona do Angular para ter a atualização de forma correta
             self.zone.run(() => {
                 self.estadoLista = "cheia"
-                console.log("inseriu transacao Troca");
             });
 
         },

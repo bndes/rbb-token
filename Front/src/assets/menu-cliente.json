@@ -10,33 +10,23 @@
     	"topo": true,
 			"subitem": [
 				{
-					"titulo": "Associar Conta",
-					"url": "/cliente/associa-conta-cliente",
-					"separador": false
-				},
-				{
-					"titulo": "Solicitar Resgate",
-					"url": "/cliente/resgate",
-					"separador": false
-				},
-				{
-					"titulo": "Trocar conta",
-					"url": "/cliente/recupera-acesso-cliente",
+					"titulo": "Realizar Pagamento",
+					"url": "/cliente/realizar-pagamento",
 					"separador": false
 				}
 			]
 	},
 	{
-    	"titulo": "Sociedade",
+    	"titulo": "Dashboards",
     	"topo": true,
 		"subitem": [
 			{
-				"titulo": "Dashboard Cadastro",
-				"url": "/sociedade/dash-empresas",
+				"titulo": "Dashboard Papeis",
+				"url": "/sociedade/dash-papeis",
 				"separador": false
 			},
 			{
-				"titulo": "Dashboard Doação",
+				"titulo": "Dashboard Investimentos",
 				"url": "/sociedade/dash-doacao",
 				"separador": false
 			},

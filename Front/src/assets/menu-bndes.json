@@ -5,7 +5,7 @@
     	"topo": true
 	},
 	{
-		"titulo": "BNDES",
+		"titulo": "Gestor Financeiro",
 			"url":"",
 			"topo": true,
 			"subitem": [
@@ -17,13 +17,18 @@
 			]
 	},
 	{
-		"titulo": "Gestor de ESG",
+		"titulo": "Gestor de Projeto",
 			"url":"",
 			"topo": true,
 			"subitem": [
 				{
-					"titulo": "Associa Papel Investidor",
+					"titulo": "Associar Papel Investidor",
 					"url": "bndes/associa-papel-investidor",
+					"separador": false
+				},
+				{
+					"titulo": "Alocar Investimentos",
+					"url": "/bndes/alocar-investimentos",
 					"separador": false
 				},
 				{
@@ -34,16 +39,27 @@
 			]
 	},
 	{
-    	"titulo": "Sociedade",
+		"titulo": "Gestor de Contratos Adm",
+			"url":"",
+			"topo": true,
+			"subitem": [
+				{
+					"titulo": "Realizar Pagamento",
+					"url": "bndes/realizar-pagamento",
+					"separador": false
+				}			]
+	},	
+	{
+    	"titulo": "Dashboards",
     	"topo": true,
 		"subitem": [
 			{
-				"titulo": "Dashboard Cadastro",
-				"url": "/sociedade/dash-empresas",
+				"titulo": "Dashboard Papeis",
+				"url": "/sociedade/dash-papeis",
 				"separador": false
 			},
 			{
-				"titulo": "Dashboard Investimento",
+				"titulo": "Dashboard Investimentos",
 				"url": "/sociedade/dash-doacao",
 				"separador": false
 			},			
