@@ -534,7 +534,7 @@ export class Web3Service {
 
     ////////////////// FIM SALDOS
 
-    ////////////////// INÍCIO TRANSAÇÕES
+    ////////////////// INÍCIO LIBERACAO
 
     getDisbursementDataSync(nContrato: string) {
         let self = this;
@@ -550,8 +550,6 @@ export class Web3Service {
     }
 
     getDisbursementData(nContrato: string, fSuccess: any, fError: any) {
-
-        console.log("Web3Service - getDisbursementData");
 
         return this.esgBndesToken_GetDataToCallSmartContract.getDisbusementData(nContrato,
             (error, result) => {
@@ -577,7 +575,7 @@ export class Web3Service {
 
         let dataFromDD = disbursementData[2];
         console.log(dataFromDD);
-
+//TODO: Recuperar o valor dos arrays
 
         transferAmount = this.converteDecimalParaInteiro(transferAmount);  
         console.log('TransferAmount(after)=' + transferAmount);
@@ -589,6 +587,8 @@ export class Web3Service {
                 else fSuccess(result);
             });
     }
+
+    ////////////////// FIM LIBERACAO
 
     async resgata(transferAmount: number, fSuccess: any, fError: any) {
 
@@ -617,8 +617,6 @@ export class Web3Service {
                 else fSuccess(result);
             });
     }
-
-    ////////////////// FIM TRANSAÇÕES
 
 
     getBlockTimestamp(blockHash: number, fResult: any) {

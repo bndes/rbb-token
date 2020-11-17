@@ -52,7 +52,6 @@ export class LiberacaoComponent implements OnInit {
     this.liberacao.valor = null;
     this.liberacao.saldoCNPJ = null;
     this.liberacao.numeroSubcreditoSelecionado = null;
-    this.liberacao.contaBlockchainCNPJ = null;
   }
 
  async recuperaContaSelecionada() {
