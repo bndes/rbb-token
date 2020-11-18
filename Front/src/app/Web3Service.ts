@@ -10,6 +10,7 @@ export class Web3Service {
 
     private serverUrl: string;
 
+    private ethereum: any;
     private provider: any;
     private signer: any;
 
@@ -33,8 +34,6 @@ export class Web3Service {
 
 
     private blockchainNetwork: string = '';
-    private ethereum: any;
-    private web3Instance: any;                  // Current instance of web3
 
     private vetorTxJaProcessadas : any[];
 
@@ -99,16 +98,6 @@ export class Web3Service {
         this.ethereum =  window['ethereum'];
         console.log("provider ethers");
         console.log(this.provider);
-/*
-        if (typeof window['web3'] !== 'undefined') {
-            this.ethereum =  window['ethereum'];
-            this.web3 = new this.Web3(window['web3'].currentProvider);
-    
-        } else {
-            console.log('Using HTTP node --- nao suportado');
-            return; 
-        }
-*/
 
         this.signer = (new ethers.providers.Web3Provider(window["ethereum"])).getSigner();
 
@@ -119,12 +108,12 @@ export class Web3Service {
 
         this.buscaNumeroBloco(this.signer);
 
-
         console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
         console.log("rbbTokenSmartContract=");
         console.log(this.rbbTokenSmartContract);        
 
-    }    
+    } 
+
     //TODO: APAGAR
     async buscaNumeroBloco(signer) {
         console.log("ENDERECO i");
@@ -284,6 +273,7 @@ export class Web3Service {
     
 
     registraWatcherEventosLocal(txHashProcurado, callback) {
+        /*
         let self = this;
         console.info("Callback ", callback);
         const filtro = { fromBlock: 'latest', toBlock: 'pending' }; 
@@ -299,6 +289,7 @@ export class Web3Service {
             self.procuraTransacao(error, result, txHashProcurado, self, callback);
         });
         console.log("registrou o watcher de eventos");
+        */
     }
 
     procuraTransacao(error, result, txHashProcurado, self, callback) {
@@ -466,7 +457,7 @@ export class Web3Service {
         return await this.esgBndesToken_GetDataToCallSmartContract.getDisbusementData(nContrato);
     }
 
-    async liberacao(rbbIdDestino: number, nContrato: string, transferAmount: number, fSuccess: any, fError: any) {
+    async liberacao(rbbIdDestino: number, nContrato: string, transferAmount: number) : Promise<string> {
         console.log("Web3Service - Liberacao");
 
         const endereco = await this.signer.getAddress();
@@ -491,10 +482,12 @@ export class Web3Service {
 
 //        function transfer (address specificTokenAddr, bytes32 fromHash, uint toId, bytes32 toHash, 
 //            uint amount, bytes32 docHash, string[] memory data) public whenNotPaused {
-        this.associaInvestidor(2);
+//        await this.associaInvestidor(2); 
+        await this.registrarInvestimento(10);
+        //let retorno = await this.rbbTokenSmartContract.transfer(this.addrContratoESGBndesToken, fromHash, rbbIdDestino, toHash,
+       //                 transferAmount, this.FAKE_HASH, dataFromDD);
 
-//        this.rbbTokenSmartContract.transfer(this.ID_SPECIFIC_TOKEN, fromHash, rbbIdDestino, toHash,
-//            transferAmount, this.FAKE_HASH, dataFromDD);
+        return "xxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
     }
 
