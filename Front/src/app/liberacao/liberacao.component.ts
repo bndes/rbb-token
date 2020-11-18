@@ -70,22 +70,12 @@ export class LiberacaoComponent implements OnInit {
 
 }  
 
-async recuperaSaldoBNDESToken() {
+ async recuperaSaldoBNDESToken() {
 
-  let self = this;
-
-  this.web3Service.getDisbursementBalance (
-    function (result) {
-      console.log("Saldo eh " + result);
-      self.liberacao.saldoBNDESToken = result;
-      self.ref.detectChanges();
-    },
-    function (error) {
-      console.log("Erro ao ler o saldo do BNDES ");
-      console.log(error);
-      self.liberacao.saldoBNDESToken = 0;
-    });
+  this.liberacao.saldoBNDESToken = await this.web3Service.getDisbursementBalance();
+  console.log("Saldo eh " + this.liberacao.saldoBNDESToken);
 }
+
 
   recuperaInformacoesDerivadasCNPJ() {
     this.liberacao.cnpj = Utils.removeSpecialCharacters(this.liberacao.cnpjWithMask);
@@ -166,15 +156,11 @@ async recuperaSaldoBNDESToken() {
 
   }
 
-  atualizaInfoPorMudancaSubcredito() {
-    this.web3Service.getBalanceOf(this.liberacao.rbbId, this.liberacao.numeroSubcreditoSelecionado,
-      result => {
-        this.liberacao.saldoCNPJ = result;
-      },
-      error => {
-        console.log("Nao conseguiu recuperar valor");
-        this.liberacao.saldoCNPJ = 0;
-      });
+  async atualizaInfoPorMudancaSubcredito() {
+
+    this.liberacao.saldoCNPJ = 
+      await this.web3Service.getBalanceOf(this.liberacao.rbbId, this.liberacao.numeroSubcreditoSelecionado);
+
   }
 
   includeIfNotExists(subcreditos, sub) {

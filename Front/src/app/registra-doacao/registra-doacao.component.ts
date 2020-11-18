@@ -61,11 +61,11 @@ export class RegistraDoacaoComponent implements OnInit {
 
     let contaBlockchain = this.doacao.contaBlockchainOrigem.toLowerCase();
 
-    console.log("ContaBlockchain" + contaBlockchain);
+    console.log("ContaBlockchain=" + contaBlockchain);
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
-      let cnpjContaOrigem = <string> (await this.web3Service.getCNPJByAddressSync(this.doacao.contaBlockchainOrigem));      
+      let cnpjContaOrigem = <string> (await this.web3Service.getCNPJByAddressSync(this.doacao.contaBlockchainOrigem));
   
       if ( cnpjContaOrigem != "") { //encontrou uma PJ valida  
 
@@ -135,26 +135,27 @@ let bDoador = await this.web3Service.isDoadorSync(this.doacao.contaBlockchainOri
   }
 */
 
-  this.web3Service.registrarInvestimento(this.doacao.valor,
-
-      (txHash) => {
-
+  this.web3Service.registrarInvestimento(this.doacao.valor).then(
+//    this.web3Service.associaInvestidor(2).then(
+      
+    function(txHash) {  
       Utils.criarAlertasAvisoConfirmacao( txHash, 
-                                          self.web3Service, 
-                                          self.bnAlertsService, 
-                                          "Doação do cnpj " + self.doacao.cnpjOrigem + "  enviado. Aguarde a confirmação.", 
-                                          "A doação foi confirmada na blockchain. Aguarde recebimento de email com o boleto da doação.", 
-                                          self.zone)       
-      self.router.navigate(['sociedade/dash-doacao']);
+        self.web3Service, 
+        self.bnAlertsService, 
+        "Doação do cnpj " + self.doacao.cnpjOrigem + "  enviado. Aguarde a confirmação.", 
+        "A doação foi confirmada na blockchain. Aguarde recebimento de email com o boleto da doação.", 
+        self.zone)       
+        
+        self.router.navigate(['sociedade/dash-doacao']);
 
-      }
-    ,(error) => {
+    },
+    function(error) {  
       Utils.criarAlertaErro( self.bnAlertsService, 
-                              "Erro ao registrar doacao na blockchain", 
-                              error )
+        "Erro ao registrar investimento na blockchain", 
+        error )
 
-    }
-  );
+    });    
+  
   Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
                                 "Confirme a operação no metamask e aguarde a confirmação do registro." )    
 

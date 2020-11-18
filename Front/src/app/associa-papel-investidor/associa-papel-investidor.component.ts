@@ -94,10 +94,8 @@ export class AssociaPapelInvestidorComponent implements OnInit {
     let self = this;
     this.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
 
-
-    console.log("conta selecionada na associacao do papel="  + this.selectedAccount);
-
-    let b = await this.web3Service.isResponsavelPorAssociarInvestidorSync(this.selectedAccount);    
+    let b = await this.web3Service.isResponsavelPorAssociarInvestidorSync();  
+  
     if (!b) 
     {
         let s = "Conta selecionada no Metamask não pode executar a Confirmação.";
@@ -112,29 +110,27 @@ export class AssociaPapelInvestidorComponent implements OnInit {
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     } 
-
-    console.log("rbbID=" + rbbID);
     
-    this.web3Service.associaInvestidor(rbbID,
-    (txHash) => {
-  
-      Utils.criarAlertasAvisoConfirmacao( txHash, 
-                                          self.web3Service, 
-                                          self.bnAlertsService, 
-                                          "O solicitação de associação do cnpj " + this.cnpj + " como papel de investidor foi enviada. Aguarde a confirmação.", 
-                                          "A associação foi confirmada na blockchain.", 
-                                          self.zone) 
-      self.router.navigate(['sociedade/dash-papeis']);
+    this.web3Service.associaInvestidor(rbbID).then(
       
-      }        
-    ,(error) => {
-      Utils.criarAlertaErro( self.bnAlertsService, 
-                              "Erro ao associar investidor na blockchain", 
-                              error)  
-    });
-    Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
+      function(txHash) {  
+        Utils.criarAlertasAvisoConfirmacao( txHash, 
+          self.web3Service, 
+          self.bnAlertsService, 
+          "O solicitação de associação do cnpj " + self.cnpj + " como papel de investidor foi enviada. Aguarde a confirmação.", 
+          "A associação foi confirmada na blockchain.", 
+          self.zone) 
+        self.router.navigate(['sociedade/dash-papeis']);
+
+      },
+      function(error) {  
+        Utils.criarAlertaErro( self.bnAlertsService, 
+          "Erro ao associar investidor na blockchain", 
+          error);  
+      });    
+
+      Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
                                 "Confirme a operação no metamask e aguarde a confirmação da associação da conta.")
-   
 
   }  
 

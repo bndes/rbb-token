@@ -66,6 +66,8 @@ registrarExibicaoEventos() {
   
   console.log("*** Executou o metodo de registrar exibicao eventos PAPEIS");
 
+  this.web3Service.recuperaEventosAdicionaInvestidor();
+
   let self = this;    
   this.web3Service.registraEventosAdicionaInvestidor(function (error, event) {
 

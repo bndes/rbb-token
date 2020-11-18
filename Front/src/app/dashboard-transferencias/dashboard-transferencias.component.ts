@@ -138,7 +138,7 @@ export class DashboardTransferenciasComponent implements OnInit {
   async recuperaSaldoBNDESToken() {
 
     let self = this;
-  
+  /* TODO
     this.web3Service.getDisbursementBalance(
       function (result) {
         console.log("Saldo eh " + result);
@@ -151,6 +151,7 @@ export class DashboardTransferenciasComponent implements OnInit {
         console.log(error);
         self.saldoBNDESToken = 0;
       });
+      */
   }  
 
   registrarExibicaoEventos() {
