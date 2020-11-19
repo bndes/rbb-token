@@ -171,7 +171,7 @@ async atualizaInfoPorMudancaSubcredito() {
 }
 
 
-  async recuperaInformacoesDerivadasConta() {
+  async recuperaFornecedor() {
 
     let self = this;
 
@@ -201,7 +201,6 @@ async atualizaInfoPorMudancaSubcredito() {
                       console.log("RECUPERA EMPRESA DESTINO")
                       console.log(data)
                       self.transferencia.razaoSocialDestino = data.dadosCadastrais.razaoSocial;
-//                      this.validaEmpresaDestino(contaBlockchain);
                   }
                   else {
                     let texto = "Nenhuma empresa encontrada associada ao CNPJ";
@@ -239,27 +238,6 @@ async atualizaInfoPorMudancaSubcredito() {
 }
 
 
-  validaEmpresaDestino(contaBlockchainDestino) {
-
-    /*
-    let self = this
-
-    self.web3Service.isFornecedor(contaBlockchainDestino,
-      (result) => {
-        if (result) {
-          self.transferencia.msgEmpresaDestino = "Fornecedor"
-        } else {
-          console.log("Conta Invalida")
-          self.transferencia.msgEmpresaDestino = "Conta Inválida"
-        }
-        self.ref.detectChanges()
-      },
-      (erro) => {
-        console.log(erro)
-        self.transferencia.msgEmpresaDestino = ""
-      })  
-      */
-  }
 
 
   async transferir() {

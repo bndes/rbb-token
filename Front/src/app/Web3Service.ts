@@ -385,12 +385,20 @@ export class Web3Service {
         return (await contWithSigner.bookInvestment(amountAsBigNumber, this.FAKE_HASH));        
     }
 
-    async getSpecificHash (info: number)  {
-        console.log("getSpecificHash " + info);
+    async getSpecificHashAsUint (info: number)  {
+        console.log("getSpecificHashUin " + info);
         console.log(this.esgBndesToken_GetDataToCallSmartContract);
         let value = await this.esgBndesToken_GetDataToCallSmartContract.getCalculatedHashUint(info);
         return value;
     }
+
+    async getSpecificHashAsString (info: string)  {
+        console.log("getSpecificHashString " + info);
+        console.log(this.esgBndesToken_GetDataToCallSmartContract);
+        let value = await this.esgBndesToken_GetDataToCallSmartContract.getCalculatedHashString(info);
+        return value;
+    }
+
 
     async getBalanceRequestedToken(rbbId: number): Promise <number> {
         
@@ -398,7 +406,7 @@ export class Web3Service {
         let self = this;
 
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
-        let specificHash = <string> (await this.getSpecificHash(30));
+        let specificHash = <string> (await this.getSpecificHashAsUint(30));
 
         let retornedValue = await this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,specificHash);
 
@@ -415,7 +423,7 @@ export class Web3Service {
         console.log("addr=" + this.addrContratoESGBndesToken);
 
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
-        let specificHash = <string> (await this.getSpecificHash(30));
+        let specificHash = <string> (await this.getSpecificHashAsUint(30));
 
         const signer = this.accountProvider.getSigner();
         const contWithSigner = this.rbbTokenSmartContract.connect(signer);
@@ -433,10 +441,16 @@ export class Web3Service {
         
         console.log("getBalanceOf  de " + rbbId);
 
-        let valorToHash = numeroContrato?numeroContrato:this.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER;
-        console.log("valorToHash= " + valorToHash);
+        let specificHash = "";
+        if (numeroContrato) {
+            let valorToHash = numeroContrato+"";
+            specificHash =  <string> (await this.getSpecificHashAsString(valorToHash);
+        }
+        else {
+            let valorToHash = this.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER;
+            specificHash = <string> (await this.getSpecificHashAsUint(valorToHash));
+        }
 
-        let specificHash =  <string> (await this.getSpecificHash(valorToHash));
         console.log("specificHash= " + specificHash);
 
         let valorRetornado = await this.rbbTokenSmartContract.rbbBalances(this.ID_SPECIFIC_TOKEN,rbbId,specificHash);
@@ -449,7 +463,7 @@ export class Web3Service {
         
         console.log("vai recuperar o balanceOf all accounts de " + rbbId + " " + valorToHash);
 
-        let specificHash =  <string> (await this.getSpecificHash(valorToHash));
+        let specificHash =  <string> (await this.getSpecificHashAsUint(valorToHash));
         let valorRetornado = await this.rbbTokenSmartContract.rbbBalances(this.ID_SPECIFIC_TOKEN,rbbId,specificHash);
 
         return this.converteInteiroParaDecimal(valorRetornado.toNumber());

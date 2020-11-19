@@ -48,50 +48,17 @@
       </div>
 
       <div class="row">
-        <div class="form-group col-md-5 col-sm-5">
-          <app-input-validation errorMessage="Campo Obrigatório">
-            <label class="required">Conta Blockchain:</label>
-            <input type="text" class="form-control form-control-sm" [(ngModel)]="transferencia.contaBlockchainDestino" (ngModelChange)="recuperaInformacoesDerivadasConta()"
-              required>
-          </app-input-validation>
-        </div>
-      </div>
-
-      <div class="msg red" *ngIf="transferencia.msgEmpresaDestino" [class.green]="transferencia.msgEmpresaDestino == 'Fornecedor'">
-        Transferência para um(a) {{transferencia.msgEmpresaDestino}}
-      </div>
-
-      <div class="row">
         <div class="form-group col-md-4 col-sm-4">
           <label>CNPJ:</label>
-          <input [ngModel]="transferencia.cnpjDestino | cnpjMask" class="form-control form-control-sm" readonly disabled />
+          <input [ngModel]="transferencia.cnpjDestino | cnpjMask" class="form-control form-control-sm" (ngModelChange)="recuperaFornecedor()"
+          [textMask]="{mask: maskCnpj}" />
         </div>
 
         <div class="form-group col-md-4 col-sm-4">
           <label>Razão Social:</label>
           <input type="text" class="form-control form-control-sm" [ngModel]="transferencia.razaoSocialDestino" readonly disabled/>
         </div>
-<!--
-        <div class="form-group col-md-4 col-sm-4">
-          <app-input-validation errorMessage="Campo Obrigatório">
-            <label class="required">Descrição:</label>
-            <input [(ngModel)]="transferencia.descricao" class="form-control form-control-sm" required/>
-          </app-input-validation>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="form-group col-md-4 col-sm-4">
-          <label>Documentos de Suporte:</label>
-          <input [(ngModel)]="transferencia.documentoDeSuporte" class="form-control form-control-sm"           />
-          <input #upload name="arquivos[]" type="file" multiple hidden>
-        </div>
-        <a class="btn btn-success btnUpload" (click)="upload.click()">
-          <i class="fa fa-upload" aria-hidden="true" style="color:white"></i>
-        </a>
-      </div>
-
--->      
+     
     </div>
 
     <div class="conteudo">
