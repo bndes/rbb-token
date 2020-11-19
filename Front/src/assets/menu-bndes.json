@@ -32,6 +32,11 @@
 					"separador": false
 				},
 				{
+					"titulo": "Transferencia Administrativa",
+					"url": "/bndes/transferencia-administrativa",
+					"separador": false
+				},
+				{
 					"titulo": "Liberar",
 					"url": "/bndes/liberacao",
 					"separador": false

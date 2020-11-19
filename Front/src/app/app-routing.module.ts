@@ -12,6 +12,7 @@ import { ConfirmaDoacaoComponent } from './confirma-doacao/confirma-doacao.compo
 import { ResgateComponent } from './resgate/resgate.component';
 
 import { AlocaValoresContasBndesComponent } from './aloca-valores-contas-bndes/aloca-valores-contas-bndes.component';
+import { TransferenciaAdministrativaComponent } from './transferencia-administrativa/transferencia-administrativa.component';
 
 import { RegistraDoacaoComponent } from './registra-doacao/registra-doacao.component';
 
@@ -43,6 +44,7 @@ const routes: Routes = [
   { path: 'sociedade/dash-transf', component: DashboardTransferenciasComponent },
   { path: 'sociedade/dash-manuais', component: DashboardManualComponent },
   { path: '', redirectTo: '/sociedade', pathMatch: 'full' },
+  { path: 'bndes/transferencia-administrativa', component: TransferenciaAdministrativaComponent},
 ];
 
 

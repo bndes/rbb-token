@@ -1,3 +1,53 @@
 <p>
   aloca-valores-contas-bndes works!
 </p>
+
+<div class="conteudo">
+
+<form #f="ngForm" (ngSubmit)="onSubmit(f)">
+  <div class="row">
+    <div class="form-group col-md-12 col-sm-12">
+      <h5>Emissão de tokens:</h5>
+    </div>
+  </div>
+  <div class="row">
+    <div class="form-group col-md-4 col-sm-4">
+      <label>Saldo disponível para alocação:</label>
+      <input currencyMask  id="nome" name="nome"type="text" class="form-control form-control-sm" [(ngModel)]="a" />
+    </div>
+    <div class="form-group col-md-4 col-sm-4">
+      <label>Valor a total ser alocado:</label>
+  <input currencyMask id="nome1" name="nome1" type="text" class="form-control form-control-sm" [(ngModel)]="b" readonly disabled/>
+    </div>
+
+  </div>
+  <button type="submit"class="btn btn-primary"></button>
+</form>
+</div>
+
+
+
+<div class="conteudo">
+
+  <form #f="ngForm" (ngSubmit)="VerificaA(f)">
+    <div class="row">
+      <div class="form-group col-md-12 col-sm-12">
+        <h5>Recursos para desembolsos a projetos:</h5>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-md-4 col-sm-4">
+        <label>Saldo atual:</label>
+        <input currencyMask  id="nome" name="nome"type="text" class="form-control form-control-sm" [(ngModel)]="c" />
+      </div>
+      <div class="form-group col-md-4 col-sm-4">
+        <label>Valor a ser alocado:</label>
+        <input currencyMask id="nome1" name="nome1" type="text" class="form-control form-control-sm" [(ngModel)]="d" readonly disabled/>
+      </div>
+  
+    </div>
+    <button type="submit"class="btn btn-primary"></button>
+  </form>
+  </div>
+
+

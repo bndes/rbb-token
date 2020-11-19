@@ -26,6 +26,7 @@ import { BlocoAnimadoComponent } from './shared/bloco-animado/bloco-animado.comp
 import { ConfirmaDoacaoComponent } from './confirma-doacao/confirma-doacao.component';
 import { LiberacaoComponent } from './liberacao/liberacao.component';
 import { LiquidacaoResgateComponent } from './liquidacao-resgate/liquidacao-resgate.component';
+import { TransferenciaAdministrativaComponent } from './transferencia-administrativa/transferencia-administrativa.component';
 
 /* Cliente */
 import { ResgateComponent } from './resgate/resgate.component';
@@ -112,6 +113,7 @@ export const optionsMaskCurrencyBND: CurrencyMaskConfig = {
     DashboardPapeisComponent,
     RealizarPagamentoComponent,
     AlocaValoresContasBndesComponent,
+    TransferenciaAdministrativaComponent,
   ],
   imports: [
     BrowserModule,
