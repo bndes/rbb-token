@@ -26,11 +26,11 @@ export class Utils {
       return ("00000000" + cnpj).slice(-8)
    }
 
-     static criarAlertasAvisoConfirmacao(txHash, web3Service, bnAlertsService, warningMsg, confirmationMsg, zoneUpdate) {        
+     static criarAlertasAvisoConfirmacao(tx, web3Service, bnAlertsService, warningMsg, confirmationMsg, zoneUpdate) {        
           bnAlertsService.criarAlerta("info", "Aviso", warningMsg, 5);
           console.log(warningMsg);
 
-          web3Service.registraWatcherEventosLocal(txHash, function (error, result) {
+          web3Service.registraWatcherEventosLocal(tx.hash, function (error, result) {
             if (!error) {              
               bnAlertsService.criarAlerta("info", "Confirmação", confirmationMsg, 5);
               console.log(confirmationMsg);

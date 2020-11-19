@@ -1,5 +1,5 @@
 import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
-import {teste} from './teste';
+//import {teste} from './teste';
 import { FormsModule } from '@angular/forms';
 import { Web3Service } from './../Web3Service';
 import { HttpClient } from '@angular/common/http';
@@ -25,7 +25,7 @@ import { BnAlertsService } from 'bndes-ux4';
 })
 export class AlocaValoresContasBndesComponent implements OnInit {
   tt:Web3Service ;
-  teste:teste;
+//  teste:teste;
   a: any = "1";
   b: any = "1";
   c: any = "1";

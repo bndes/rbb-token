@@ -89,7 +89,7 @@ console.log("######  recuperaClientePorCnpj" + cnpj);
 
   formatClientOperationAPI (pessoaJuridica) {
 
-    console.log('empresa retornada do GET:' +  JSON.stringify(pessoaJuridica));    
+//    console.log('empresa retornada do GET:' +  JSON.stringify(pessoaJuridica));    
 
     if (pessoaJuridica && pessoaJuridica.operacoes && pessoaJuridica.operacoes.length>0) {
 

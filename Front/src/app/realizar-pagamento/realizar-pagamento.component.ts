@@ -3,7 +3,7 @@ import { Component, OnInit, NgZone } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { Transferencia } from './Transferencia';
+import { Transferencia, Subcredito } from './Transferencia';
 
 import { Web3Service } from './../Web3Service';
 import { PessoaJuridicaService } from '../pessoa-juridica.service';
@@ -35,13 +35,15 @@ export class RealizarPagamentoComponent implements OnInit {
   ngOnInit() {
     this.maskCnpj = Utils.getMaskCnpj();      
     this.transferencia = new Transferencia();
+    this.inicializaDadosOrigem();
     this.inicializaDadosDestino();
 
   }
 
 
   inicializaDadosOrigem() {
-    this.transferencia.subcredito = "";
+    this.transferencia.subcreditos = new Array<Subcredito>();    
+    this.transferencia.numeroSubcreditoSelecionado = null;
     this.transferencia.saldoOrigem = undefined;    
   }
 
@@ -76,52 +78,98 @@ export class RealizarPagamentoComponent implements OnInit {
 
     let self = this;
 
-    console.log("ContaBlockchain" + contaBlockchain);
+    contaBlockchain = contaBlockchain.toLowerCase();   
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
       let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain));      
-
-            if ( cnpjConta != "" ) { //encontrou uma PJ valida  
-
-              console.log(cnpjConta);
-              self.cnpjOrigem = cnpjConta;
-//              self.transferencia.subcredito = result.idSubcredito;
-              self.ref.detectChanges();
-
-           } //fecha if de PJ valida
-
-           else {
-             self.inicializaDadosOrigem();
-             console.log("Não encontrou PJ valida para a conta blockchain");
-           }
-      this.recuperaSaldoOrigem(contaBlockchain);                   
-    }
-
-    else {
-        self.inicializaDadosOrigem();      
+      await this.recuperaClientePorCNPJ(cnpjConta);
     }
 }
 
 
-  recuperaSaldoOrigem(contaBlockchain) {
+async recuperaClientePorCNPJ(cnpj) {
+  console.log(cnpj);
 
-    let self = this;
-/*
-    this.web3Service.getBalanceOf(contaBlockchain,
+  let self = this;
 
-      function (result) {
-        console.log("Saldo do endereco " + contaBlockchain + " eh " + result);
-        self.transferencia.saldoOrigem = result;
-        self.ref.detectChanges();
-      },
-      function (error) {
-        console.log("Erro ao ler o saldo do endereco " + contaBlockchain);
-        console.log(error);
-        self.transferencia.saldoOrigem = 0;
-      });
-      */
-  }
+  let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpj)));
+
+  if (!rbbID) {
+    let s = "CNPJ não está cadastrado.";
+    this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+    return;
+  } 
+  this.transferencia.rbbId = rbbID; 
+
+  this.pessoaJuridicaService.recuperaClientePorCnpj(cnpj).subscribe(
+    empresa => {
+      if (empresa && empresa.dadosCadastrais) {
+        console.log("empresa encontrada abaixo ");
+        console.log(empresa);
+
+        if (empresa["subcreditos"] && empresa["subcreditos"].length>0) {
+
+          for (var i = 0; i < empresa["subcreditos"].length; i++) {
+          
+            let subStr = JSON.parse(JSON.stringify(empresa["subcreditos"][i]));
+
+            self.includeIfNotExists(self.transferencia.subcreditos, subStr);
+
+            //TODO: otimizar para fazer isso apenas uma vez
+            if (i==0) {
+              self.transferencia.numeroSubcreditoSelecionado = self.transferencia.subcreditos[0].numero;
+              self.atualizaInfoPorMudancaSubcredito();
+            }
+          }
+             
+        }
+        else {
+          let s = "O pagamento só pode ser realizado por uma empresa cliente.";
+          this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+          console.log(s);
+        }
+      }
+      else {
+        let texto = "Nenhuma empresa cliente encontrada com o cnpj " + cnpj;
+        console.log(texto);
+        Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);
+
+        this.inicializaDadosOrigem();
+      }
+    },
+    error => {
+      let texto = "Erro ao buscar dados da empresa";
+      console.log(texto);
+      Utils.criarAlertaErro( this.bnAlertsService, texto,error);
+      this.inicializaDadosOrigem();
+    });
+
+}
+
+includeIfNotExists(subcreditos, sub) {
+
+  let include = true;
+  for(var i=0; i < subcreditos.length; i++) { 
+    if (subcreditos[i].numero==sub.numero) {
+      include=false;
+    }
+  }  
+  if (include) subcreditos.push(sub);
+}
+
+
+async atualizaInfoPorMudancaSubcredito() {
+
+  console.log("atualiza rbbId=" + this.transferencia.rbbId + " nSubc = " + this.transferencia.numeroSubcreditoSelecionado);
+
+  this.transferencia.saldoOrigem = 
+    await this.web3Service.getBalanceOf(this.transferencia.rbbId, this.transferencia.numeroSubcreditoSelecionado);
+
+  console.log(this.transferencia.saldoOrigem);
+
+}
+
 
   async recuperaInformacoesDerivadasConta() {
 

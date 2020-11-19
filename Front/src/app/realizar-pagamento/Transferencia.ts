@@ -1,6 +1,10 @@
 export class Transferencia {
-    contaBlockchainOrigem: string;
-    subcredito: string;
+  rbbId: number;
+
+  contaBlockchainOrigem: string;
+    numeroSubcreditoSelecionado: number;
+
+    subcreditos: Subcredito[];
     saldoOrigem: number;
   
     papelEmpresaDestino: string;
@@ -12,6 +16,9 @@ export class Transferencia {
     valorTransferencia: number;
     hashOperacao: string;
   
-  //  numeroSubcredito: number;
     dataHora: Date;
+  }
+
+  export class Subcredito {
+    numero: number;
   }
