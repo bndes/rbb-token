@@ -35,7 +35,7 @@ const routes: Routes = [
   { path: 'bndes/alocar-investimentos', component: AlocaValoresContasBndesComponent},
   { path: 'bndes/associa-papel-investidor', component: AssociaPapelInvestidorComponent},
   { path: 'bndes/liquidar/:solicitacaoResgateId', component: LiquidacaoResgateComponent},
-  { path: 'doador/registra-doacao', component: RegistraDoacaoComponent},  
+  { path: 'investidor/registra-doacao', component: RegistraDoacaoComponent},  
   { path: 'fornecedor/resgate', component: ResgateComponent },
   { path: 'cliente/realizar-pagamento', component: RealizarPagamentoComponent},
   { path: 'sociedade/dash-papeis', component: DashboardPapeisComponent },

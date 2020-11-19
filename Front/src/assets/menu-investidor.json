@@ -11,7 +11,7 @@
 			"subitem": [
 				{
 					"titulo": "Registrar Intenção de Investimento",
-					"url": "/doador/registra-doacao",
+					"url": "/investidor/registra-doacao",
 					"separador": false
 				}			]
 	},
