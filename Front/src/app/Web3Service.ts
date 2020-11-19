@@ -78,9 +78,6 @@ export class Web3Service {
                 this.abiRBBRegistry = data['abiRBBRegistry'];
             
 
-                console.log("abis");
-                console.log(this.abiRBBToken);
-
                 this.intializeWeb3();
                 this.inicializaQtdDecimais();
 
@@ -99,14 +96,12 @@ export class Web3Service {
         console.log("provider ethers");
         console.log(this.provider);
 
-        this.signer = (new ethers.providers.Web3Provider(window["ethereum"])).getSigner();
+        this.signer = (new ethers.providers.Web3Provider(this.ethereum)).getSigner();
 
-        this.rbbTokenSmartContract = new ethers.Contract(this.addrContratoRBBToken, this.abiRBBToken, this.signer);
-        this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.signer);
+        this.rbbTokenSmartContract = new ethers.Contract(this.addrContratoRBBToken, this.abiRBBToken, this.provider);
+        this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.provider);
         this.esgBndesToken_GetDataToCallSmartContract = new ethers.Contract(this.addrContratoESGBndesToken_GetDataToCall, this.abiESGBndesToken_GetDataToCall, this.provider);
         this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.provider);
-
-        this.buscaNumeroBloco(this.signer);
 
         console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
         console.log("rbbTokenSmartContract=");
@@ -114,13 +109,6 @@ export class Web3Service {
 
     } 
 
-    //TODO: APAGAR
-    async buscaNumeroBloco(signer) {
-        console.log("ENDERECO i");
-        const endereco = await signer.getAddress();
-        console.log("ENDERECO f");
-        console.log(endereco);
-    }
 
     getBlockTimestamp(blockHash: number, fResult: any) {
 
@@ -156,14 +144,10 @@ export class Web3Service {
         };
     }
 
-
-    //fonte: https://www.xul.fr/javascript/callback-to-promise.php
+//TODO: AJUSTAR
     public getCurrentAccountSync() {
         return this.signer.getAddress();
-
     }
-
-
 
     conectar () {
         this.ethereum.enable();
@@ -194,6 +178,8 @@ export class Web3Service {
         console.log(events);    
     }
 
+
+    //https://docs.ethers.io/v4/api-contract.html
 
     registraEventosAdicionaInvestidor(callback) {
  //       this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InvestorAdded({}, { fromBlock: 0, toBlock: 'latest' });
@@ -341,18 +327,25 @@ export class Web3Service {
 
     async associaInvestidor(rbbID: number) {
 
-        await this.esgBndesTokenSmartContract.addInvestor(rbbID);
+        const signer = (new ethers.providers.Web3Provider(this.ethereum)).getSigner();
+        const contWithSigner = this.esgBndesTokenSmartContract.connect(signer);
+        await contWithSigner.addInvestor(rbbID);
     }
 
     async registrarInvestimento(amount: number) {
         
-        console.log("Registra doacao");
+        console.log("Registra doacao!!! ");
         
         amount = this.converteDecimalParaInteiro(amount);     
         console.log("Amount=" + amount);
         console.log("this.FAKE_HASH)=" + this.FAKE_HASH);
+        let amountAsBigNumber = ethers.BigNumber.from(amount);
+        console.log("AmountBigN=" + amountAsBigNumber);
 
-        await this.esgBndesTokenSmartContract.bookInvestment(amount, this.FAKE_HASH);        
+        const signer = (new ethers.providers.Web3Provider(this.ethereum)).getSigner();
+        const contWithSigner = this.esgBndesTokenSmartContract.connect(signer);
+
+        await contWithSigner.bookInvestment(amountAsBigNumber, this.FAKE_HASH);        
     }
 
     async getSpecificHash (info: number)  {
@@ -362,8 +355,7 @@ export class Web3Service {
         return value;
     }
 
-
-    async getBalanceRequestedToken(rbbId: number, fSuccess: any, fError: any) {
+    async getBalanceRequestedToken(rbbId: number): Promise <number> {
         
         console.log("vai recuperar o balanceOf de " + rbbId);
         let self = this;
@@ -371,15 +363,13 @@ export class Web3Service {
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
         let specificHash = <string> (await this.getSpecificHash(30));
 
-        return this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,specificHash,
-            (error, valorSaldoCNPJ) => {
-                if (error) fError(error);
-                else fSuccess( self.converteInteiroParaDecimal( parseInt ( valorSaldoCNPJ ) ) );
-            });            
+        let retornedValue = await this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,specificHash);
+
+        return self.converteInteiroParaDecimal( retornedValue.toNumber() );
     }
 
 
-    async receberDoacao(rbbIDInvestor: number, amount: number, docHash: string, fSuccess: any, fError: any) {
+    async receberDoacao(rbbIDInvestor: number, amount: number, docHash: string) {
 
         let contaSelecionada = await this.getCurrentAccountSync();    
         
@@ -393,13 +383,12 @@ export class Web3Service {
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
         let specificHash = <string> (await this.getSpecificHash(30));
 
+        const signer = (new ethers.providers.Web3Provider(this.ethereum)).getSigner();
+        const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+
         //TODO: Trocar fake hash pelo hash
-        this.rbbTokenSmartContract.mint(this.addrContratoESGBndesToken, rbbIDInvestor, specificHash, 
-             amount, this.FAKE_HASH, [], { from: contaSelecionada},
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });  
+        await contWithSigner.mint(this.addrContratoESGBndesToken, rbbIDInvestor, specificHash, 
+             amount, this.FAKE_HASH, []);  
     }  
 
     ////////////////// FIM INVESTIDOR
@@ -459,12 +448,9 @@ export class Web3Service {
 
     async liberacao(rbbIdDestino: number, nContrato: string, transferAmount: number) : Promise<string> {
         console.log("Web3Service - Liberacao");
-
-        const endereco = await this.signer.getAddress();
-        console.log(endereco);
-
-//        let contaSelecionada = await this.getCurrentAccountSync(); 
         
+        let rbbIdDestinoAsBigNumber = ethers.BigNumber.from(rbbIdDestino);
+
         let disbursementData = await this.getDisbursementDataSync(nContrato);
         console.log(disbursementData);
         let fromHash = disbursementData[0];
@@ -478,14 +464,15 @@ export class Web3Service {
 
         transferAmount = this.converteDecimalParaInteiro(transferAmount);  
         console.log('TransferAmount(after)=' + transferAmount);
-
+        let transferAmountAsBigNumber = ethers.BigNumber.from(transferAmount);
 
 //        function transfer (address specificTokenAddr, bytes32 fromHash, uint toId, bytes32 toHash, 
 //            uint amount, bytes32 docHash, string[] memory data) public whenNotPaused {
 //        await this.associaInvestidor(2); 
-        await this.registrarInvestimento(10);
-        //let retorno = await this.rbbTokenSmartContract.transfer(this.addrContratoESGBndesToken, fromHash, rbbIdDestino, toHash,
-       //                 transferAmount, this.FAKE_HASH, dataFromDD);
+       // await this.registrarInvestimento(10);
+        let retorno = await this.rbbTokenSmartContract.transfer(
+            this.addrContratoESGBndesToken, fromHash, rbbIdDestinoAsBigNumber, toHash,
+            transferAmountAsBigNumber, this.FAKE_HASH, dataFromDD);
 
         return "xxxxxxxxxxxxxxxxxxxxxxxxxxx";
 

@@ -120,6 +120,8 @@ export class AssociaPapelInvestidorComponent implements OnInit {
           "O solicitação de associação do cnpj " + self.cnpj + " como papel de investidor foi enviada. Aguarde a confirmação.", 
           "A associação foi confirmada na blockchain.", 
           self.zone) 
+
+          //TODO: url para investidor
         self.router.navigate(['sociedade/dash-papeis']);
 
       },

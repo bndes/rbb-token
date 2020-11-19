@@ -136,7 +136,6 @@ let bDoador = await this.web3Service.isDoadorSync(this.doacao.contaBlockchainOri
 */
 
   this.web3Service.registrarInvestimento(this.doacao.valor).then(
-//    this.web3Service.associaInvestidor(2).then(
       
     function(txHash) {  
       Utils.criarAlertasAvisoConfirmacao( txHash, 
