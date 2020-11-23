@@ -191,10 +191,15 @@ export class DashboardTransferenciasComponent implements OnInit {
   registrarExibicaoEventosLiberacao() {
     let self = this
 
-    this.web3Service.registraEventosLiberacao(function (error, event) {
-      if (!error) {
+    console.log("registraEventosLiberacao antes callback");
+
+
+    this.web3Service.registraEventosLiberacao(function (event) {
+
+      console.log("registraEventosLiberacao");
+
         let liberacao: DashboardTransferencia;
-        let eventoLiberacao = event
+        let eventoLiberacao = event;
 
         self.pessoaJuridicaService.recuperaEmpresaPorCnpj(eventoLiberacao.args.cnpj).subscribe(
           data => {
@@ -253,12 +258,6 @@ export class DashboardTransferenciasComponent implements OnInit {
             console.log("Erro ao recuperar empresa por CNPJ do evento liberação")
           }
         )
-
-      }
-      else {
-        console.log("Erro no registro de eventos de liberacao");
-        console.log(error);
-      }
 
     });
   }

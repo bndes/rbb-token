@@ -113,7 +113,8 @@ export class AssociaPapelInvestidorComponent implements OnInit {
     
     this.web3Service.associaInvestidor(rbbID).then(
       
-      function(txHash) {  
+      function(txHash) { 
+
         Utils.criarAlertasAvisoConfirmacao( txHash, 
           self.web3Service, 
           self.bnAlertsService, 
