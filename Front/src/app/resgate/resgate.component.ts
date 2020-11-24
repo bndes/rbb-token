@@ -163,7 +163,7 @@ async recuperaInformacoesDerivadasConta() {
       console.log(s);
       return;
     }
-
+/*
     this.web3Service.resgata(this.resgate.valor,
 
         (txHash) => {
@@ -186,7 +186,7 @@ async recuperaInformacoesDerivadasConta() {
     );
     Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
                                   "Confirme a operação no metamask e aguarde a confirmação do resgate." )         
-
+*/
   }
 
 }

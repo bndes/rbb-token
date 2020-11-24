@@ -444,7 +444,7 @@ export class Web3Service {
         let specificHash = "";
         if (numeroContrato) {
             let valorToHash = numeroContrato+"";
-            specificHash =  <string> (await this.getSpecificHashAsString(valorToHash);
+            specificHash =  <string> (await this.getSpecificHashAsString(valorToHash));
         }
         else {
             let valorToHash = this.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER;
@@ -543,35 +543,72 @@ export class Web3Service {
 
     }
 
+    async pagaFornecedor(nContratoOrigem: string, rbbIdDestino: number, transferAmount: number) : Promise<any> {
 
-    // AJUSTAR ABAIXO
+        console.log("Web3Service - PagarFornecedor");
 
-    async resgata(transferAmount: number, fSuccess: any, fError: any) {
+        let callData = await this.esgBndesToken_GetDataToCallSmartContract.getClientPaySupplierData(nContratoOrigem);
+        console.log(callData);
+        let fromHash = callData[0];
+        console.log(fromHash);
 
-        let contaSelecionada = await this.getCurrentAccountSync();    
-        
-        console.log("conta selecionada=" + contaSelecionada);
-        console.log("Web3Service - Redeem");
-        transferAmount = this.converteDecimalParaInteiro(transferAmount);     
+        let toHash = callData[1];
+        console.log(toHash);
 
-        this.rbbTokenSmartContract.redeem(transferAmount, { from: contaSelecionada, gas: 500000 },
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });
+        let dataFromDD = callData[2];
+        console.log(dataFromDD);
+
+        transferAmount = this.converteDecimalParaInteiro(transferAmount);  
+        console.log('TransferAmount(after)=' + transferAmount);
+
+       const signer = this.accountProvider.getSigner();
+       const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+       
+       return (await contWithSigner.transfer(
+            this.addrContratoESGBndesToken, fromHash, rbbIdDestino, toHash,
+            transferAmount, this.FAKE_HASH, dataFromDD));
+
     }
 
-    liquidaResgate(hashResgate: any, hashComprovante: any, isOk: boolean, fSuccess: any, fError: any) {
+    async resgata(transferAmount: number) {
+
+        console.log("Web3Service - Redeem");
+
+        let callData = await this.esgBndesToken_GetDataToCallSmartContract.getRedeemData();
+        console.log(callData);
+        let fromHash = callData[0];
+        console.log(fromHash);
+
+        let dataFromDD = callData[1];
+        console.log(dataFromDD);
+
+        transferAmount = this.converteDecimalParaInteiro(transferAmount);     
+
+        console.log('TransferAmount(after)=' + transferAmount);
+
+       const signer = this.accountProvider.getSigner();
+       const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+       
+       return (await contWithSigner.redeem (
+            this.addrContratoESGBndesToken, fromHash, transferAmount, this.FAKE_HASH, dataFromDD));
+    }
+
+    async liquidaResgate(hashResgate: any, hashComprovante: any) {
         console.log("Web3Service - liquidaResgate")
         console.log("HashResgate - " + hashResgate)
         console.log("HashComprovante - " + hashComprovante)
-        console.log("isOk - " + isOk)
+//        console.log("isOk - " + isOk)
+//TODO: Avaliar se precisa incluir o isOk --->  impacto no smart contract
+        let emptyData: String[];
+        emptyData = new Array<String>();
 
-        this.rbbTokenSmartContract.notifyRedemptionSettlement(hashResgate, hashComprovante, 
-            (error, result) => {
-                if (error) fError(error);
-                else fSuccess(result);
-            });
+        const signer = this.accountProvider.getSigner();
+        const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+
+        
+        return (await contWithSigner.redeem (
+                this.addrContratoESGBndesToken, hashResgate, this.FAKE_HASH, emptyData));
+     
     }
 
 
