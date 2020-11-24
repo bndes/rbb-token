@@ -25,33 +25,74 @@ import { BnAlertsService } from 'bndes-ux4';
 })
 export class AlocaValoresContasBndesComponent implements OnInit {
   tt:Web3Service ;
+  selectedAccount: any;
 //  teste:teste;
-  a: any = "1";
-  b: any = "1";
-  c: any = "1";
-  d: any = "1";
-  e: any = "1";
-  f: any = "1";
+disponivelParaAlocacao: any = "";  
+ValorA_Alocar: any = "";
+  SaldoAtual: any = ""
+  d: any = "";
+  e: any = "";
+  f: any = "";
   constructor(private http: HttpClient, private constantes: ConstantesService,private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
     private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef) { 
     this.tt = new Web3Service(http,ConstantesService);
-
-  }
-
-  ngOnInit() {
-    
-  }
-  onSubmit(form){
-    this.a = this.web3Service.getAdminFeeBalance(function (result) {console.log("Foi ")},function (error) {console.log("Erro ")});
     
 
+    let self = this;
+      setInterval(function () {
+        self.recuperaContaSelecionada(), 1000});
+    
+  }
+  async ngOnInit() {
+  }
+
+  async onSubmit(form){
+    let idConta = await this.web3Service.getIdByAddressSync( await this.web3Service.getCurrentAccountSync());
+    let verificadoDeMudanca1=this.disponivelParaAlocacao;
+    let verificadoDeMudanca2=this.SaldoAtual;
+    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
+    
+    this.SaldoAtual = await this.web3Service.getDisbursementBalance();
+    this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
+    while(verificadoDeMudanca1 == this.disponivelParaAlocacao){
+      this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
+    }
+    while(verificadoDeMudanca2 == this.SaldoAtual){
+      this.SaldoAtual = await this.web3Service.getDisbursementBalance();
+    }
 
   }
+
+  
   VerificaA(form){
 
-    console.log(this.a);
+    console.log(this.disponivelParaAlocacao);
 
   }
+
+  async recuperaContaSelecionada() {
+
+    let self = this;
+    
+    let newSelectedAccount = await this.web3Service.getCurrentAccountSync();
+  
+    if ( !self.selectedAccount || (newSelectedAccount !== self.selectedAccount && newSelectedAccount)) {
+  
+      this.selectedAccount = newSelectedAccount;
+      console.log("selectedAccount=" + this.selectedAccount);
+      self.recuperaSaldoBNDESToken();
+      
+    }
+  
+  }  
+  
+   async recuperaSaldoBNDESToken() {
+  
+    this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
+    this.SaldoAtual = await this.web3Service.getDisbursementBalance();
+    
+  }
+  
  
 
 }
