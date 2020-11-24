@@ -60,42 +60,36 @@ export class DashboardPapeisComponent implements OnInit {
           }
   }
 
-registrarExibicaoEventos() {
+async registrarExibicaoEventos() {
 
   this.blockchainNetworkPrefix = this.web3Service.getInfoBlockchainNetwork().blockchainNetworkPrefix;
   
   console.log("*** Executou o metodo de registrar exibicao eventos PAPEIS");
 
-  this.web3Service.recuperaEventosAdicionaInvestidor();
+  let eventosInvestidor = await this.web3Service.recuperaEventosAdicionaInvestidor();
+  console.log(eventosInvestidor);
 
-  let self = this;    
-  this.web3Service.registraEventosAdicionaInvestidor(function (error, event) {
+  for (let i=0; i<eventosInvestidor.length; i++) {
+    this.processaEventoInvestidor(eventosInvestidor[i])
+  }
+}
 
-      if (!error) {
+processaEventoInvestidor(eventoInvestidor) {
+  
+      let transacao: DashboardPapeis;
 
-          let transacao: DashboardPapeis;
-
-          console.log("Evento Papeis");
-          console.log(event);
-               
-          transacao = {
-              rbbId: event.args.id,
-              cnpj: "FALTA BUSCAR NO RBB REGISTRY",
-              dataHora: null,
-              tipo: "Investidor",
-              hashID: event.transactionHash,
-              uniqueIdentifier: event.transactionHash,
-          }
-          
-          self.includeIfNotExists(transacao);
-          self.recuperaDataHora(self, event, transacao);
-
-
-      } else {
-          console.log("Erro no registro de eventos de papeis - investidor");
-          console.log(error);
+      transacao = {
+          rbbId: eventoInvestidor.args.id,
+          cnpj: "FALTA BUSCAR NO RBB REGISTRY",
+          dataHora: null,
+          tipo: "Investidor",
+          hashID: eventoInvestidor.transactionHash,
+          uniqueIdentifier: eventoInvestidor.transactionHash,
       }
-    });
+          
+      this.includeIfNotExists(transacao);
+      this.recuperaDataHora(eventoInvestidor, transacao);
+
 }
 
 
@@ -139,19 +133,11 @@ customComparator(itemA, itemB) {
     return itemB - itemA;
 }
 
-recuperaDataHora(self, event, transacaoPJ) {
-    self.web3Service.getBlockTimestamp(event.blockHash,
-        function (error, result) {
-            if (!error) {
-                transacaoPJ.dataHora = new Date(result.timestamp * 1000);
-                self.ref.detectChanges();
-            }
-            else {
-                console.log("Erro ao recuperar data e hora do bloco");
-                console.error(error);
-            }
-    });
+async recuperaDataHora(event, transacaoPJ) {
 
+    let timestamp = await this.web3Service.getBlockTimestamp(event.blockNumber);
+    transacaoPJ.dataHora = new Date(timestamp * 1000);
+    this.ref.detectChanges();
 }
 
 }

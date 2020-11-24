@@ -66,13 +66,17 @@ async recuperaInformacoesDerivadasConta() {
 
   let contaBlockchain = this.resgate.contaBlockchainOrigem.toLowerCase();
 
-  console.log("ContaBlockchain" + contaBlockchain);
+  console.log("ContaBlockchain = " + contaBlockchain);
 
   if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
-    let cnpjContaOrigem = <string> (await this.web3Service.getCNPJByAddressSync(this.resgate.contaBlockchainOrigem));      
+    let registryOrigem =  await this.web3Service.getRegistryByAddressSync(this.resgate.contaBlockchainOrigem);
+    console.log("registry = " );
+    console.log(registryOrigem);
 
-    if ( cnpjContaOrigem != "") { //encontrou uma PJ valida  
+    let cnpjContaOrigem = registryOrigem["cnpj"];
+
+    if ( cnpjContaOrigem != "") { //encontrou uma PJ valida
 
             console.log(cnpjContaOrigem);
             self.resgate.cnpjOrigem = cnpjContaOrigem;
@@ -97,6 +101,9 @@ async recuperaInformacoesDerivadasConta() {
 
             self.ref.detectChanges();
 
+            this.recuperaSaldoOrigem(registryOrigem["id"]);
+
+
          } //fecha if de PJ valida
 
     else {
@@ -113,49 +120,26 @@ async recuperaInformacoesDerivadasConta() {
 }  
 
 
+  async recuperaSaldoOrigem(id) {
 
+    this.resgate.saldoOrigem = 
+      await this.web3Service.getBalanceOf(id, 0);
 
-
-  recuperaSaldoOrigem(contaBlockchain) {
-
-    let self = this;
-/*
-//TODO: mudar
-    this.web3Service.getConfirmedBalanceOf(contaBlockchain,
-      function (result) {
-        console.log("Saldo do endereco " + contaBlockchain + " eh " + result);
-        self.resgate.saldoOrigem = result;
-        self.ref.detectChanges();
-      },
-      function (error) {
-        console.log("Erro ao ler o saldo do endereco " + contaBlockchain);
-        console.log(error);
-        self.resgate.saldoOrigem = 0;
-      });
-*/
   }
 
 
   async resgatar() {
 
     let self = this;
-
+/*
+//TODO: validar fornecedor
     let bCliente = await this.web3Service.isClienteSync(this.resgate.contaBlockchainOrigem);
     if (!bCliente) {
       let s = "O resgate deve ser realizado para a conta de um cliente.";
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     }
-
-    /*
-  TODO: ajustar
-    let bValidadaOrigem = await this.web3Service.isContaValidadaSync(this.resgate.contaBlockchainOrigem);
-    if (!bValidadaOrigem) {
-      let s = "Conta do cliente não validada";
-      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
-      return;
-    }
-    */
+*/
 
     if ((this.resgate.valor * 1) > (Number(this.resgate.saldoOrigem) * 1)) {
       let s = "Não é possível resgatar mais do que o valor do saldo de origem.";
@@ -163,30 +147,30 @@ async recuperaInformacoesDerivadasConta() {
       console.log(s);
       return;
     }
-/*
-    this.web3Service.resgata(this.resgate.valor,
 
-        (txHash) => {
+    this.web3Service.resgata(this.resgate.valor).then(
+      
+        function(txHash) { 
+          
+          Utils.criarAlertasAvisoConfirmacao(txHash, 
+            self.web3Service, 
+            self.bnAlertsService, 
+            "Resgate para cnpj " + self.resgate.cnpjOrigem + "  enviado. Aguarde a confirmação.", 
+            "O Resgate foi confirmado na blockchain.", 
+            self.zone)       
+          self.router.navigate(['sociedade/dash-transf']);
 
-        Utils.criarAlertasAvisoConfirmacao( txHash, 
-                                            self.web3Service, 
-                                            self.bnAlertsService, 
-                                            "Resgate para cnpj " + self.resgate.cnpjOrigem + "  enviado. Aguarde a confirmação.", 
-                                            "O Resgate foi confirmado na blockchain.", 
-                                            self.zone)       
-        self.router.navigate(['sociedade/dash-transf']);
+        },
+        function(error) {  
+          Utils.criarAlertaErro( self.bnAlertsService, 
+            "Erro ao resgatar na blockchain", 
+            error )
 
-        }        
-      ,(error) => {
-        Utils.criarAlertaErro( self.bnAlertsService, 
-                                "Erro ao resgatar na blockchain", 
-                                error )
+        });
 
-      }
-    );
-    Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
-                                  "Confirme a operação no metamask e aguarde a confirmação do resgate." )         
-*/
+      Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
+          "Confirme a operação no metamask e aguarde a confirmação do resgate." )         
+
   }
 
 }

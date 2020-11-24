@@ -107,9 +107,10 @@ export class Web3Service {
     } 
 
 
-    getBlockTimestamp(blockHash: number, fResult: any) {
+    async getBlockTimestamp(blockNumber: number, fResult: any) {
 
-//        this.web3.eth.getBlock(blockHash, fResult);
+        let block = await this.provider.getBlock(blockNumber);
+        return block.timestamp;
 
     }
 
@@ -170,12 +171,13 @@ export class Web3Service {
 //TODO: tirar "FA" do início do nome do evento
 
     async recuperaEventosAdicionaInvestidor() {
+
         let filter = this.esgBndesTokenSmartContract.filters.FA_InvestorAdded(null);
         let events = await this.esgBndesTokenSmartContract.queryFilter(filter);
-        console.log("events recuperaEventosAdicionaInvestidor");    
-        console.log(events); 
 
-        //tste2
+        return events;
+/*
+        //TODO: avaliar se funciona para ler novos eventos
         let topic = ethers.utils.id("FA_InvestorAdded(uint id");
         filter = {
             address: this.addrContratoESGBndesToken,
@@ -186,17 +188,15 @@ export class Web3Service {
             console.log("dentro do evento do eethers do associa inv");
             console.log(result);
         });
-       
-
+*/
 
     }
-
 
     //https://docs.ethers.io/v4/api-contract.html
 
     registraEventosAdicionaInvestidor(callback) {
- //       this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InvestorAdded({}, { fromBlock: 0, toBlock: 'latest' });
- //       this.eventoTokenEspecifico.watch(callback);
+//        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InvestorAdded({}, { fromBlock: 0, toBlock: 'latest' });
+//        this.eventoTokenEspecifico.watch(callback);
     }
     registraEventosAdicionaCliente(callback) {
         this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_ClientAdded({}, { fromBlock: 0, toBlock: 'latest' });
@@ -355,6 +355,14 @@ export class Web3Service {
         let id = result[0];
         return id; 
     }    
+
+    async getRegistryByAddressSync(addr: string) {
+        let result = await this.rbbRegistrySmartContract.getRegistry(addr);
+        let registry: {id: number, cnpj: string} 
+        registry = {id: (<number>result[0]), cnpj: (<string>result[1])};
+        return registry;
+    }
+
 
     ////////////////////// FIM REGISTRY
 
@@ -583,7 +591,6 @@ export class Web3Service {
         console.log(dataFromDD);
 
         transferAmount = this.converteDecimalParaInteiro(transferAmount);     
-
         console.log('TransferAmount(after)=' + transferAmount);
 
        const signer = this.accountProvider.getSigner();
@@ -591,6 +598,7 @@ export class Web3Service {
        
        return (await contWithSigner.redeem (
             this.addrContratoESGBndesToken, fromHash, transferAmount, this.FAKE_HASH, dataFromDD));
+
     }
 
     async liquidaResgate(hashResgate: any, hashComprovante: any) {
