@@ -231,6 +231,7 @@ export class Web3Service {
 
         let filter = this.esgBndesTokenSmartContract.filters.FA_Disbursement(null);
         let events = await this.esgBndesTokenSmartContract.queryFilter(filter);
+     
         console.log("events registraEventosLiberacao");    
         console.log(events); 
 
@@ -386,9 +387,11 @@ export class Web3Service {
     }
 
     async getSpecificHashAsUint (info: number)  {
+        
         console.log("getSpecificHashUin " + info);
         console.log(this.esgBndesToken_GetDataToCallSmartContract);
         let value = await this.esgBndesToken_GetDataToCallSmartContract.getCalculatedHashUint(info);
+        
         return value;
     }
 
@@ -444,7 +447,7 @@ export class Web3Service {
         let specificHash = "";
         if (numeroContrato) {
             let valorToHash = numeroContrato+"";
-            specificHash =  <string> (await this.getSpecificHashAsString(valorToHash);
+            specificHash =  <string> (await this.getSpecificHashAsString(valorToHash));
         }
         else {
             let valorToHash = this.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER;
@@ -492,11 +495,11 @@ export class Web3Service {
 
     ////////////////// INÍCIO METODOS DE TRANSFER
 
-    async alocaRecursosDesembolso(rbbIdBNDES: number, transferAmount: number) : Promise<any> {
+    async alocaRecursosDesembolso2(rbbIdBNDES: number, transferAmount: number) : Promise<any> {
 
         console.log("Web3Service - alocaRecursosDesembolso");
 
-        let alocaRecursosData = await this.esgBndesToken_GetDataToCallSmartContract.getInitialAllocationToDisbusementData();
+        let alocaRecursosData = await this.esgBndesToken_GetDataToCallSmartContract.getInitialAllocationToChargeFeeData();
         let fromHash = alocaRecursosData[0];
         console.log(fromHash);
 
@@ -516,6 +519,9 @@ export class Web3Service {
             transferAmount, this.FAKE_HASH, dataFromDD));
     
     }
+    
+
+
 
     async liberacao(rbbIdDestino: number, nContrato: string, transferAmount: number) : Promise<any> {
         console.log("Web3Service - Liberacao");

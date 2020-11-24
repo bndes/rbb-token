@@ -1,3 +1,32 @@
 <p>
   alocar-valor-administrativo works!
 </p>
+
+<div class="conteudo">  
+  <form #f="ngForm" >
+    <div class="row">
+      <div class="form-group col-md-12 col-sm-12">
+        <h5>Recursos para custeio administrativo:</h5>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-md-4 col-sm-4">
+        <label>Saldo disponível para alocação:</label>
+        <input  currencyMask id="nome" name="nome"type="text" class="form-control form-control-sm" [(ngModel)]="SaldoAtual" readonly disabled/>
+      </div>
+      <div class="form-group col-md-4 col-sm-4">
+        <label>Valor total a ser alocado:</label>
+      <input currencyMask id="nome1" name="nome1" type="text" class="form-control form-control-sm" [(ngModel)]="ValorASerAlocado" />
+      </div>
+  
+    </div>
+    
+  </form>
+</div>
+
+<button (click)="onSubmit()" type="button" class="btn btn-success btn-cabecalho" placement="bottom" >
+    Alocar
+</button>
+
+
+
