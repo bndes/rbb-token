@@ -31,11 +31,7 @@
 					"url": "/bndes/alocar-investimentos",
 					"separador": false
 				},
-				{
-					"titulo": "Transferencia Administrativa",
-					"url": "/bndes/transferencia-administrativa",
-					"separador": false
-				},
+				
 				{
 					"titulo": "Liberar",
 					"url": "/bndes/liberacao",
@@ -52,8 +48,16 @@
 					"titulo": "Realizar Pagamento",
 					"url": "bndes/realizar-pagamento",
 					"separador": false
-				}			]
-	},	
+				},
+				{
+					"titulo": "Alocar Valor Administrativo",
+					"url": "/bndes/alocar-valor-administrativo",
+					"separador": false
+				}
+			]
+	},
+	
+	
 	{
     	"titulo": "Dashboards",
     	"topo": true,

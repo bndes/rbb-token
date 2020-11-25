@@ -1,3 +1,4 @@
+
 import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 //import {teste} from './teste';
 import { FormsModule } from '@angular/forms';
@@ -10,65 +11,44 @@ import { PessoaJuridicaService } from '../pessoa-juridica.service';
 import { BnAlertsService } from 'bndes-ux4';
 
 
-
-
-
-
-
-
-
-
 @Component({
-  selector: 'app-aloca-valores-contas-bndes',
-  templateUrl: './aloca-valores-contas-bndes.component.html',
-  styleUrls: ['./aloca-valores-contas-bndes.component.css']
+  selector: 'app-alocar-valor-administrativo',
+  templateUrl: './alocar-valor-administrativo.component.html',
+  styleUrls: ['./alocar-valor-administrativo.component.css']
 })
-export class AlocaValoresContasBndesComponent implements OnInit {
-  tt:Web3Service ;
+export class AlocarValorAdministrativoComponent implements OnInit {
   selectedAccount: any;
-//  teste:teste;
-disponivelParaAlocacao: any = "";  
-ValorA_Alocar: any = "";
-  SaldoAtual: any = ""
-  d: any = "";
-  e: any = "";
-  f: any = "";
+  SaldoAtual:any ;
+  ValorASerAlocado:any;
+
   constructor(private http: HttpClient, private constantes: ConstantesService,private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
     private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef) { 
-    this.tt = new Web3Service(http,ConstantesService);
-    
+
+
 
     let self = this;
       setInterval(function () {
         self.recuperaContaSelecionada(), 1000});
-    
-  }
-  async ngOnInit() {
   }
 
-  async onSubmit(form){
+  ngOnInit() {
+  }
+
+  async onSubmit(){
     let idConta = await this.web3Service.getIdByAddressSync( await this.web3Service.getCurrentAccountSync());
-    let verificadoDeMudanca1=this.disponivelParaAlocacao;
-    let verificadoDeMudanca2=this.SaldoAtual;
-    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
     
-    this.SaldoAtual = await this.web3Service.getDisbursementBalance();
-    this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
-    while(verificadoDeMudanca1 == this.disponivelParaAlocacao){
-      this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
-    }
-    while(verificadoDeMudanca2 == this.SaldoAtual){
-      this.SaldoAtual = await this.web3Service.getDisbursementBalance();
+    let verificadoDeMudanca=this.SaldoAtual;
+    await this.web3Service.alocaRecursosDesembolso2(idConta,<number>(this.ValorASerAlocado));
+    
+    this.SaldoAtual = await this.web3Service.getAdminFeeBalance();
+    
+    
+    while(verificadoDeMudanca == this.SaldoAtual){
+      this.SaldoAtual = await this.web3Service.getAdminFeeBalance();
     }
 
   }
 
-  
-  VerificaA(form){
-
-    console.log(this.disponivelParaAlocacao);
-
-  }
 
   async recuperaContaSelecionada() {
 
@@ -87,12 +67,8 @@ ValorA_Alocar: any = "";
   }  
   
    async recuperaSaldoBNDESToken() {
-  
-    this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
-    this.SaldoAtual = await this.web3Service.getDisbursementBalance();
+    this.SaldoAtual = await this.web3Service.getAdminFeeBalance();
     
   }
-  
- 
 
 }
