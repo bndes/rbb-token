@@ -249,7 +249,6 @@ export class Web3Service {
             console.log(result);
         });
         */
-        
 
     }
 
