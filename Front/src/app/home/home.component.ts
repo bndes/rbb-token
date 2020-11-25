@@ -8,9 +8,9 @@ import { Web3Service } from './../Web3Service';
 })
 export class HomeComponent implements OnInit {
 
-  blockchainNetworkAsString: string;
-  contractAddr: string;
-  registryAddr: string;
+  nomeRedeBlockchain: string;
+  addrContratoRBBToken: string;
+  addrContratoESGBndesToken: string;
   selectedAccount: any; 
 
   constructor(private web3Service: Web3Service) {
@@ -22,10 +22,10 @@ export class HomeComponent implements OnInit {
     }
 
   ngOnInit() {
-    let infoBlockchainNetwork = this.web3Service.getInfoBlockchainNetwork();
-    this.blockchainNetworkAsString = infoBlockchainNetwork.blockchainNetworkAsString;
-    this.contractAddr = infoBlockchainNetwork.contractAddr;
-    this.registryAddr = infoBlockchainNetwork.registryAddr;
+    let infoBlockchainNetwork = this.web3Service.getInfoBlockchain();
+    this.nomeRedeBlockchain = infoBlockchainNetwork.nomeRedeBlockchain;
+    this.addrContratoRBBToken = infoBlockchainNetwork.addrContratoRBBToken;
+    this.addrContratoESGBndesToken = infoBlockchainNetwork.addrContratoESGBndesToken;
   }
 
   conectar () {

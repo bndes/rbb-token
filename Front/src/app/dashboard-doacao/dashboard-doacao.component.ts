@@ -18,7 +18,7 @@ export class DashboardDoacaoComponent implements OnInit {
 
   listaDoacoes: DashboardDoacao[] = undefined;
 
-  blockchainNetworkPrefix: string;
+  URLBlockchainExplorer: string;
 
   estadoLista: string = "undefined";
 
@@ -72,7 +72,7 @@ export class DashboardDoacaoComponent implements OnInit {
     
     registrarExibicaoEventos() {
 
-      this.blockchainNetworkPrefix = this.web3Service.getInfoBlockchainNetwork().blockchainNetworkPrefix;
+      this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
 
 //      this.estadoLista = "vazia"
 
@@ -88,7 +88,8 @@ export class DashboardDoacaoComponent implements OnInit {
 
     console.log("*** Executou o metodo de registrar eventos REGISTRAR INV");
 
-    let self = this;        
+    let self = this; 
+    /*       
     this.web3Service.registraEventosRegistrarInvestimento(function (error, event) {
 
         if (!error) {
@@ -124,6 +125,7 @@ export class DashboardDoacaoComponent implements OnInit {
             console.log(error);
         }
     });
+    */
   }
 
 
@@ -132,6 +134,7 @@ export class DashboardDoacaoComponent implements OnInit {
     console.log("*** Executou o metodo de registrar eventos RECEBER INV");
 
     let self = this;        
+    /*
     this.web3Service.registraEventosRecebimentoInvestimento(function (error, event) {
 
         if (!error) {
@@ -167,6 +170,7 @@ export class DashboardDoacaoComponent implements OnInit {
             console.log(error);
         }
     });
+    */
   }
 
 

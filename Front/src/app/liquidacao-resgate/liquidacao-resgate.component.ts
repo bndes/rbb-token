@@ -23,7 +23,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
   solicitacaoResgateId: string;
   maskCnpj: any;  
-  blockchainNetworkPrefix: string;  
+  URLBlockchainExplorer: string;  
   hashdeclaracao      : string;
   flagUploadConcluido : boolean;
 
@@ -109,6 +109,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
     let self = this;
 
+    /*
     this.web3Service.registraEventosResgate(function (error, event) {
       if (!error) {
         let eventoResgate = event;
@@ -120,16 +121,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
           self.liquidacaoResgate.valorResgate = self.web3Service.converteInteiroParaDecimal(parseInt(eventoResgate.args.amount)),
           self.preparaUpload(self.liquidacaoResgate.cnpj, self.liquidacaoResgate.contratoFinanceiro, self);
       
-          self.web3Service.getBlockTimestamp(eventoResgate.blockHash,
-            function (error, result) {
-              if (!error) {
-                self.liquidacaoResgate.dataHoraResgate = new Date(result.timestamp * 1000);
-               }
-              else {
-                console.log("Erro ao recuperar data e hora do bloco");
-                console.error(error);
-              }
-            });
+//          self.liquidacaoResgate.dataHoraResgate = await self.recuperaDataHora(event);
 
           self.pessoaJuridicaService.recuperaEmpresaPorCnpj(eventoResgate.args.cnpj).subscribe(
             data => {
@@ -148,13 +140,15 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
       }
 
     });
+    */
   }
 
 
   recuperaStatusLiquidacaoResgate() {
     let self = this;
-    this.blockchainNetworkPrefix = this.web3Service.getInfoBlockchainNetwork().blockchainNetworkPrefix;    
+    this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;    
 
+    /*
     this.web3Service.registraEventosLiquidacaoResgate(function (error, event) {
 
       if (!error) {   
@@ -169,18 +163,9 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
             self.liquidacaoResgate.hashComprovacao = event.args.receiptHash;
             self.liquidacaoResgate.isLiquidado = true;
 
-            self.web3Service.getBlockTimestamp(event.blockHash,
-              function (error, result) {
-                if (!error) {
-                  self.liquidacaoResgate.dataHoraLiquidacao = new Date(result.timestamp * 1000);
-                 }
-                else {
-                  console.log("Erro ao recuperar data e hora do bloco");
-                  console.error(error);
-                }
-              });
+//            self.liquidacaoResgate.dataHoraLiquidacao = await self.recuperaDataHora(event);
 
-              self.recuperaFilePathAndName(self,self.liquidacaoResgate);
+            self.recuperaFilePathAndName(self,self.liquidacaoResgate);
 
           }
 
@@ -190,6 +175,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
       }
     })
+    */
   }
 
   async atualizaIsResponsibleForSettlement() {
@@ -234,7 +220,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
 
   async liquidar() {
-this.liquidacaoResgate.hashComprovacao = this.hashdeclaracao ;
+    this.liquidacaoResgate.hashComprovacao = this.hashdeclaracao ;
     console.log("Liquidando o resgate..");
     console.log("hashResgate" + this.liquidacaoResgate.hashResgate);
     console.log("hashComprovacao" + this.liquidacaoResgate.hashComprovacao);    
@@ -262,9 +248,9 @@ this.liquidacaoResgate.hashComprovacao = this.hashdeclaracao ;
     let self= this;
 
 
-    this.web3Service.liquidaResgate(this.liquidacaoResgate.hashResgate, this.liquidacaoResgate.hashComprovacao, true,
-
-      (txHash) => {
+    this.web3Service.liquidaResgate(this.liquidacaoResgate.hashResgate, this.liquidacaoResgate.hashComprovacao).then(
+      
+      function(txHash) { 
  
         Utils.criarAlertasAvisoConfirmacao( txHash, 
                                             self.web3Service, 
@@ -273,8 +259,8 @@ this.liquidacaoResgate.hashComprovacao = this.hashdeclaracao ;
                                             "Liquidação do resgate foi confirmada na blockchain.", 
                                             self.zone)    
             self.router.navigate(['sociedade/dash-transf']);          
-        }        
-      ,(error) => {
+        },
+       function(error) {  
         Utils.criarAlertaErro( self.bnAlertsService, 
                                "Erro ao liquidar resgate.", 
                                error )  
@@ -282,7 +268,13 @@ this.liquidacaoResgate.hashComprovacao = this.hashdeclaracao ;
        Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
                                    "Confirme a operação no metamask e aguarde a liquidação da conta." )
 
-
   }
+
+  async recuperaDataHora(event) {
+
+    let timestamp = await this.web3Service.getBlockTimestamp(event.blockNumber);
+    return new Date(timestamp * 1000);
+}
+
 
 }

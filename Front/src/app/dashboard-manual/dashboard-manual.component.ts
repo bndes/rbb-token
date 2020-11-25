@@ -14,7 +14,7 @@ export class DashboardManualComponent implements OnInit {
 
   listaTransacoes: DashboardIntervencaoManual[] = undefined;
 
-  blockchainNetworkPrefix: string;
+  URLBlockchainExplorer: string;
 
   estadoLista: string = "undefined";
 
@@ -62,10 +62,10 @@ export class DashboardManualComponent implements OnInit {
 
   registrarExibicaoEventos() {
 
-    this.blockchainNetworkPrefix = this.web3Service.getInfoBlockchainNetwork().blockchainNetworkPrefix;
+    this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
     
     console.log("*** Executou o metodo de registrar exibicao eventos");
-
+/*
 
     let self = this;    
     this.web3Service.registraEventosIntervencaoManualMintBurn(function (error, event) {
@@ -102,8 +102,8 @@ export class DashboardManualComponent implements OnInit {
             console.log(error);
         }
     });
-
-
+*/
+/*
     this.web3Service.registraEventosIntervencaoManualFee(function (error, event) {
 
         if (!error) {
@@ -132,8 +132,8 @@ export class DashboardManualComponent implements OnInit {
         }
     });
 
-    
-
+    */
+/*
     this.web3Service.registraEventosIntervencaoManualRoleOrAddress(function (error, event) {
 
         if (!error) {
@@ -172,7 +172,7 @@ export class DashboardManualComponent implements OnInit {
             console.log(error);
         }
     });
-
+*/
 
 }
 

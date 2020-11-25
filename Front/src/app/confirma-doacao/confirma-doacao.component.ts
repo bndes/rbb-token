@@ -102,7 +102,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
   
       this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
         empresa => {
-          if (empresa && empresa.dadosCadastrais) {
+          if (empresa && empresa.dadosCadastrais.razaoSocial) {
             console.log("empresa encontrada - ")
             console.log(empresa)
   

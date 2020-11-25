@@ -25,7 +25,7 @@
         </div>
 
         <div class="form-group col-md-4 col-sm-4">
-          <label>Saldo em BNDESTokens:</label>
+          <label>Saldo em ESGTokens:</label>
           <input type="text" name="saldo" class="form-control form-control-sm" [ngModel]="transferencia.saldoOrigem" currencyMask readonly
             disabled/>
         </div>
@@ -50,11 +50,11 @@
       <div class="row">
         <div class="form-group col-md-4 col-sm-4">
           <label>CNPJ:</label>
-          <input [ngModel]="transferencia.cnpjDestino | cnpjMask" class="form-control form-control-sm" (ngModelChange)="recuperaFornecedor()"
+          <input [(ngModel)]="transferencia.cnpjDestinoWithMask" class="form-control form-control-sm" (ngModelChange)="recuperaFornecedor()"
           [textMask]="{mask: maskCnpj}" />
         </div>
 
-        <div class="form-group col-md-4 col-sm-4">
+        <div class="form-group col-md-8 col-sm-8">
           <label>Razão Social:</label>
           <input type="text" class="form-control form-control-sm" [ngModel]="transferencia.razaoSocialDestino" readonly disabled/>
         </div>
@@ -70,15 +70,15 @@
       </div>
 
       <div class="row">
-        <div class="form-group col-md-4 col-sm-4">
+        <div class="form-group col-md-5 col-sm-5">
           <app-input-validation errorMessage="Campo Obrigatório">
-            <label class="required">Valor a transferir (em BNDESTokens):</label>
+            <label class="required">Valor a transferir (em ESGTokens):</label>
             <input currencyMask [(ngModel)]="transferencia.valorTransferencia" class="form-control form-control-sm" 
               required />
           </app-input-validation>
         </div>
 
-        <div class="form-group col-md-4 col-sm-4">
+        <div class="form-group col-md-5 col-sm-5">
           <label>Equivalente em R$:</label>
           <input currencyMask [(ngModel)]="transferencia.valorTransferencia" class="form-control form-control-sm" 
             [options]="{ prefix: 'R$ '}" readonly disabled />
@@ -89,9 +89,8 @@
     </div>
 
     <div class="form-group">
-      <button (click)="transferir()" type="button" class="btn btn-success btn-cabecalho" placement="bottom" ngbTooltip="Transferir"
-        [disabled]="transferencia.msgEmpresaDestino != 'Repassador do Subcrédito' && transferencia.msgEmpresaDestino != 'Fornecedor'">
-        <i class="fa fa-floppy-o" aria-hidden="true"></i> Transferir
+      <button (click)="transferir()" type="button" class="btn btn-success btn-cabecalho" placement="bottom" ngbTooltip="Pagar">
+        <i class="fa fa-floppy-o" aria-hidden="true"></i> Pagar
       </button>
     </div>
   </div>

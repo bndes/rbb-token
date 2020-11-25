@@ -48,7 +48,8 @@ ValorA_Alocar: any = "";
     let idConta = await this.web3Service.getIdByAddressSync( await this.web3Service.getCurrentAccountSync());
     let verificadoDeMudanca1=this.disponivelParaAlocacao;
     let verificadoDeMudanca2=this.SaldoAtual;
-    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
+//TODO: FALAR LEO
+    //    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
     
     this.SaldoAtual = await this.web3Service.getDisbursementBalance();
     this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();

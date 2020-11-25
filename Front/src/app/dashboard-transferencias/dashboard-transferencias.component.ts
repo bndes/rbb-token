@@ -40,7 +40,7 @@ export class DashboardTransferenciasComponent implements OnInit {
 
   razaoSocialBNDES: string = "Banco Nacional De Desenvolvimento Econômico E Social";
   selectedAccount: any;  
-  blockchainNetworkPrefix: string;  
+  URLBlockchainExplorer: string;  
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService, 
     private router: Router,
@@ -158,7 +158,7 @@ export class DashboardTransferenciasComponent implements OnInit {
 
     let self = this; 
     
-    this.blockchainNetworkPrefix = this.web3Service.getInfoBlockchainNetwork().blockchainNetworkPrefix;
+    this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
 
     // EVENTOS LIBERAÇÃO
     this.registrarExibicaoEventosLiberacao()
@@ -193,7 +193,7 @@ export class DashboardTransferenciasComponent implements OnInit {
 
     console.log("registraEventosLiberacao antes callback");
 
-
+/*
     this.web3Service.registraEventosLiberacao(function (event) {
 
       console.log("registraEventosLiberacao");
@@ -236,21 +236,7 @@ export class DashboardTransferenciasComponent implements OnInit {
               }
             });
 
-
-            self.web3Service.getBlockTimestamp(eventoLiberacao.blockHash,
-              function (error, result) {
-                if (!error) {
-                  liberacao.dataHora = new Date(result.timestamp * 1000);
-                  console.log("data hora:" + liberacao.dataHora);
-                  self.ref.detectChanges();
-                  //TODO: adicionar tratamento para o grafico de barras
-                }
-                else {
-                  console.log("Erro ao recuperar data e hora do bloco");
-                  console.error(error);
-                }
-              });
-
+              self.recuperaDataHora(eventoLiberacao, liberacao);
 
               console.log("Chegou no final da função");
           },
@@ -260,12 +246,14 @@ export class DashboardTransferenciasComponent implements OnInit {
         )
 
     });
+    */
   }
 
 
   registrarExibicaoEventosSolicitacaoResgate() {
     let self = this
 
+    /*
     this.web3Service.registraEventosResgate(function (error, event) {
       if (!error) {
         let resgate: DashboardTransferencia;
@@ -308,18 +296,7 @@ export class DashboardTransferenciasComponent implements OnInit {
               }
             });
  
-
-            self.web3Service.getBlockTimestamp(eventoResgate.blockHash,
-              function (error, result) {
-                if (!error) {
-                  resgate.dataHora = new Date(result.timestamp * 1000);
-                  self.ref.detectChanges();
-                }
-                else {
-                  console.log("Erro ao recuperar data e hora do bloco");
-                  console.error(error);
-                }
-              });
+            self.recuperaDataHora(eventoResgate, resgate);
           })
       }
       else {
@@ -328,7 +305,15 @@ export class DashboardTransferenciasComponent implements OnInit {
       }
 
     });
+    */
   }
+
+  async recuperaDataHora(event, transacaoPJ) {
+
+    let timestamp = await this.web3Service.getBlockTimestamp(event.blockNumber);
+    transacaoPJ.dataHora = new Date(timestamp * 1000);
+    this.ref.detectChanges();
+}
 
 
   includeIfNotExists(transacaoPJ) {

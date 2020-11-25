@@ -52,7 +52,6 @@ export class RealizarPagamentoComponent implements OnInit {
 
     this.transferencia.cnpjDestino = "";
     this.transferencia.razaoSocialDestino = "";
-    this.transferencia.msgEmpresaDestino = "";
   }
 
   async recuperaContaSelecionada() {
@@ -82,7 +81,8 @@ export class RealizarPagamentoComponent implements OnInit {
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
-      let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain));      
+      let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain)); 
+      this.transferencia.subcreditos = new Array<Subcredito>();
       await this.recuperaClientePorCNPJ(cnpjConta);
     }
 }
@@ -100,7 +100,7 @@ async recuperaClientePorCNPJ(cnpj) {
     this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
     return;
   } 
-  this.transferencia.rbbId = rbbID; 
+  this.transferencia.rbbIdOrigem = rbbID;
 
   this.pessoaJuridicaService.recuperaClientePorCnpj(cnpj).subscribe(
     empresa => {
@@ -161,89 +161,69 @@ includeIfNotExists(subcreditos, sub) {
 
 async atualizaInfoPorMudancaSubcredito() {
 
-  console.log("atualiza rbbId=" + this.transferencia.rbbId + " nSubc = " + this.transferencia.numeroSubcreditoSelecionado);
+  console.log("atualiza rbbId=" + this.transferencia.rbbIdOrigem + " nSubc = " + this.transferencia.numeroSubcreditoSelecionado);
 
   this.transferencia.saldoOrigem = 
-    await this.web3Service.getBalanceOf(this.transferencia.rbbId, this.transferencia.numeroSubcreditoSelecionado);
+    await this.web3Service.getBalanceOf(this.transferencia.rbbIdOrigem, this.transferencia.numeroSubcreditoSelecionado);
 
   console.log(this.transferencia.saldoOrigem);
 
 }
 
 
-  async recuperaFornecedor() {
+async recuperaFornecedor() {
 
-    let self = this;
+    this.transferencia.cnpjDestino = Utils.removeSpecialCharacters(this.transferencia.cnpjDestinoWithMask);
+    let cnpj = this.transferencia.cnpjDestino;
 
-    let contaBlockchain = this.transferencia.contaBlockchainDestino.toLowerCase();
+    if ( cnpj.length == 14 ) { 
+      console.log (" Buscando o CNPJ  (14 digitos fornecidos)...  " + cnpj)
 
-    console.log("ContaBlockchain" + contaBlockchain);
+      this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
+        empresa => {
+          if (empresa && empresa.dadosCadastrais.razaoSocial) {
+            console.log("empresa fornecedor encontrada - ")
+            console.log(empresa)
+              
+            this.transferencia.razaoSocialDestino = empresa["dadosCadastrais"].razaoSocial;
 
-    if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
-
-      let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain));      
-
-            if ( cnpjConta != "" ) { //encontrou uma PJ valida  
-
-              console.log(cnpjConta);
-              self.transferencia.cnpjDestino = cnpjConta;
-              if ( self.cnpjOrigem == self.transferencia.cnpjDestino) {
-                let texto = "Erro: não é possível transferir entre o mesmo CNPJ: " + self.cnpjOrigem;
-                console.log(texto);
-                Utils.criarAlertaErro( this.bnAlertsService, texto, null);       
-
-                this.inicializaDadosDestino();                
-              } 
-              else { 
-                this.pessoaJuridicaService.recuperaEmpresaPorCnpj(self.transferencia.cnpjDestino).subscribe(
-                  data => {
-                      if (data && data.dadosCadastrais) {
-                      console.log("RECUPERA EMPRESA DESTINO")
-                      console.log(data)
-                      self.transferencia.razaoSocialDestino = data.dadosCadastrais.razaoSocial;
-                  }
-                  else {
-                    let texto = "Nenhuma empresa encontrada associada ao CNPJ";
-                    console.log(texto);
-                    Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);       
-                    //this.inicializaDadosDestino();
-                    this.transferencia.msgEmpresaDestino = "Conta Inválida"
-                  }
-                },
-                  error => {
-                      let texto = "Erro ao buscar dados da empresa";
-                      console.log(texto);
-                      Utils.criarAlertaErro( this.bnAlertsService, texto,error);       
-                      this.inicializaDadosDestino();
-                  });              
-              }
-              self.ref.detectChanges();
-
-           } //fecha if de PJ valida
-
-           else {
-            let texto = "Nenhuma empresa encontrada associada a conta blockchain";
-            console.log(texto);
-            Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);       
+          }
+          else {
+            let texto = "CNPJ não identificado";
             this.inicializaDadosDestino();
-            this.transferencia.msgEmpresaDestino = "Conta Inválida"
+            console.log(texto);
+            Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);
+          }
+        },
+        error => {
+          let texto = "Erro ao buscar dados da empresa";
+          this.inicializaDadosDestino();
+          console.log(texto);
+          Utils.criarAlertaErro( this.bnAlertsService, texto,error);
+        })
 
-             console.log("Não encontrou PJ valida para a conta blockchain");
-           }
-                 
     } 
-    else {
-        this.inicializaDadosDestino();
-    }
+
 }
 
 
 
+   async transferir() {
 
-  async transferir() {
-/*
     let self = this;
 
+    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.transferencia.cnpjDestino)));
+
+    if (!rbbID) {
+      let s = "CNPJ de fornecedor não está cadastrado.";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+    } 
+
+    this.transferencia.rbbIdDestino = rbbID;
+
+
+/*
     let bClienteOrigem = await this.web3Service.isClienteSync(this.transferencia.contaBlockchainOrigem);
     if (!bClienteOrigem) {
       let s = "Conta de Origem não é de um cliente";
@@ -257,19 +237,7 @@ async atualizaInfoPorMudancaSubcredito() {
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     }
-
-    let bValidadaOrigem = await this.web3Service.isContaValidadaSync(this.transferencia.contaBlockchainOrigem);
-    if (!bValidadaOrigem) {
-      let s = "Conta de Origem não validada";
-      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
-      return;
-    }
-    let bValidadaDestino = await this.web3Service.isContaValidadaSync(this.transferencia.contaBlockchainDestino);
-    if (!bValidadaDestino) {
-      let s = "Conta de Destino não validada";
-      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
-      return;
-    }
+*/
 
       
     //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
@@ -284,29 +252,31 @@ async atualizaInfoPorMudancaSubcredito() {
     }
 
 
-    this.web3Service.transfer(this.transferencia.contaBlockchainDestino, this.transferencia.valorTransferencia,
+    this.web3Service.pagaFornecedor(this.transferencia.numeroSubcreditoSelecionado+"", 
+      this.transferencia.rbbIdDestino, this.transferencia.valorTransferencia).then(
+      
+        function(txHash) { 
+          
+          self.transferencia.hashOperacao = txHash;
+          Utils.criarAlertasAvisoConfirmacao( txHash, 
+                                              self.web3Service, 
+                                              self.bnAlertsService, 
+                                              "Pagamento para cnpj " + self.transferencia.cnpjDestino + "  enviado. Aguarde a confirmação.", 
+                                              "O pagamento foi confirmado na blockchain.", 
+                                              self.zone);       
+          self.router.navigate(['sociedade/dash-transf']);
+      
+        },
+        function(error) {  
+          Utils.criarAlertaErro( self.bnAlertsService, 
+            "Erro ao transferir na blockchain", 
+            error)  
+      });
 
-        (txHash) => {
-        self.transferencia.hashOperacao = txHash;
-        Utils.criarAlertasAvisoConfirmacao( txHash, 
-                                            self.web3Service, 
-                                            self.bnAlertsService, 
-                                            "Transferência para cnpj " + self.transferencia.cnpjDestino + "  enviada. Aguarde a confirmação.", 
-                                            "A Transferência foi confirmada na blockchain.", 
-                                            self.zone);       
-        self.router.navigate(['sociedade/dash-transf']);
-        
-        }        
-      ,(error) => {
-        Utils.criarAlertaErro( self.bnAlertsService, 
-                                "Erro ao transferir na blockchain", 
-                                error)  
-      }
-    );
-    Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
-                                  "Confirme a operação no metamask e aguarde a confirmação da transferência." )  
-    }
-*/
+     Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
+            "Confirme a operação no metamask e aguarde a confirmação do pagamento." )  
+
+
   }
 
 }

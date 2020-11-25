@@ -1,17 +1,21 @@
 export class Transferencia {
-  rbbId: number;
 
   contaBlockchainOrigem: string;
-    numeroSubcreditoSelecionado: number;
 
+    cnpjOrigem: string;
+    numeroSubcreditoSelecionado: number;
     subcreditos: Subcredito[];
     saldoOrigem: number;
+    rbbIdOrigem: number;
   
-    papelEmpresaDestino: string;
+//    papelEmpresaDestino: string;
     cnpjDestino: string;
+    cnpjDestinoWithMask: string;
     contaBlockchainDestino: string;
     razaoSocialDestino: string;
-    msgEmpresaDestino: string;
+    rbbIdDestino: number;
+
+//    msgEmpresaDestino: string;
   
     valorTransferencia: number;
     hashOperacao: string;
