@@ -189,23 +189,23 @@ export class Web3Service {
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosRegistrarInvestimento() {
+    async recuperaEventosRegistrarInvestimento() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InvestmentBooked(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosRecebimentoInvestimento() {
+    async recuperaEventosRecebimentoInvestimento() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InvestmentConfirmed(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosAlocacaoParaDesembolso() {
+    async recuperaEventosAlocacaoParaDesembolso() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InitialAllocation_Disbursements(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
 
     }
 
-    async registraEventosAlocacaoParaContaAdm() {
+    async recuperaEventosAlocacaoParaContaAdm() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InitialAllocation_Fee(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }

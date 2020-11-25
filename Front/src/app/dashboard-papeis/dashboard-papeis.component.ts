@@ -60,20 +60,24 @@ export class DashboardPapeisComponent implements OnInit {
           }
   }
 
-async registrarExibicaoEventos() {
+registrarExibicaoEventos() {
 
   this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
   
   console.log("*** Executou o metodo de registrar exibicao eventos PAPEIS");
+  let self = this;
 
-  let eventosInvestidor = await this.web3Service.recuperaEventosAdicionaInvestidor();
-  this.processaConjuntoEventos(eventosInvestidor, "Investidor");
-
-  let eventosCliente = await this.web3Service.recuperaEventosAdicionaCliente();
-  this.processaConjuntoEventos(eventosCliente, "Cliente");
-
-  let eventosFornecedor = await this.web3Service.recuperaEventosAdicionaFornecedor();
-  this.processaConjuntoEventos(eventosFornecedor, "Fornecedor");
+  this.web3Service.recuperaEventosAdicionaInvestidor().then(function(eventos) {
+    self.processaConjuntoEventos(eventos, "Investidor");
+    });
+  
+  this.web3Service.recuperaEventosAdicionaCliente().then(function(eventos) {
+    self.processaConjuntoEventos(eventos, "Cliente");
+    });
+  
+  this.web3Service.recuperaEventosAdicionaFornecedor().then(function(eventos) {
+    self.processaConjuntoEventos(eventos, "Fornecedor");
+    });
 
 }
 
