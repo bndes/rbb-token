@@ -494,7 +494,30 @@ export class Web3Service {
     ////////////////// FIM SALDOS
 
     ////////////////// INÍCIO METODOS DE TRANSFER
+    async alocaRecursosDesembolso(rbbIdBNDES: number, transferAmount: number) : Promise<any> {
 
+        console.log("Web3Service - alocaRecursosDesembolso");
+
+        let alocaRecursosData = await this.esgBndesToken_GetDataToCallSmartContract.getInitialAllocationToDisbusementData();
+        let fromHash = alocaRecursosData[0];
+        console.log(fromHash);
+
+        let toHash = alocaRecursosData[1];
+        console.log(toHash);
+
+        let dataFromDD = alocaRecursosData[2];
+        console.log(dataFromDD);
+
+        transferAmount = this.converteDecimalParaInteiro(transferAmount);  
+        
+        const signer = this.accountProvider.getSigner();
+        const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+ 
+        return (await contWithSigner.transfer(
+            this.addrContratoESGBndesToken, fromHash, rbbIdBNDES, toHash,
+            transferAmount, this.FAKE_HASH, dataFromDD));
+    
+    }
     async alocaRecursosDesembolso2(rbbIdBNDES: number, transferAmount: number) : Promise<any> {
 
         console.log("Web3Service - alocaRecursosDesembolso");
