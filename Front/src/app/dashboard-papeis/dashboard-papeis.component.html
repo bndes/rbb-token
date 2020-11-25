@@ -38,7 +38,7 @@
           <td>{{transacao.tipo}}</td>
           <td>{{transacao.dataHora | date: 'dd/MM/yyyy hh:mm a' }}</td>
           <td class="text-center">
-            <a target="_blank" href="https://{{blockchainNetworkPrefix}}etherscan.io/tx/{{transacao.hashID}}">
+            <a target="_blank" href="{{URLBlockchainExplorer}}/tx/{{transacao.hashID}}">
               <i class="fa fa-link" aria-hidden="true"></i>
             </a>
           </td>

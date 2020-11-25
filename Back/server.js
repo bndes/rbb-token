@@ -120,8 +120,10 @@ async function calculaHash(filename) {
 //recupera constantes front
 app.post('/api/constantesFront', function (req, res) {
 	res.json({ 
-		blockchainNetwork: config.infra.rede_blockchain,		
-		
+		blockchainNetwork: config.infra.rede_blockchain,
+		URLBlockchainExplorer: config.infra.URL_blockchain_explorer,
+		URLBlockchainProvider: config.infra.URL_blockchain_provider,		
+		nomeRedeBlockchain: config.infra.nome_rede_blockchain,
 		addrContratoRBBToken: addrContratoRBBToken, 
 		addrContratoESGBndesToken: addrContratoESGBndesToken,
 		addrContratoESGBndesToken_GetDataToCall: addrContratoESGBndesToken_GetDataToCall,

@@ -29,13 +29,12 @@ export class Web3Service {
     private esgBndesToken_GetDataToCallSmartContract: any;
     private rbbRegistrySmartContract: any;
 
-
-    private blockchainNetwork: string = '';
+    private URLBlockchainExplorer: string;
+    private nomeRedeBlockchain: string;
+    private numeroBlockchainNetwork: string = '';
+    private URLBlockchainProvider: string;
 
     private vetorTxJaProcessadas : any[];
-
-    private eventoRBBToken: any;
-    private eventoTokenEspecifico: any;
 
     private decimais : number;
 
@@ -62,7 +61,10 @@ export class Web3Service {
         this.http.post<Object>(this.serverUrl + 'constantesFront', {}).subscribe(
             data => {
 
-                this.blockchainNetwork = data["blockchainNetwork"];
+                this.numeroBlockchainNetwork = data["blockchainNetwork"];
+                this.URLBlockchainExplorer = data["URLBlockchainExplorer"];
+                this.URLBlockchainProvider = data["URLBlockchainProvider"];
+                this.nomeRedeBlockchain = data["nomeRedeBlockchain"];
     
                 this.addrContratoRBBToken = data["addrContratoRBBToken"];
                 this.addrContratoESGBndesToken = data["addrContratoESGBndesToken"];
@@ -88,7 +90,8 @@ export class Web3Service {
  
     intializeWeb3() {
 
-        this.provider = new ethers.providers.JsonRpcProvider("http://35.239.231.134:4545/");
+        console.log("#### this.URLBlockchainProvider = " + this.URLBlockchainProvider);
+        this.provider = new ethers.providers.JsonRpcProvider(this.URLBlockchainProvider);
         this.ethereum =  window['ethereum'];
         console.log("provider ethers");
         console.log(this.provider);
@@ -107,7 +110,7 @@ export class Web3Service {
     } 
 
 
-    async getBlockTimestamp(blockNumber: number, fResult: any) {
+    async getBlockTimestamp(blockNumber: number) {
 
         let block = await this.provider.getBlock(blockNumber);
         return block.timestamp;
@@ -115,26 +118,12 @@ export class Web3Service {
     }
 
 
-    public getInfoBlockchainNetwork(): any {
-
-        let blockchainNetworkAsString = "Localhost";
-        let blockchainNetworkPrefix = "";
-        if (this.blockchainNetwork=="4") {
-            blockchainNetworkAsString = "Rinkeby";
-            blockchainNetworkPrefix = "rinkeby."
-        }
-        else if (this.blockchainNetwork=="1") {
-            blockchainNetworkAsString = "Mainnet";
-        }
-        else if (this.blockchainNetwork=="648629") {
-            blockchainNetworkAsString = "RBB";
-            //TODO: FALTA DEFINIR CAMINHO PARA BLOCK EXPLORER DO RBB
-        }
+    public getInfoBlockchain(): any {
 
         return {
-            blockchainNetwork:this.blockchainNetwork,
-            blockchainNetworkAsString:blockchainNetworkAsString,
-            blockchainNetworkPrefix: blockchainNetworkPrefix,
+
+            URLBlockchainExplorer: this.URLBlockchainExplorer,
+            nomeRedeBlockchain: this.nomeRedeBlockchain,
 
             addrContratoRBBToken: this.addrContratoRBBToken,
             addrContratoESGBndesToken: this.addrContratoESGBndesToken,
@@ -173,9 +162,7 @@ export class Web3Service {
     async recuperaEventosAdicionaInvestidor() {
 
         let filter = this.esgBndesTokenSmartContract.filters.FA_InvestorAdded(null);
-        let events = await this.esgBndesTokenSmartContract.queryFilter(filter);
-
-        return events;
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
 /*
         //TODO: avaliar se funciona para ler novos eventos
         let topic = ethers.utils.id("FA_InvestorAdded(uint id");
@@ -192,106 +179,78 @@ export class Web3Service {
 
     }
 
-    //https://docs.ethers.io/v4/api-contract.html
-
-    registraEventosAdicionaInvestidor(callback) {
-//        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InvestorAdded({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoTokenEspecifico.watch(callback);
-    }
-    registraEventosAdicionaCliente(callback) {
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_ClientAdded({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTokenEspecifico.watch(callback);
-    }    
-    registraEventosAdicionaFornecedor(callback) {
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_SupplierAdded({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTokenEspecifico.watch(callback);
-    }    
-
-    registraEventosRegistrarInvestimento(callback) {
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InvestmentBooked({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTokenEspecifico.watch(callback);
+    async recuperaEventosAdicionaCliente() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_ClientAdded(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    registraEventosRecebimentoInvestimento(callback) {
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InvestmentConfirmed({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTokenEspecifico.watch(callback);
+    async recuperaEventosAdicionaFornecedor() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_SupplierAdded(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    registraEventosAlocacaoParaDesembolso(callback) {
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InitialAllocation_Disbursements({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTokenEspecifico.watch(callback);
+    async registraEventosRegistrarInvestimento() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_InvestmentBooked(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    registraEventosAlocacaoParaContaAdm(callback) {
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_InitialAllocation_Fee({}, { fromBlock: 0, toBlock: 'latest' });
-        this.eventoTokenEspecifico.watch(callback);
+    async registraEventosRecebimentoInvestimento() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_InvestmentConfirmed(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosLiberacao(callback) {
+    async registraEventosAlocacaoParaDesembolso() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_InitialAllocation_Disbursements(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
 
+    }
+
+    async registraEventosAlocacaoParaContaAdm() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_InitialAllocation_Fee(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
+    }
+
+    async registraEventosLiberacao() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_Disbursement(null);
-        let events = await this.esgBndesTokenSmartContract.queryFilter(filter);
-     
-        console.log("events registraEventosLiberacao");    
-        console.log(events); 
-
-        /*
-        console.log("web3 - registraEventosLiberacao");
-
-        let topic = ethers.utils.id("FA_Disbursement(uint idClient, string idFinancialSupportAgreement, uint amount, bytes32 docHash");
-        let filter = {
-            address: this.addrContratoESGBndesToken,
-            topics: [ topic ]
-        };
-
-//        this.provider.on(filter,callback); 
-        this.provider.on(filter, (result) => {
-            console.log("dentro do evento do eethers");
-            console.log(result);
-        });
-        */
-
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    registraEventosPagamentoFornecedores(callback) {
-
-//        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_TokenTransfer({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoTokenEspecifico.watch(callback);
+    async registraEventosPagamentoFornecedores() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_TokenTransfer(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    registraEventosBNDESPagaFornecedores(callback) {
-//        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_BNDES_TokenTransfer({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoTokenEspecifico.watch(callback);
+    async registraEventosBNDESPagaFornecedores() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_BNDES_TokenTransfer(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }    
     
-    registraEventosResgate(callback) {
-//        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_RedemptionRequested({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoTokenEspecifico.watch(callback);
+    async registraEventosResgate() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionRequested(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    registraEventosLiquidacaoResgate(callback) {
-//        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.FA_RedemptionSettlement({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoTokenEspecifico.watch(callback);
+    async registraEventosLiquidacaoResgate() {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionSettlement(null);
+        return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
  //TODO: alterar esses eventos para dashboard de intervencoes manuais. Falta incluir ESG_BndesToken_BndesRoles 
-    registraEventosIntervencaoManualMintBurn(callback) {
-        console.log("web3-registraEventosIntervencaoManual");        
-//        this.eventoDoacao = this.bndesTokenSmartContract.ManualIntervention_MintAndBurn({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoDoacao.watch(callback);
+    async registraEventosIntervencaoManualMintBurn() {
+        console.log("web3-registraEventosIntervencaoManual");
+
     }
-    registraEventosIntervencaoManualFee(callback) {
+    
+    async registraEventosIntervencaoManualFee() {
         console.log("web3-registraEventosIntervencaoManualFee");        
-//        this.eventoDoacao = this.bndesTokenSmartContract.ManualIntervention_Fee({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoDoacao.watch(callback);
+//TODO
     }
-    registraEventosIntervencaoManualRoleOrAddress(callback) {
+    async registraEventosIntervencaoManualRoleOrAddress() {
         console.log("web3-registraEventosIntervencaoManual-RoleOrAddress");        
-//        this.eventoDoacao = this.bndesRegistrySmartContract.ManualIntervention_RoleOrAddress({}, { fromBlock: 0, toBlock: 'latest' });
-//        this.eventoDoacao.watch(callback);
+//TODO
     }
 
-    
+
 
     registraWatcherEventosLocal(txHashProcurado, callback) {
         

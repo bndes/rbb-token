@@ -13,7 +13,7 @@ export class DashboardPapeisComponent implements OnInit {
 
   listaTransacoes: DashboardPapeis[] = undefined;
 
-  blockchainNetworkPrefix: string;
+  URLBlockchainExplorer: string;
 
   estadoLista: string = "undefined";
 
@@ -62,33 +62,42 @@ export class DashboardPapeisComponent implements OnInit {
 
 async registrarExibicaoEventos() {
 
-  this.blockchainNetworkPrefix = this.web3Service.getInfoBlockchainNetwork().blockchainNetworkPrefix;
+  this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
   
   console.log("*** Executou o metodo de registrar exibicao eventos PAPEIS");
 
   let eventosInvestidor = await this.web3Service.recuperaEventosAdicionaInvestidor();
-  console.log(eventosInvestidor);
+  this.processaConjuntoEventos(eventosInvestidor, "Investidor");
 
-  for (let i=0; i<eventosInvestidor.length; i++) {
-    this.processaEventoInvestidor(eventosInvestidor[i])
+  let eventosCliente = await this.web3Service.recuperaEventosAdicionaCliente();
+  this.processaConjuntoEventos(eventosCliente, "Cliente");
+
+  let eventosFornecedor = await this.web3Service.recuperaEventosAdicionaFornecedor();
+  this.processaConjuntoEventos(eventosFornecedor, "Fornecedor");
+
+}
+
+processaConjuntoEventos(eventos, tipo) {
+  for (let i=0; i<eventos.length; i++) {
+    this.processaEvento(eventos[i], tipo);
   }
 }
 
-processaEventoInvestidor(eventoInvestidor) {
+processaEvento(evento, descTipo) {
   
       let transacao: DashboardPapeis;
 
       transacao = {
-          rbbId: eventoInvestidor.args.id,
+          rbbId: evento.args.id,
           cnpj: "FALTA BUSCAR NO RBB REGISTRY",
           dataHora: null,
-          tipo: "Investidor",
-          hashID: eventoInvestidor.transactionHash,
-          uniqueIdentifier: eventoInvestidor.transactionHash,
+          tipo: descTipo,
+          hashID: evento.transactionHash,
+          uniqueIdentifier: evento.transactionHash,
       }
           
       this.includeIfNotExists(transacao);
-      this.recuperaDataHora(eventoInvestidor, transacao);
+      this.recuperaDataHora(evento, transacao);
 
 }
 
@@ -106,9 +115,6 @@ processaEventoInvestidor(eventoInvestidor) {
     }
 
   }   
-
-
-
 
   includeIfNotExists(transacao) {
     console.log("include if not exists");
