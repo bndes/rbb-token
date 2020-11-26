@@ -128,6 +128,7 @@ export class Web3Service {
             addrContratoRBBToken: this.addrContratoRBBToken,
             addrContratoESGBndesToken: this.addrContratoESGBndesToken,
             addrContratoRBBRegistry: this.addrContratoRBBRegistry,
+            URLBlockchainProvider: this.URLBlockchainProvider
         };
     }
 
@@ -210,27 +211,27 @@ export class Web3Service {
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosLiberacao() {
+    async recuperaEventosLiberacao() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_Disbursement(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosPagamentoFornecedores() {
+    async recuperaEventosPagamentoFornecedores() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_TokenTransfer(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosBNDESPagaFornecedores() {
+    async recuperaEventosBNDESPagaFornecedores() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_BNDES_TokenTransfer(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }    
     
-    async registraEventosResgate() {
+    async recuperaEventosResgate() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionRequested(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosLiquidacaoResgate() {
+    async recuperaEventosLiquidacaoResgate() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionSettlement(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }

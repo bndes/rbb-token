@@ -38,7 +38,7 @@ export class DashboardTransferenciasComponent implements OnInit {
   order: string = 'valor';
   reverse: boolean = false;
 
-  razaoSocialBNDES: string = "Banco Nacional De Desenvolvimento Econômico E Social";
+  idBNDES: number = 1;
   selectedAccount: any;  
   URLBlockchainExplorer: string;  
 
@@ -83,11 +83,20 @@ export class DashboardTransferenciasComponent implements OnInit {
     }, 2300)
 
     setInterval(() => {
+      this.verificaExisteEventos();
       this.getConfirmedTotalSupply();
       this.recuperaSaldoBNDESToken();
     }, 1000)
 
   }
+
+  verificaExisteEventos() {
+    console.log("*** verifica se existe evento");
+
+    if (this.listaTransferencias.length > 0)  {
+              this.estadoLista = "cheia";
+          }
+  }  
 
   async recuperaContaSelecionada() {
 
@@ -156,22 +165,55 @@ export class DashboardTransferenciasComponent implements OnInit {
 
   registrarExibicaoEventos() {
 
-    let self = this; 
-    
+    console.log("registrarExibicaoEventos");
+
     this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
 
+    let self = this;
+
+    this.web3Service.recuperaEventosAlocacaoParaDesembolso().then(function(eventos) {
+      console.log(eventos);
+      eventos.forEach(self.processaEventoAlocacaoParaDesembolso, self); 
+    });
+
+    this.web3Service.recuperaEventosAlocacaoParaContaAdm().then(function(eventos) {
+      console.log(eventos);
+      eventos.forEach(self.processaEventoAlocacaoParaContaAdm, self); 
+    });
+
+    this.web3Service.recuperaEventosLiberacao().then(function(eventos) {
+      console.log(eventos);
+      eventos.forEach(self.processaEventoLiberacao, self); 
+    });      
+
+    this.web3Service.recuperaEventosPagamentoFornecedores().then(function(eventos) {
+      console.log(eventos);
+      eventos.forEach(self.processaEventoPagamentoFornecedores, self); 
+    });      
+
+    this.web3Service.recuperaEventosBNDESPagaFornecedores().then(function(eventos) {
+      console.log(eventos);
+      eventos.forEach(self.processaEventoPagamentoBNDESFornecedores, self); 
+    });      
+
+    this.web3Service.recuperaEventosResgate().then(function(eventos) {
+      console.log(eventos);
+      eventos.forEach(self.processaEventoResgate, self); 
+    });      
+
+    
     // EVENTOS LIBERAÇÃO
-    this.registrarExibicaoEventosLiberacao()
+//    this.registrarExibicaoEventosLiberacao()
 
     // EVENTOS SOLICITACAO DE RESGATE
-    this.registrarExibicaoEventosSolicitacaoResgate()
+//    this.registrarExibicaoEventosSolicitacaoResgate()
 
-    console.log("antes de atualizar - contador liberacao " + self.contadorLiberacao);
-    console.log("antes de atualizar - contador liquidacao resgate " + self.contadorLiquidacaoResgate);
-    console.log("antes de atualizar - contador solicitacao resgate " + self.contadorSolicitacaoResgate);
+//    console.log("antes de atualizar - contador liberacao " + self.contadorLiberacao);
+//    console.log("antes de atualizar - contador liquidacao resgate " + self.contadorLiquidacaoResgate);
+//    console.log("antes de atualizar - contador solicitacao resgate " + self.contadorSolicitacaoResgate);
 
-    console.log("antes de atualizar - volume liberacao " + self.volumeLiberacao);
-    console.log("antes de atualizar - volume resgate " + self.volumeResgate);
+//    console.log("antes de atualizar - volume liberacao " + self.volumeLiberacao);
+//    console.log("antes de atualizar - volume resgate " + self.volumeResgate);
 
   }
 
@@ -187,7 +229,153 @@ export class DashboardTransferenciasComponent implements OnInit {
     return itemB - itemA;
   }
 
-  
+  processaEventoAlocacaoParaDesembolso(evento) {
+    
+    let transacao: DashboardTransferencia;
+    
+    transacao = {
+        deId: this.idBNDES,
+        deRazaoSocial: "Erro: Não encontrado",
+        deCnpj: "FALTA BUSCAR " + this.idBNDES,
+        deConta: "0",
+        paraId: this.idBNDES,
+        paraRazaoSocial: "Erro: Não encontrado",
+        paraCnpj: "FALTA BUSCAR " + this.idBNDES,
+        paraConta: "0",
+        valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
+        tipo: "Alocação Desembolso",
+        hashID: evento.transactionHash,
+        dataHora: null
+
+    }
+
+    this.includeIfNotExists(transacao);
+    this.recuperaDataHora(evento, transacao); 
+
+  }
+
+  processaEventoAlocacaoParaContaAdm(evento) {
+    
+    let transacao: DashboardTransferencia;
+    
+    transacao = {
+        deId: this.idBNDES,
+        deRazaoSocial: "Erro: Não encontrado " + this.idBNDES,
+        deCnpj: "FALTA BUSCAR",
+        deConta: "0",
+        paraId: this.idBNDES,
+        paraRazaoSocial: "Erro: Não encontrado " + this.idBNDES,
+        paraCnpj: "FALTA BUSCAR",
+        paraConta: "0",
+        valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
+        tipo: "Alocação Adm",
+        hashID: evento.transactionHash,
+        dataHora: null
+
+    }
+
+    this.includeIfNotExists(transacao);
+    this.recuperaDataHora(evento, transacao); 
+
+  }
+
+
+  processaEventoLiberacao(evento) {
+
+    let transacao: DashboardTransferencia;
+    
+    transacao = {
+        deId: this.idBNDES,
+        deRazaoSocial: "Erro: Não encontrado",
+        deCnpj: "FALTA BUSCAR " + this.idBNDES,
+        deConta: "0",
+        paraId: evento.args.idClient,
+        paraRazaoSocial: "Erro: Não encontrado",
+        paraCnpj: "FALTA BUSCAR " + evento.args.idClient,
+        paraConta: evento.args.idFinancialSupportAgreement,
+        valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
+        tipo: "Liberacao",
+        hashID: evento.transactionHash,
+        dataHora: null
+
+    }
+
+    this.includeIfNotExists(transacao);
+    this.recuperaDataHora(evento, transacao);
+
+  }   
+
+ // ???
+  processaEventoPagamentoFornecedores(evento) {
+    let transacao: DashboardTransferencia;
+    
+    transacao = {
+      deId: evento.args.fromId,
+      deRazaoSocial: "Erro: Não encontrado",
+      deCnpj: "FALTA BUSCAR " + evento.args.fromId,
+      deConta: evento.args.idFinancialSupportAgreement,
+      paraId: evento.args.toId,
+      paraRazaoSocial: "Erro: Não encontrado",
+      paraCnpj: "FALTA BUSCAR " + evento.args.toId,
+      paraConta: "0",
+      valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
+      tipo: "Pagamento",
+      hashID: evento.transactionHash,
+      dataHora: null
+    }
+    this.includeIfNotExists(transacao);
+    this.recuperaDataHora(evento, transacao);
+
+  }
+
+  processaEventoPagamentoBNDESFornecedores(evento) {
+    let transacao: DashboardTransferencia;
+    
+    transacao = {
+      deId: this.idBNDES,
+      deRazaoSocial: "Erro: Não encontrado",
+      deCnpj: "FALTA BUSCAR " + this.idBNDES,
+      deConta: "0",
+      paraId: evento.args.toId,
+      paraRazaoSocial: "Erro: Não encontrado",
+      paraCnpj: "FALTA BUSCAR " + evento.args.toId,
+      paraConta: "0",
+      valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
+      tipo: "Pagamento BNDES",
+      hashID: evento.transactionHash,
+      dataHora: null
+    }
+    this.includeIfNotExists(transacao);
+    this.recuperaDataHora(evento, transacao);
+
+  }
+
+  processaEventoResgate(evento) {
+    let transacao: DashboardTransferencia;
+    
+    transacao = {
+      deId: evento.args.idClaimer,
+      deRazaoSocial: "Erro: Não encontrado",
+      deCnpj: "FALTA BUSCAR " + evento.args.idClaimer,
+      deConta: "0",
+      paraId: 0,
+      paraRazaoSocial: "N/A",
+      paraCnpj: "N/A",
+      paraConta: "0",
+      valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
+      tipo: "Solicitação de Resgate",
+      hashID: evento.transactionHash,
+      dataHora: null
+    }
+    this.includeIfNotExists(transacao);
+    this.recuperaDataHora(evento, transacao);
+
+  }
+
+
+
+
+
   registrarExibicaoEventosLiberacao() {
     let self = this
 
@@ -244,65 +432,6 @@ export class DashboardTransferenciasComponent implements OnInit {
             console.log("Erro ao recuperar empresa por CNPJ do evento liberação")
           }
         )
-
-    });
-    */
-  }
-
-
-  registrarExibicaoEventosSolicitacaoResgate() {
-    let self = this
-
-    /*
-    this.web3Service.registraEventosResgate(function (error, event) {
-      if (!error) {
-        let resgate: DashboardTransferencia;
-        let eventoResgate = event
-
-        self.pessoaJuridicaService.recuperaEmpresaPorCnpj(eventoResgate.args.cnpj).subscribe(
-          data => {
-
-            resgate = {
-              deRazaoSocial: "Erro: Não encontrado",
-              deCnpj: eventoResgate.args.cnpj,
-              deConta: eventoResgate.args.idFinancialSupportAgreement,
-              paraRazaoSocial: self.razaoSocialBNDES,
-              paraCnpj: "BNDES",
-              paraConta: "0",
-              valor: self.web3Service.converteInteiroParaDecimal(parseInt(eventoResgate.args.amount)),
-              tipo: "Solicitação de Resgate",
-              hashID: eventoResgate.transactionHash,
-              dataHora: null
-            };
-
-            if (data && data.dadosCadastrais) {
-              resgate.deRazaoSocial = data.dadosCadastrais.razaoSocial;
-            }
-
-            // Colocar dentro da zona do Angular para ter a atualização de forma correta
-            self.zone.run(() => {
-              self.estadoLista = "cheia"
-
-              let incluiu = self.includeIfNotExists(resgate); 
-              if (incluiu) {
-
-                self.contadorSolicitacaoResgate++;
-                self.volumeResgate += self.web3Service.converteInteiroParaDecimal(parseInt(eventoResgate.args.amount));
-    
-                console.log("inseriu resg " + resgate.hashID);
-                console.log("contador resg " + self.contadorSolicitacaoResgate);
-                console.log("volume resg " + self.volumeResgate);
-    
-              }
-            });
- 
-            self.recuperaDataHora(eventoResgate, resgate);
-          })
-      }
-      else {
-        console.log("Erro no registro de eventos de resgate");
-        console.log(error);
-      }
 
     });
     */
