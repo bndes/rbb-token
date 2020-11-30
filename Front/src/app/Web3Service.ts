@@ -657,4 +657,14 @@ export class Web3Service {
     async isResponsibleForDisbursementSync() {
         return false;
     }       
+//novas Funçoes
+    async isclient (idclient: number, idFinancialSupportAgreement: string) {
+    return await this.esgBndesTokenSmartContract.clients(idclient,idFinancialSupportAgreement);
+    }
+    async issupplier (idsupplier: number) {
+        return await this.esgBndesTokenSmartContract.suppliers(idsupplier);
+
+    }
+
+
 }

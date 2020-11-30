@@ -25,11 +25,11 @@ import { BnAlertsService } from 'bndes-ux4';
 })
 export class AlocaValoresContasBndesComponent implements OnInit {
 
-  selectedAccount: any;
+selectedAccount: any;
 
-disponivelParaAlocacao: any = "";  
-ValorA_Alocar: any = "";
-  SaldoAtual: any = ""
+disponivelParaAlocacao: any = 0 ;  
+ValorA_Alocar: any = 0;
+  SaldoAtual: any= 0 ; 
   
   constructor(private http: HttpClient, private constantes: ConstantesService,private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
     private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef) { 
@@ -48,8 +48,9 @@ ValorA_Alocar: any = "";
     let idConta = await this.web3Service.getIdByAddressSync( await this.web3Service.getCurrentAccountSync());
     let verificadoDeMudanca1=this.disponivelParaAlocacao;
     let verificadoDeMudanca2=this.SaldoAtual;
-//TODO: FALAR LEO
-    //    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
+
+    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
+    
     
     this.SaldoAtual = await this.web3Service.getDisbursementBalance();
     this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
@@ -81,7 +82,7 @@ ValorA_Alocar: any = "";
   
   }  
   
-   async recuperaSaldoBNDESToken() {
+  async recuperaSaldoBNDESToken() {
   
     this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
     this.SaldoAtual = await this.web3Service.getDisbursementBalance();
