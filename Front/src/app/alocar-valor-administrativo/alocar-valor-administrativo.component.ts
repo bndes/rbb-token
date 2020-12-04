@@ -18,8 +18,8 @@ import { BnAlertsService } from 'bndes-ux4';
 })
 export class AlocarValorAdministrativoComponent implements OnInit {
   selectedAccount: any;
-  SaldoAtual:any ;
-  ValorASerAlocado:any;
+  SaldoAtual:any=0 ;
+  ValorASerAlocado:any=0;
 
   constructor(private http: HttpClient, private constantes: ConstantesService,private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
     private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef) { 

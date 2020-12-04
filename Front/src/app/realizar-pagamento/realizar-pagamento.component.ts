@@ -84,6 +84,7 @@ export class RealizarPagamentoComponent implements OnInit {
       let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain)); 
       this.transferencia.subcreditos = new Array<Subcredito>();
       await this.recuperaClientePorCNPJ(cnpjConta);
+     
     }
 }
 
@@ -94,7 +95,7 @@ async recuperaClientePorCNPJ(cnpj) {
   let self = this;
 
   let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpj)));
-
+  console.log(rbbID);
   if (!rbbID) {
     let s = "CNPJ não está cadastrado.";
     this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
@@ -209,6 +210,29 @@ async recuperaFornecedor() {
 
 
    async transferir() {
+    ////////////////////////////////////////////////////////Verifica Cliente
+    let  contaBlockchainOrigem= this.transferencia.contaBlockchainOrigem;
+    let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchainOrigem.toLowerCase()));
+    let idConta = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpjConta)));
+    let cliente = await this.web3Service.isclient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
+    if(!cliente){
+      let erro = "não é uma conta cliente"
+      this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);
+      
+      return;
+    }
+    ///////////////////////////////////////////////////////verifica destino
+    let  fornecedorCPF = this.transferencia.cnpjDestino;
+    let idfornecedor = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(fornecedorCPF)));
+    let fornecedor = await this.web3Service.issupplier(idfornecedor);
+    if(!fornecedor){
+      let erro = "não é um fornecedor"
+      this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);
+      return;
+
+
+    }
+    /////////////////////////////////////////////////
 
     let self = this;
 
@@ -241,6 +265,9 @@ async recuperaFornecedor() {
 
       
     //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
+
+    
+   
     if ((this.transferencia.valorTransferencia * 1) > (this.transferencia.saldoOrigem * 1)) {
 
       console.log("saldoOrigem=" + this.transferencia.saldoOrigem);

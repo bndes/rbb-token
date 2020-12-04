@@ -45,6 +45,9 @@ const routes: Routes = [
   { path: 'sociedade/dash-manuais', component: DashboardManualComponent },
   { path: '', redirectTo: '/sociedade', pathMatch: 'full' },
   { path: 'bndes/alocar-valor-administrativo', component: AlocarValorAdministrativoComponent },
+  { path: 'bndes/realizar-pagamento', component: RealizarPagamentoComponent  },
+  
+
 ];
 
 

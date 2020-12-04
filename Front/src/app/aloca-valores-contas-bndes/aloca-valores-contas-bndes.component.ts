@@ -24,18 +24,16 @@ import { BnAlertsService } from 'bndes-ux4';
   styleUrls: ['./aloca-valores-contas-bndes.component.css']
 })
 export class AlocaValoresContasBndesComponent implements OnInit {
-  tt:Web3Service ;
-  selectedAccount: any;
-//  teste:teste;
-disponivelParaAlocacao: any = "";  
-ValorA_Alocar: any = "";
-  SaldoAtual: any = ""
-  d: any = "";
-  e: any = "";
-  f: any = "";
+
+selectedAccount: any;
+
+disponivelParaAlocacao: any = 0 ;  
+ValorA_Alocar: any = 0;
+  SaldoAtual: any= 0 ; 
+  
   constructor(private http: HttpClient, private constantes: ConstantesService,private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
     private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef) { 
-    this.tt = new Web3Service(http,ConstantesService);
+    
     
 
     let self = this;
@@ -46,12 +44,13 @@ ValorA_Alocar: any = "";
   async ngOnInit() {
   }
 
-  async onSubmit(form){
+  async onSubmit(){
     let idConta = await this.web3Service.getIdByAddressSync( await this.web3Service.getCurrentAccountSync());
     let verificadoDeMudanca1=this.disponivelParaAlocacao;
     let verificadoDeMudanca2=this.SaldoAtual;
-//TODO: FALAR LEO
-    //    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
+
+    await this.web3Service.alocaRecursosDesembolso(idConta,<number>(this.ValorA_Alocar));
+    
     
     this.SaldoAtual = await this.web3Service.getDisbursementBalance();
     this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
@@ -65,11 +64,7 @@ ValorA_Alocar: any = "";
   }
 
   
-  VerificaA(form){
-
-    console.log(this.disponivelParaAlocacao);
-
-  }
+ 
 
   async recuperaContaSelecionada() {
 
@@ -87,7 +82,7 @@ ValorA_Alocar: any = "";
   
   }  
   
-   async recuperaSaldoBNDESToken() {
+  async recuperaSaldoBNDESToken() {
   
     this.disponivelParaAlocacao = await this.web3Service.getMintedBalance();
     this.SaldoAtual = await this.web3Service.getDisbursementBalance();
