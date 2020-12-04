@@ -67,6 +67,7 @@ import { AssociaPapelInvestidorComponent } from './associa-papel-investidor/asso
 import { DashboardPapeisComponent } from './dashboard-papeis/dashboard-papeis.component';
 import { RealizarPagamentoComponent } from './realizar-pagamento/realizar-pagamento.component';
 import { AlocaValoresContasBndesComponent } from './aloca-valores-contas-bndes/aloca-valores-contas-bndes.component';
+import { RealizarPagamentoBndesComponent } from './realizar-pagamento-bndes/realizar-pagamento-bndes.component';
 
 
 
@@ -116,6 +117,7 @@ export const optionsMaskCurrencyBND: CurrencyMaskConfig = {
     RealizarPagamentoComponent,
     AlocaValoresContasBndesComponent,
     AlocarValorAdministrativoComponent,
+    RealizarPagamentoBndesComponent,
     
   ],
   imports: [

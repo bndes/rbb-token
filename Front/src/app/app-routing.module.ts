@@ -21,6 +21,7 @@ import { DashboardDoacaoComponent } from './dashboard-doacao/dashboard-doacao.co
 import { DashboardTransferenciasComponent } from './dashboard-transferencias/dashboard-transferencias.component';
 import {DashboardManualComponent } from './dashboard-manual/dashboard-manual.component';
 import {DashboardPapeisComponent } from './dashboard-papeis/dashboard-papeis.component';
+import { RealizarPagamentoBndesComponent } from './realizar-pagamento-bndes/realizar-pagamento-bndes.component';
 
 
 
@@ -45,9 +46,7 @@ const routes: Routes = [
   { path: 'sociedade/dash-manuais', component: DashboardManualComponent },
   { path: '', redirectTo: '/sociedade', pathMatch: 'full' },
   { path: 'bndes/alocar-valor-administrativo', component: AlocarValorAdministrativoComponent },
-  { path: 'bndes/realizar-pagamento', component: RealizarPagamentoComponent  },
-  
-
+  { path: 'bndes/realizar-pagamento-bndes', component: RealizarPagamentoBndesComponent  },
 ];
 
 
