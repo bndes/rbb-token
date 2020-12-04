@@ -18,16 +18,19 @@ export class Web3Service {
     private addrContratoESGBndesToken: string = '';
     private addrContratoESGBndesToken_GetDataToCall: string = '';
     private addrContratoRBBRegistry: string = '';
+    private addrContratoESGBndesToken_BNDESRoles: string ="";
 
     private abiRBBToken: string = '';
     private abiESGBndesToken: string = '';
     private abiESGBndesToken_GetDataToCall: string = ''; 
     private abiRBBRegistry: string = '';
+    private abiESGBndesToken_BNDESRoles: string = ''; 
 
     private rbbTokenSmartContract: any;
     private esgBndesTokenSmartContract: any;
     private esgBndesToken_GetDataToCallSmartContract: any;
     private rbbRegistrySmartContract: any;
+    private ESGBndesToken_BNDESRolesSmartContract: any;
 
     private URLBlockchainExplorer: string;
     private nomeRedeBlockchain: string;
@@ -70,11 +73,13 @@ export class Web3Service {
                 this.addrContratoESGBndesToken = data["addrContratoESGBndesToken"];
                 this.addrContratoESGBndesToken_GetDataToCall = data["addrContratoESGBndesToken_GetDataToCall"];
                 this.addrContratoRBBRegistry = data["addrContratoRBBRegistry"];
+                this.addrContratoESGBndesToken_BNDESRoles=data["addrContratoESGBndesToken_BNDESRoles"];
     
                 this.abiRBBToken = data['abiRBBToken'];
                 this.abiESGBndesToken = data['abiESGBndesToken'];
                 this.abiESGBndesToken_GetDataToCall = data['abiESGBndesToken_GetDataToCall']; 
                 this.abiRBBRegistry = data['abiRBBRegistry'];
+                this.abiESGBndesToken_BNDESRoles = data['abiESGBndesToken_BNDESRoles'];
             
 
                 this.intializeWeb3();
@@ -100,7 +105,8 @@ export class Web3Service {
         this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.provider);
         this.esgBndesToken_GetDataToCallSmartContract = new ethers.Contract(this.addrContratoESGBndesToken_GetDataToCall, this.abiESGBndesToken_GetDataToCall, this.provider);
         this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.provider);
-
+        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
+        
         this.accountProvider = new ethers.providers.Web3Provider(this.ethereum);
 
         console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
@@ -565,6 +571,33 @@ export class Web3Service {
             transferAmount, this.FAKE_HASH, dataFromDD));
 
     }
+    async bndesPagaFornecedor( rbbIdDestino: number, transferAmount: number) : Promise<any> {
+
+        console.log("Web3Service - PagarFornecedor");
+
+        let callData = await this.esgBndesToken_GetDataToCallSmartContract.getBNDESPaySupplierData();
+        console.log(callData);
+        let fromHash = callData[0];
+        console.log(fromHash);
+
+        let toHash = callData[1];
+        console.log(toHash);
+
+        let dataFromDD = callData[2];
+        console.log(dataFromDD);
+
+        transferAmount = this.converteDecimalParaInteiro(transferAmount);  
+        console.log('TransferAmount(after)=' + transferAmount);
+
+       const signer = this.accountProvider.getSigner();
+       const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+       
+       return (await contWithSigner.transfer(
+            this.addrContratoESGBndesToken, fromHash, rbbIdDestino, toHash,
+            transferAmount, this.FAKE_HASH, dataFromDD));
+
+    }
+
 
     async resgata(transferAmount: number) {
 
@@ -666,6 +699,50 @@ export class Web3Service {
         return await this.esgBndesTokenSmartContract.suppliers(idsupplier);
 
     }
+    async isOperacional (id: number){
+        return await this.rbbRegistrySmartContract.isRegistryOperational(id);
+    }
+    async isresposibleForPayingBNDESSuppliers(){
+
+       let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.resposibleForPayingBNDESSuppliers();
+       let contaBlockchain = await this.accountProvider.getSigner().getAddress();
+         if (bndesResposible == contaBlockchain){
+            return true;
+
+        }
+        else{
+            return false;
+        }
+
+    }
+    async isresponsibleForInitialAllocation(){
+       let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.responsibleForInitialAllocation();
+       let contaBlockchain = await this.accountProvider.getSigner().getAddress();
+         if (bndesResposible == contaBlockchain){
+            return true;
+
+        }
+        else{
+            return false;
+        }
+
+    }
+
+    async isresponsibleForDisbursement(){
+        let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.responsibleForDisbursement();
+        let contaBlockchain = await this.accountProvider.getSigner().getAddress();
+          if (bndesResposible == contaBlockchain){
+             return true;
+ 
+         }
+         else{
+             return false;
+         }
+ 
+     }
+
+
+
 
 
 }

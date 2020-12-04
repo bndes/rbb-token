@@ -12,12 +12,13 @@ import { BnAlertsService } from 'bndes-ux4';
 import { Utils } from '../shared/utils';
 
 @Component({
-  selector: 'app-realizar-pagamento',
-  templateUrl: './realizar-pagamento.component.html',
-  styleUrls: ['./realizar-pagamento.component.css']
+  selector: 'app-realizar-pagamento-bndes',
+  templateUrl: './realizar-pagamento-bndes.component.html',
+  styleUrls: ['./realizar-pagamento-bndes.component.css']
 })
-export class RealizarPagamentoComponent implements OnInit {
+export class RealizarPagamentoBndesComponent implements OnInit {
 
+  
   transferencia: Transferencia;
   selectedAccount: any;
   maskCnpj: any;
@@ -80,16 +81,21 @@ export class RealizarPagamentoComponent implements OnInit {
     contaBlockchain = contaBlockchain.toLowerCase();   
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
+      let isbndesResposiblePaying = (await this.web3Service.isresposibleForPayingBNDESSuppliers());
+      if (!isbndesResposiblePaying){
+        let s = "essa conta nao pode fazer essa operação";
+        this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+        
+      }
 
       let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain)); 
       this.transferencia.subcreditos = new Array<Subcredito>();
-      await this.recuperaClientePorCNPJ(cnpjConta);
+      await this.recuperaID(cnpjConta);
      
     }
 }
 
-
-async recuperaClientePorCNPJ(cnpj) {
+async recuperaID(cnpj) {
   console.log(cnpj);
 
   let self = this;
@@ -97,13 +103,15 @@ async recuperaClientePorCNPJ(cnpj) {
   let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpj)));
   console.log(rbbID);
   if (!rbbID) {
+    console.log(rbbID);
     let s = "CNPJ não está cadastrado.";
     this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
     return;
   } 
   this.transferencia.rbbIdOrigem = rbbID;
+  self.atualizaInfoPorMudancaSubcredito();
 
-  this.pessoaJuridicaService.recuperaClientePorCnpj(cnpj).subscribe(
+ /* this.pessoaJuridicaService.recuperaClientePorCnpj(cnpj).subscribe(
     empresa => {
       if (empresa && empresa.dadosCadastrais) {
         console.log("empresa encontrada abaixo ");
@@ -144,7 +152,7 @@ async recuperaClientePorCNPJ(cnpj) {
       console.log(texto);
       Utils.criarAlertaErro( this.bnAlertsService, texto,error);
       this.inicializaDadosOrigem();
-    });
+    });*/
 
 }
 
@@ -211,12 +219,11 @@ async recuperaFornecedor() {
 
    async transferir() {
     ////////////////////////////////////////////////////////Verifica Cliente
-    let  contaBlockchainOrigem= this.transferencia.contaBlockchainOrigem;
-    let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchainOrigem.toLowerCase()));
-    let idConta = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpjConta)));
-    let cliente = await this.web3Service.isclient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
-    if(!cliente){
-      let erro = "não é uma conta cliente"
+  
+    let isbndesResposiblePaying = await this.web3Service.isresposibleForPayingBNDESSuppliers();
+    
+    if(!isbndesResposiblePaying){
+      let erro = "não é uma conta BNDES Responsavel por pagamento";
       this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);
       
       return;
@@ -279,7 +286,7 @@ async recuperaFornecedor() {
     }
 
 
-    this.web3Service.pagaFornecedor(this.transferencia.numeroSubcreditoSelecionado+"", 
+    this.web3Service.bndesPagaFornecedor( 
       this.transferencia.rbbIdDestino, this.transferencia.valorTransferencia).then(
       
         function(txHash) { 
