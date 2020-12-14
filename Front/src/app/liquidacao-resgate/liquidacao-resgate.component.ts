@@ -45,6 +45,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
     this.liquidacaoResgate = new LiquidacaoResgate();
     this.liquidacaoResgate.hashResgate = this.route.snapshot.paramMap.get('solicitacaoResgateId');
 
+    console.log("this.liquidacaoResgate.hashResgate=");
     console.log(this.liquidacaoResgate.hashResgate);
 
     self.recuperaStatusResgate();
@@ -56,21 +57,6 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
   }
 
 
-/*
-  async recuperaContaSelecionada() {
-    
-    let self = this;
-    
-    let newSelectedAccount = await this.web3Service.getCurrentAccountSync();
-
-    if ( !self.selectedAccount || (newSelectedAccount !== self.selectedAccount && newSelectedAccount)) {
-
-      this.selectedAccount = newSelectedAccount;
-      console.log("selectedAccount=" + this.selectedAccount);
-      this.atualizaIsResponsibleForSettlement()
-    }
-  }  
-*/
   async recuperaContaSelecionada() {
             
     let self = this;    
@@ -109,6 +95,25 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
     let self = this;
 
+    this.web3Service.recuperaEventosResgateByHash(self.liquidacaoResgate.hashResgate).then(function(evento) {
+      
+      if (evento) {
+
+        self.liquidacaoResgate.rbbId = evento.idClaimer;
+//TODO?????????
+        self.liquidacaoResgate.cnpj = "FALTA BUSCAR";//Utils.completarCnpjComZero(evento.args.cnpj);
+        self.liquidacaoResgate.valorResgate = self.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount));
+//        self.preparaUpload(self.liquidacaoResgate.cnpj, self.liquidacaoResgate.contratoFinanceiro, self);
+        self.recuperaDataHora(evento).then(function(dataHora) {
+          self.liquidacaoResgate.dataHoraResgate = dataHora;
+        }) 
+       }
+       else {
+         console.log("ERRO - evento de resgate não encontrado");
+       }
+    });
+    
+
     /*
     this.web3Service.registraEventosResgate(function (error, event) {
       if (!error) {
@@ -121,8 +126,6 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
           self.liquidacaoResgate.valorResgate = self.web3Service.converteInteiroParaDecimal(parseInt(eventoResgate.args.amount)),
           self.preparaUpload(self.liquidacaoResgate.cnpj, self.liquidacaoResgate.contratoFinanceiro, self);
       
-//          self.liquidacaoResgate.dataHoraResgate = await self.recuperaDataHora(event);
-
           self.pessoaJuridicaService.recuperaEmpresaPorCnpj(eventoResgate.args.cnpj).subscribe(
             data => {
               
@@ -232,7 +235,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     }
-
+/*
     if (this.liquidacaoResgate.hashComprovacao==undefined || this.liquidacaoResgate.hashComprovacao==null) {
       let s = "O hash da comprovação é um Campo Obrigatório";
       this.bnAlertsService.criarAlerta("error", "Erro", s, 2);
@@ -243,7 +246,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
       this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
       return;
     }
-
+*/
 
     let self= this;
 
@@ -269,6 +272,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
                                    "Confirme a operação no metamask e aguarde a liquidação da conta." )
 
   }
+  
 
   async recuperaDataHora(event) {
 

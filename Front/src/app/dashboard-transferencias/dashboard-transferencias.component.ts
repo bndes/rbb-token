@@ -172,32 +172,26 @@ export class DashboardTransferenciasComponent implements OnInit {
     let self = this;
 
     this.web3Service.recuperaEventosAlocacaoParaDesembolso().then(function(eventos) {
-      console.log(eventos);
       eventos.forEach(self.processaEventoAlocacaoParaDesembolso, self); 
     });
 
     this.web3Service.recuperaEventosAlocacaoParaContaAdm().then(function(eventos) {
-      console.log(eventos);
       eventos.forEach(self.processaEventoAlocacaoParaContaAdm, self); 
     });
 
     this.web3Service.recuperaEventosLiberacao().then(function(eventos) {
-      console.log(eventos);
       eventos.forEach(self.processaEventoLiberacao, self); 
     });      
 
     this.web3Service.recuperaEventosPagamentoFornecedores().then(function(eventos) {
-      console.log(eventos);
       eventos.forEach(self.processaEventoPagamentoFornecedores, self); 
     });      
 
     this.web3Service.recuperaEventosBNDESPagaFornecedores().then(function(eventos) {
-      console.log(eventos);
       eventos.forEach(self.processaEventoPagamentoBNDESFornecedores, self); 
     });      
 
     this.web3Service.recuperaEventosResgate().then(function(eventos) {
-      console.log(eventos);
       eventos.forEach(self.processaEventoResgate, self); 
     });      
 

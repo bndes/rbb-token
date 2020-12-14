@@ -187,6 +187,9 @@ export class Web3Service {
     }
 
     async recuperaEventosAdicionaCliente() {
+        console.log("FILTROS");
+
+        console.log(this.esgBndesTokenSmartContract.filters);
         let filter = this.esgBndesTokenSmartContract.filters.FA_ClientAdded(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
@@ -241,6 +244,18 @@ export class Web3Service {
         let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionSettlement(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
+
+    //TODO: melhorar para buscar diretamente pelo hash do evento
+    async recuperaEventosResgateByHash(hash) {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionRequested(null);
+        let eventos = await this.esgBndesTokenSmartContract.queryFilter(filter);
+        for (let i=0; i<eventos.length; i++) {
+            if (eventos[i].transactionHash == hash) {
+                return eventos[i];
+            }
+          }
+        return null; 
+    }    
 
  //TODO: alterar esses eventos para dashboard de intervencoes manuais. Falta incluir ESG_BndesToken_BndesRoles 
     async registraEventosIntervencaoManualMintBurn() {
@@ -604,18 +619,20 @@ export class Web3Service {
         console.log("Web3Service - Redeem");
 
         let callData = await this.esgBndesToken_GetDataToCallSmartContract.getRedeemData();
-        console.log(callData);
         let fromHash = callData[0];
-        console.log(fromHash);
-
         let dataFromDD = callData[1];
-        console.log(dataFromDD);
 
         transferAmount = this.converteDecimalParaInteiro(transferAmount);     
+        console.log('this.addrContratoESGBndesToken=' + this.addrContratoESGBndesToken);
+        console.log('fromHash=' + fromHash);
+        console.log('this.FAKE_HASH=' + this.FAKE_HASH);
         console.log('TransferAmount(after)=' + transferAmount);
+        console.log(dataFromDD);
 
        const signer = this.accountProvider.getSigner();
        const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+
+
        
        return (await contWithSigner.redeem (
             this.addrContratoESGBndesToken, fromHash, transferAmount, this.FAKE_HASH, dataFromDD));
@@ -626,6 +643,7 @@ export class Web3Service {
         console.log("Web3Service - liquidaResgate")
         console.log("HashResgate - " + hashResgate)
         console.log("HashComprovante - " + hashComprovante)
+
 //        console.log("isOk - " + isOk)
 //TODO: Avaliar se precisa incluir o isOk --->  impacto no smart contract
         let emptyData: String[];
@@ -634,10 +652,10 @@ export class Web3Service {
         const signer = this.accountProvider.getSigner();
         const contWithSigner = this.rbbTokenSmartContract.connect(signer);
 
-        
-        return (await contWithSigner.redeem (
+        //TODO: tirar FAKE_HASH
+        return (await contWithSigner.notifyRedemptionSettlement (
                 this.addrContratoESGBndesToken, hashResgate, this.FAKE_HASH, emptyData));
-     
+            
     }
 
 
@@ -684,8 +702,11 @@ export class Web3Service {
         return false;
     }    
 
-    isResponsibleForSettlementSync(address: string) {
-        return false;
+    async isResponsibleForSettlementSync(address: string) {
+        let respSettlement = await this.rbbTokenSmartContract.responsibleForSettlement();
+        console.log("respSettlement=" + respSettlement);
+        console.log("isResponsibleForSettlementSync=");
+        return respSettlement == address;
     }
 
     async isResponsibleForDisbursementSync() {

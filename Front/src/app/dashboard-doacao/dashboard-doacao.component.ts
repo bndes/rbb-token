@@ -74,8 +74,6 @@ export class DashboardDoacaoComponent implements OnInit {
 
       this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
 
-      console.log("*** Executou o metodo de registrar exibicao eventos");
-
       let self = this;
 
       this.web3Service.recuperaEventosRegistrarInvestimento().then(function(eventos) {

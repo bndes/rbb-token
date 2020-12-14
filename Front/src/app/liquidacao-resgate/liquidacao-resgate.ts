@@ -1,5 +1,6 @@
 export class LiquidacaoResgate {
 
+  rbbId: number;
   razaoSocial: string;
   cnpj: string;
   contratoFinanceiro: string;
