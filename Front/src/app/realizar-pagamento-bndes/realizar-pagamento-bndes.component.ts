@@ -68,7 +68,7 @@ export class RealizarPagamentoBndesComponent implements OnInit {
       this.transferencia.contaBlockchainOrigem = newSelectedAccount+"";
 
       this.recuperaEmpresaOrigemPorContaBlockchain(this.transferencia.contaBlockchainOrigem);
-      this.ref.detectChanges();
+      this.ref.detectChanges();// ver aqui (oque é ref)
         
     }
   
@@ -168,12 +168,12 @@ includeIfNotExists(subcreditos, sub) {
 }
 
 
-async atualizaInfoPorMudancaSubcredito() {
-
+async atualizaInfoPorMudancaSubcredito() {//ver aqui
+  
   console.log("atualiza rbbId=" + this.transferencia.rbbIdOrigem + " nSubc = " + this.transferencia.numeroSubcreditoSelecionado);
 
   this.transferencia.saldoOrigem = 
-    await this.web3Service.getBalanceOf(this.transferencia.rbbIdOrigem, this.transferencia.numeroSubcreditoSelecionado);
+    await this.web3Service.getBndesBalanceOf(this.transferencia.rbbIdOrigem, this.transferencia.numeroSubcreditoSelecionado);
 
   console.log(this.transferencia.saldoOrigem);
 
@@ -284,8 +284,8 @@ async recuperaFornecedor() {
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     }
-
-
+    console.log("asdaslkdaslkdhklashdklashkldaskldklasklh");
+    console.log(this.transferencia.valorTransferencia);
     this.web3Service.bndesPagaFornecedor( 
       this.transferencia.rbbIdDestino, this.transferencia.valorTransferencia).then(
       

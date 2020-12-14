@@ -1,4 +1,3 @@
-
 import { Component, OnInit, NgZone } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
@@ -80,11 +79,22 @@ export class RealizarPagamentoComponent implements OnInit {
     contaBlockchain = contaBlockchain.toLowerCase();   
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
+      
 
-      let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchain)); 
+      let cnpjConta =  (await this.web3Service.getCNPJByAddressSync(this.transferencia.contaBlockchainOrigem)); 
+      
+      
+      
       this.transferencia.subcreditos = new Array<Subcredito>();
       await this.recuperaClientePorCNPJ(cnpjConta);
-     
+
+      let idConta = <number> (await this.web3Service.getRBBIDByCNPJSync(cnpjConta));
+      let cliente = await this.web3Service.isclient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
+      if(!cliente){
+        let erro = "não é uma conta cliente"
+        this.bnAlertsService.criarAlerta("error", "Erro",erro , 5); 
+      }
+      
     }
 }
 
@@ -254,7 +264,6 @@ async recuperaFornecedor() {
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       return;
     }
-
     let bFornecedorDestino = await this.web3Service.isFornecedorSync(this.transferencia.contaBlockchainDestino);
     if (!bFornecedorDestino) {
       let s = "Conta de Destino não é de um fornecedor";

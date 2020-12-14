@@ -423,7 +423,10 @@ export class Web3Service {
             specificHash =  <string> (await this.getSpecificHashAsString(valorToHash));
         }
         else {
-            let valorToHash = this.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER;
+            
+
+            //let valorToHash = 2;
+            let valorToHash = this.RESERVED_NO_ADDITIONAL_FIELDS_TO_SUPPLIER;//ver aqui
             specificHash = <string> (await this.getSpecificHashAsUint(valorToHash));
         }
 
@@ -434,6 +437,34 @@ export class Web3Service {
         return this.converteInteiroParaDecimal(valorRetornado.toNumber());
 
     }
+// mostrar para suzana é parecida com a getBalanceOf
+    async getBndesBalanceOf (rbbId: number, numeroContrato: number) {
+        
+        console.log("getBalanceOf  de " + rbbId);
+
+        let specificHash = "";
+        if (numeroContrato) {
+            let valorToHash = numeroContrato+"";
+            specificHash =  <string> (await this.getSpecificHashAsString(valorToHash));
+        }
+        else {
+            
+
+            
+            let valorToHash = this.RESERVED_BNDES_ADMIN_FEE_TO_HASH;//ver aqui
+            specificHash = <string> (await this.getSpecificHashAsUint(valorToHash));
+        }
+
+        console.log("specificHash= " + specificHash);
+
+        let valorRetornado = await this.rbbTokenSmartContract.rbbBalances(this.ID_SPECIFIC_TOKEN,rbbId,specificHash);
+
+        return this.converteInteiroParaDecimal(valorRetornado.toNumber());
+
+    }
+// 
+
+
 
     async getBalanceOfAllAccounts(rbbId: number, valorToHash: number) {
         
@@ -546,7 +577,7 @@ export class Web3Service {
     }
 
     async pagaFornecedor(nContratoOrigem: string, rbbIdDestino: number, transferAmount: number) : Promise<any> {
-
+        
         console.log("Web3Service - PagarFornecedor");
 
         let callData = await this.esgBndesToken_GetDataToCallSmartContract.getClientPaySupplierData(nContratoOrigem);
@@ -572,7 +603,7 @@ export class Web3Service {
 
     }
     async bndesPagaFornecedor( rbbIdDestino: number, transferAmount: number) : Promise<any> {
-
+        
         console.log("Web3Service - PagarFornecedor");
 
         let callData = await this.esgBndesToken_GetDataToCallSmartContract.getBNDESPaySupplierData();
@@ -587,6 +618,7 @@ export class Web3Service {
         console.log(dataFromDD);
 
         transferAmount = this.converteDecimalParaInteiro(transferAmount);  
+
         console.log('TransferAmount(after)=' + transferAmount);
 
        const signer = this.accountProvider.getSigner();
@@ -597,6 +629,7 @@ export class Web3Service {
             transferAmount, this.FAKE_HASH, dataFromDD));
 
     }
+
 
 
     async resgata(transferAmount: number) {
@@ -692,6 +725,7 @@ export class Web3Service {
         return false;
     }       
 //novas Funçoes
+
     async isclient (idclient: number, idFinancialSupportAgreement: string) {
     return await this.esgBndesTokenSmartContract.clients(idclient,idFinancialSupportAgreement);
     }
@@ -699,9 +733,16 @@ export class Web3Service {
         return await this.esgBndesTokenSmartContract.suppliers(idsupplier);
 
     }
+    async isinvestor (id: number){
+        return await this.esgBndesTokenSmartContract.investors(id);
+    }
     async isOperacional (id: number){
         return await this.rbbRegistrySmartContract.isRegistryOperational(id);
     }
+
+   
+
+
     async isresposibleForPayingBNDESSuppliers(){
 
        let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.resposibleForPayingBNDESSuppliers();
