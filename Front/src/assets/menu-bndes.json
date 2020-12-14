@@ -45,8 +45,8 @@
 			"topo": true,
 			"subitem": [
 				{
-					"titulo": "Realizar Pagamento",
-					"url": "bndes/realizar-pagamento",
+					"titulo": "Realizar Pagamento BNDES",
+					"url": "bndes/realizar-pagamento-bndes",
 					"separador": false
 				},
 				{

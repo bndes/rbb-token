@@ -394,6 +394,12 @@ contract RBBRegistry is Ownable() {
             CNPJ_RBBId[CNPJ] = ++currentRBBId;
 
         return CNPJ_RBBId[CNPJ];
+    }
+/* função que pega o cnpj passando o id */
+    function getCNPJbyID(uint Id) public view returns (uint ) {
+        address addr =RBBId_addresses[Id][0];
+        
+        return legalEntitiesInfo[addr].CNPJ;
     } 
  
 
