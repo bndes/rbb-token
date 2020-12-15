@@ -11,6 +11,7 @@ export class HomeComponent implements OnInit {
   nomeRedeBlockchain: string;
   addrContratoRBBToken: string;
   addrContratoESGBndesToken: string;
+  numeroBlockchainNetwork: string;
   URLBlockchainProvider: string;
   netVersion: string;
   selectedAccount: any; 
@@ -29,6 +30,7 @@ export class HomeComponent implements OnInit {
     this.addrContratoRBBToken = infoBlockchainNetwork.addrContratoRBBToken;
     this.addrContratoESGBndesToken = infoBlockchainNetwork.addrContratoESGBndesToken;
     this.URLBlockchainProvider = infoBlockchainNetwork.URLBlockchainProvider;
+    this.numeroBlockchainNetwork = infoBlockchainNetwork.numeroBlockchainNetwork;
     this.netVersion = infoBlockchainNetwork.netVersion;
   }
 

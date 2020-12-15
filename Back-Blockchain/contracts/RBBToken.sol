@@ -27,8 +27,8 @@ contract RBBToken is Pausable, Ownable {
     //specificTokenId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
-    //specificTokenId => (specificHash => amount)
-    mapping (uint => mapping (bytes32 => uint)) public balanceRequestedTokens;
+    //specificTokenId => RBBId => (specificHash => amount)
+    mapping (uint => mapping (uint => mapping (bytes32 => uint))) public balanceRequestedTokens;
 
     event RBBTokenMintRequested(address specificTokenAddr, bytes32 specificHash, uint idInvestor, 
             uint amount, bytes32 docHash);
@@ -66,8 +66,8 @@ contract RBBToken is Pausable, Ownable {
         
         uint specificTokenId = tokenRegistry.getSpecificRBBTokenId(specificTokenAddr);
 
-        balanceRequestedTokens[specificTokenId][specificInvestimentHash] = 
-            balanceRequestedTokens[specificTokenId][specificInvestimentHash].add(amount);
+        balanceRequestedTokens[specificTokenId][idInvestor][specificInvestimentHash] = 
+            balanceRequestedTokens[specificTokenId][idInvestor][specificInvestimentHash].add(amount);
     
         emit RBBTokenMintRequested(specificTokenAddr, specificInvestimentHash, idInvestor, amount, docHash);
 
@@ -86,8 +86,8 @@ contract RBBToken is Pausable, Ownable {
         (uint specificTokenId, uint specificTokenOwnerId) = 
                     tokenRegistry.getSpecificRBBTokenIdAndOwnerId(specificTokenAddr);
 
-        balanceRequestedTokens[specificTokenId][specificHash] 
-            = balanceRequestedTokens[specificTokenId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
+        balanceRequestedTokens[specificTokenId][idInvestor][specificHash] 
+            = balanceRequestedTokens[specificTokenId][idInvestor][specificHash].sub(amount, "Total de emissão excede valor solicitado");
 
         SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
 

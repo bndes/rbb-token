@@ -144,11 +144,12 @@ console.log("todos os contratos lidos");
 
             URLBlockchainExplorer: this.URLBlockchainExplorer,
             nomeRedeBlockchain: this.nomeRedeBlockchain,
-
+            numeroBlockchainNetwork: this.numeroBlockchainNetwork,
             addrContratoRBBToken: this.addrContratoRBBToken,
             addrContratoESGBndesToken: this.addrContratoESGBndesToken,
             addrContratoRBBRegistry: this.addrContratoRBBRegistry,
             URLBlockchainProvider: this.URLBlockchainProvider,
+
             netVersion: this.netVersion
         };
     }
@@ -416,7 +417,7 @@ console.log("todos os contratos lidos");
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
         let specificHash = <string> (await this.getSpecificHashAsUint(30));
 
-        let retornedValue = await this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,specificHash);
+        let retornedValue = await this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN, rbbId, specificHash);
 
         return self.converteInteiroParaDecimal( retornedValue.toNumber() );
     }
@@ -495,7 +496,6 @@ console.log("todos os contratos lidos");
         return this.converteInteiroParaDecimal(valorRetornado.toNumber());
 
     }
-// 
 
 
 

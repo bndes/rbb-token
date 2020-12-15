@@ -12,8 +12,11 @@
 	
 
 	<div *ngIf = "addrContratoRBBToken">
-	Rede em uso pelo sistema: {{nomeRedeBlockchain}}
+		Rede em uso pelo sistema: {{nomeRedeBlockchain}}
 	</div>
+	<div *ngIf = "addrContratoRBBToken">
+		Número da rede em uso pelo sistema: {{numeroBlockchainNetwork}}
+	</div>	
 	<div *ngIf = "addrContratoRBBToken">
 		Rede conectada pelo usuário: {{netVersion}}
 	</div>
