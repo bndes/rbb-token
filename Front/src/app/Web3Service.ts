@@ -274,7 +274,7 @@ console.log("todos os contratos lidos");
         return null; 
     }    
 
- //TODO: alterar esses eventos para dashboard de intervencoes manuais. Falta incluir ESG_BndesToken_BndesRoles 
+ //TODO: alterar esses eventos para dashboard de intervencoes manuais.
     async registraEventosIntervencaoManualMintBurn() {
         console.log("web3-registraEventosIntervencaoManual");
 
@@ -295,45 +295,25 @@ console.log("todos os contratos lidos");
         
         let self = this;
         console.info("Callback ", callback);
-        const filtro = { fromBlock: 'latest', toBlock: 'pending' }; 
-/* TODO        
-        this.eventoRBBToken = this.rbbTokenSmartContract.allEvents( filtro );                 
-        this.eventoRBBToken.watch( function (error, result) {
-            console.log("Watcher Token Genérico executando...")
-            self.procuraTransacao(error, result, txHashProcurado, self, callback);
+        console.info("txHashProcurado= ", txHashProcurado);
+
+        this.rbbTokenSmartContract.on("*", function(evento) {
+            self.processaEventoParaChamadaCallback(evento,txHashProcurado,callback);
         });
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.allEvents( filtro );                 
-        this.eventoTokenEspecifico.watch( function (error, result) {
-            console.log("Watcher Token Específico executando...")
-            self.procuraTransacao(error, result, txHashProcurado, self, callback);
+        this.esgBndesTokenSmartContract.on("*", function(evento) {
+            self.processaEventoParaChamadaCallback(evento,txHashProcurado,callback);
         });
-*/
-        console.log("registrou o watcher de eventos");
         
     }
 
-    procuraTransacao(error, result, txHashProcurado, self, callback) {
-        console.log( "Entrou no procuraTransacao" );
-        console.log( "txHashProcurado: " + txHashProcurado );
-        console.log( "result.transactionHash: " + result.transactionHash );
-        self.web3.eth.getTransactionReceipt(txHashProcurado,  function (error, result) {
-            if ( !error ) {
-                let status = result.status
-                let STATUS_MINED = 0x1
-                console.log("Achou o recibo da transacao... " + status)     
-                if ( status == STATUS_MINED && !self.vetorTxJaProcessadas.includes(txHashProcurado)) {
-                    self.vetorTxJaProcessadas.push(txHashProcurado);
-                    callback(error, result);        
-                } else {
-                    console.log('"Status da tx pendente ou jah processado"')
-                }
+    processaEventoParaChamadaCallback(evento, txHashProcurado, callback) {
+        if (evento.transactionHash == txHashProcurado) {
+            if (!this.vetorTxJaProcessadas.includes(txHashProcurado)) {
+                this.vetorTxJaProcessadas.push(txHashProcurado);
+                callback();    
             }
-            else {
-              console.log('Nao eh o evento de confirmacao procurado')
-            } 
-        });     
+        }    
     }
-
 
     ////////////////////// INICIO REGISTRY
 

@@ -34,16 +34,11 @@ export class Utils {
           bnAlertsService.criarAlerta("info", "Aviso", warningMsg, 5);
           console.log(warningMsg);
 
-          web3Service.registraWatcherEventosLocal(tx.hash, function (error, result) {
-            if (!error) {              
+          web3Service.registraWatcherEventosLocal(tx.hash, function () {
               bnAlertsService.criarAlerta("info", "Confirmação", confirmationMsg, 5);
               console.log(confirmationMsg);
 
               zoneUpdate.run(() => {});
-            }
-            else {
-              console.log(error);
-            }
           });
      }
 
