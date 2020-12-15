@@ -11,6 +11,10 @@ export class Utils {
 
     static isValidHash(text) {
       if (!text) return false;
+      if (text.length<2) return false;
+      let prefixHash = text.substr(0,2);
+      if (prefixHash!="0x") return false;
+      text = text.substr(2);
       let isHash = /^[\da-f]+$/.test(text);
       if (isHash && text.length && text.length==64) {
         return true;

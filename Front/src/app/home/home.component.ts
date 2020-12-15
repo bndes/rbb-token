@@ -12,6 +12,7 @@ export class HomeComponent implements OnInit {
   addrContratoRBBToken: string;
   addrContratoESGBndesToken: string;
   URLBlockchainProvider: string;
+  netVersion: string;
   selectedAccount: any; 
 
   constructor(private web3Service: Web3Service) {
@@ -28,6 +29,7 @@ export class HomeComponent implements OnInit {
     this.addrContratoRBBToken = infoBlockchainNetwork.addrContratoRBBToken;
     this.addrContratoESGBndesToken = infoBlockchainNetwork.addrContratoESGBndesToken;
     this.URLBlockchainProvider = infoBlockchainNetwork.URLBlockchainProvider;
+    this.netVersion = infoBlockchainNetwork.netVersion;
   }
 
   conectar () {

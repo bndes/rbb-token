@@ -12,6 +12,7 @@ export class Web3Service {
 
     private ethereum: any;
     private provider: any;
+    private netVersion: any;
     private accountProvider: any;
 
     private addrContratoRBBToken: string = '';
@@ -59,10 +60,14 @@ export class Web3Service {
         this.vetorTxJaProcessadas = [];
 
         this.serverUrl = ConstantesService.serverUrl;
-        console.log("Web3Service.ts :: Selecionou URL = " + this.serverUrl)
+        let url = this.serverUrl + 'constantesFront';
+        console.log("Web3Service.ts :: Selecionou URL = " + url);
 
-        this.http.post<Object>(this.serverUrl + 'constantesFront', {}).subscribe(
+        this.http.post<Object>(url, {}).subscribe(
             data => {
+
+                console.log("POST DO SERVER configurando atributos front");
+
 
                 this.numeroBlockchainNetwork = data["blockchainNetwork"];
                 this.URLBlockchainExplorer = data["URLBlockchainExplorer"];
@@ -80,10 +85,8 @@ export class Web3Service {
                 this.abiESGBndesToken_GetDataToCall = data['abiESGBndesToken_GetDataToCall']; 
                 this.abiRBBRegistry = data['abiRBBRegistry'];
                 this.abiESGBndesToken_BNDESRoles = data['abiESGBndesToken_BNDESRoles'];
-            
 
                 this.intializeWeb3();
-                this.inicializaQtdDecimais();
 
             },
             error => {
@@ -93,25 +96,36 @@ export class Web3Service {
     }
 
  
-    intializeWeb3() {
+    async intializeWeb3() {
 
-        console.log("#### this.URLBlockchainProvider = " + this.URLBlockchainProvider);
+        console.log("this.URLBlockchainProvider = " + this.URLBlockchainProvider);
         this.provider = new ethers.providers.JsonRpcProvider(this.URLBlockchainProvider);
         this.ethereum =  window['ethereum'];
-        console.log("provider ethers");
-        console.log(this.provider);
+
+        this.netVersion = await this.ethereum.request({
+            method: 'net_version',
+        });
+        console.log(this.netVersion);
+
+        this.accountProvider = new ethers.providers.Web3Provider(this.ethereum);
+
+        console.log("accountProvider=");
+        console.log(this.accountProvider);        
+
+        console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
+        console.log("this.addrContratoRBBToken=" + this.addrContratoRBBToken);
 
         this.rbbTokenSmartContract = new ethers.Contract(this.addrContratoRBBToken, this.abiRBBToken, this.provider);
         this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.provider);
         this.esgBndesToken_GetDataToCallSmartContract = new ethers.Contract(this.addrContratoESGBndesToken_GetDataToCall, this.abiESGBndesToken_GetDataToCall, this.provider);
         this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.provider);
-        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
-        
-        this.accountProvider = new ethers.providers.Web3Provider(this.ethereum);
+//        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
 
-        console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
-        console.log("accountProvider=");
-        console.log(this.accountProvider);        
+console.log("todos os contratos lidos");
+        
+        
+        this.inicializaQtdDecimais();
+        console.log("this.decimais=" + this.decimais);
 
     } 
 
@@ -134,7 +148,8 @@ export class Web3Service {
             addrContratoRBBToken: this.addrContratoRBBToken,
             addrContratoESGBndesToken: this.addrContratoESGBndesToken,
             addrContratoRBBRegistry: this.addrContratoRBBRegistry,
-            URLBlockchainProvider: this.URLBlockchainProvider
+            URLBlockchainProvider: this.URLBlockchainProvider,
+            netVersion: this.netVersion
         };
     }
 
@@ -149,6 +164,7 @@ export class Web3Service {
 
     async inicializaQtdDecimais() {
         this.decimais = await this.rbbTokenSmartContract.getDecimals();
+        console.log("this.decimais=" + this.decimais);
         return this.decimais;
     }
 
@@ -359,7 +375,8 @@ export class Web3Service {
 
     async registrarInvestimento(amount: number): Promise<any> {
         
-        console.log("Registra doacao!!! ");
+        console.log("Registra doacao!!! " + amount);
+        console.log("this.decimais= " + this.decimais);
         
         amount = this.converteDecimalParaInteiro(amount);     
         console.log("Amount=" + amount);
@@ -412,6 +429,8 @@ export class Web3Service {
         console.log("amount=" + amount);
         console.log("inv=" + rbbIDInvestor);
         console.log("addr=" + this.addrContratoESGBndesToken);
+        console.log("docHash=" + docHash);
+
 
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
         let specificHash = <string> (await this.getSpecificHashAsUint(30));
@@ -419,9 +438,8 @@ export class Web3Service {
         const signer = this.accountProvider.getSigner();
         const contWithSigner = this.rbbTokenSmartContract.connect(signer);
 
-        //TODO: Trocar fake hash pelo hash
         return (await contWithSigner.mint(this.addrContratoESGBndesToken, rbbIDInvestor, specificHash, 
-            amount, this.FAKE_HASH, []));  
+            amount, docHash, []));  
     }  
 
     ////////////////// FIM INVESTIDOR

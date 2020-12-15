@@ -14,7 +14,6 @@ const https = require ('https');
 const multer = require('multer');
 
 const DIR_UPLOAD = config.infra.caminhoArquivos + config.infra.caminhoUpload;
-//const DIR_CAMINHO_DECLARACAO = config.infra.caminhoArquivos + config.infra.caminhoDeclaracao;
 const DIR_CAMINHO_COMPROVANTE_DOACAO = config.infra.caminhoArquivos + config.infra.caminhoComprovanteDoacao;
 const DIR_CAMINHO_COMPROVANTE_LIQUIDACAO = config.infra.caminhoArquivos + config.infra.caminhoComprovanteLiquidacao;
 
@@ -114,7 +113,7 @@ app.get('/api/hash/:filename', async function (req, res) {
 async function calculaHash(filename) {
 	const input = fs.readFileSync(filename);	
 	let hashedResult = keccak256(input).toString('hex');	
-	return hashedResult;					
+	return "0x" + hashedResult;					
 }
 
 //recupera constantes front
@@ -349,12 +348,7 @@ async function buscaFileInfo(req, res) {
 
 		hashFile = req.body.hashFile;		
 
-		if (tipo=="declaracao") {
-			let fileName = montaNomeArquivoDeclaracao(cnpj, contrato, blockchainAccount, hashFile);
-			filePathAndNameToFront = config.infra.caminhoDeclaracao + fileName;
-			targetPathToCalculateHash = DIR_CAMINHO_DECLARACAO + fileName;	
-		}		
-		else if (tipo=="comp_doacao") {
+		if (tipo=="comp_doacao") {
 			let fileName = montaNomeArquivoComprovanteDoacao(cnpj, hashFile);			
 			filePathAndNameToFront = config.infra.caminhoComprovanteDoacao + fileName;
 			targetPathToCalculateHash = DIR_CAMINHO_COMPROVANTE_DOACAO + fileName;	

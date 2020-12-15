@@ -126,8 +126,6 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
 
     async recuperaSaldo(cnpj) {
 
-      let self = this;
-
       this.doacao.rbbId = <number> (await this.web3Service.getRBBIDByCNPJSync (cnpj));
       
       this.doacao.saldo = <number> (await this.web3Service.getBalanceRequestedToken(this.doacao.rbbId));
@@ -167,12 +165,12 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
         return
       } 
-      /*
+      
       else if (!Utils.isValidHash(this.hashdeclaracao)) {
         let s = "O Hash do comprovante está preenchido com valor inválido";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
         return;
-      }*/
+      }
         
       //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
       if ((this.doacao.valor * 1) > (this.doacao.saldo * 1)) {

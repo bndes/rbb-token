@@ -17,8 +17,6 @@ export class FileHandleService {
   serverUrl: string;
   operationAPIURL: string;
   maxFileSize : number;
-  CAMINHO_MODELO_DECLARACAO_CONTA_DIGITAL: string;
-  CAMINHO_ROTEIRO_ASSINATURA_DIGITAL: string;
 
   public uploader: FileUploader;  
 
@@ -32,8 +30,6 @@ export class FileHandleService {
 
         this.operationAPIURL = data["operationAPIURL"];
         this.maxFileSize = data["maxFileSize"];
-        this.CAMINHO_MODELO_DECLARACAO_CONTA_DIGITAL = data["CAMINHO_MODELO_DECLARACAO_CONTA_DIGITAL"];
-        this.CAMINHO_ROTEIRO_ASSINATURA_DIGITAL = data["CAMINHO_ROTEIRO_ASSINATURA_DIGITAL"];		
       },
       error => {
           console.log("**** Erro ao buscar constantes do front");
@@ -41,14 +37,6 @@ export class FileHandleService {
 
     console.log("FileServiceService.ts :: Selecionou URL = " + this.serverUrl);
 
-  }
-
-  getCaminhoModeloDeclaracaoContaDigital(): String {
-    return this.CAMINHO_MODELO_DECLARACAO_CONTA_DIGITAL;
-  }
-
-  getCaminhoRoteiroAssinaturaDigital(): String {
-    return this.CAMINHO_ROTEIRO_ASSINATURA_DIGITAL;
   }
 
   buscaFileInfo(cnpj: string, contrato: string, blockchainAccount: string, hashFile: string, tipo: string): Observable<any> {
@@ -108,10 +96,10 @@ export class FileHandleService {
   }  
 
           
-    private handleError(err: HttpErrorResponse) {
+  private handleError(err: HttpErrorResponse) {
       console.log("handle errror em PJService");
       console.log(err);
       return Observable.throw(err.message);
-    }          
+  }          
 
 }
