@@ -50,7 +50,7 @@
 
               <div class="form-group col-md-6 col-sm-6 ">
                   <label>Data e hora:</label>
-                  <input  name="dataHora" [ngModel]="liquidacaoResgate.dataHoraResgate | date: 'dd/MM/yyyy hh:mm a'"  class="form-control form-control-sm" required readonly/>
+                  <input  name="dataHoraResgate" [ngModel]="liquidacaoResgate.dataHoraResgate | date: 'dd/MM/yyyy hh:mm a'"  class="form-control form-control-sm" required readonly/>
               </div>          
           </div>
 
@@ -100,9 +100,10 @@
 
               <div class="form-group col-md-6 col-sm-6 ">
                 <label>Link Etherscan:</label>
-                <a href="https://{{URLBlockchainExplorer}}/tx/{{liquidacaoResgate.hashID}}">
+                <a target="_blank" href="{{URLBlockchainExplorer}}/tx/{{liquidacaoResgate.hashID}}">
                   <i class="fa fa-link" aria-hidden="true"></i>
                 </a>
+
               </div>
                 
 

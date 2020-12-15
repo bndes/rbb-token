@@ -703,9 +703,8 @@ console.log("todos os contratos lidos");
         const signer = this.accountProvider.getSigner();
         const contWithSigner = this.rbbTokenSmartContract.connect(signer);
 
-        //TODO: tirar FAKE_HASH
         return (await contWithSigner.notifyRedemptionSettlement (
-                this.addrContratoESGBndesToken, hashResgate, this.FAKE_HASH, emptyData));
+                this.addrContratoESGBndesToken, hashResgate, hashComprovante, emptyData));
             
     }
 
