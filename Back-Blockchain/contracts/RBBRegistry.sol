@@ -1,10 +1,10 @@
 pragma solidity ^0.6.0;
 
+import "./IRBBRegistry.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./RBBLib.sol";
-import "./RBBRegistryInterface.sol";
 
-contract RBBRegistry is Ownable(),RBBRegistryInterface {
+contract RBBRegistry is IRBBRegistry, Ownable() {
 
     enum BlockchainAccountState {AVAILABLE,WAITING_VALIDATION,VALIDATED,INVALIDATED}
     BlockchainAccountState blockchainState; /* Variable not used, only defined to create the enum type. */
@@ -312,7 +312,7 @@ contract RBBRegistry is Ownable(),RBBRegistryInterface {
         }
     }
 
-    function getId (address addr) public view returns (uint) {
+    function getId (address addr) override public view returns (uint) {
         uint RBBId = getRBBIdRaw(addr);
         require ( isRegistryOperational( RBBId ) , "A organizacao nao esta operacional" );
         return RBBId;

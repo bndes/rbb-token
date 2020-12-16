@@ -3,7 +3,6 @@ pragma experimental ABIEncoderV2;
 
 
 import "./RBBLib.sol";
-import "./RBBRegistry.sol";
 import "./RBBToken.sol";
 import "./SpecificRBBToken.sol";
 import "./ESGBndesToken_BNDESRoles.sol";

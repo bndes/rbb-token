@@ -1,13 +1,13 @@
 pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./RBBRegistry.sol";
+import "./IRBBRegistry.sol";
 import "./SpecificRBBToken.sol";
 
 
 contract SpecificRBBTokenRegistry is Ownable {
 
-    RBBRegistry public registry;
+    IRBBRegistry public registry;
 
     //It starts with 1, because 0 is the id value returned when the item is not found in the Registry
     uint public idCount = 1;
@@ -18,7 +18,7 @@ contract SpecificRBBTokenRegistry is Ownable {
     }
 
     constructor (address newRegistryAddr) public {
-        registry = RBBRegistry(newRegistryAddr);
+        registry = IRBBRegistry(newRegistryAddr);
     }
 
     event SpecificRBBTokenRegistration (uint id, uint ownerId, address addr);
