@@ -126,8 +126,6 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
 
     async recuperaSaldo(cnpj) {
 
-      let self = this;
-
       this.doacao.rbbId = <number> (await this.web3Service.getRBBIDByCNPJSync (cnpj));
       
       this.doacao.saldo = <number> (await this.web3Service.getBalanceRequestedToken(this.doacao.rbbId));
@@ -167,12 +165,12 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
         return
       } 
-      /*
+      
       else if (!Utils.isValidHash(this.hashdeclaracao)) {
         let s = "O Hash do comprovante está preenchido com valor inválido";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 2)
         return;
-      }*/
+      }
         
       //Multipliquei por 1 para a comparacao ser do valor (e nao da string)
       if ((this.doacao.valor * 1) > (this.doacao.saldo * 1)) {
@@ -180,7 +178,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
         console.log("saldo=" + this.doacao.saldo);
         console.log("valor=" + this.doacao.valor);
   
-        let s = "Não é possível receber uma doação maior do que o valor do saldo do doador.";
+        let s = "Não é possível receber um investimento maior do que o valor do saldo do doador.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;
       }
@@ -192,20 +190,20 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
           Utils.criarAlertasAvisoConfirmacao( txHash, 
             self.web3Service, 
             self.bnAlertsService, 
-            "O recebimento da doação vindo do CNPJ " + self.doacao.cnpj + "  foi enviado. Aguarde a confirmação.", 
-            "O recebimento da doação foi confirmado na blockchain.", 
+            "O recebimento do investimento vindo do CNPJ " + self.doacao.cnpj + "  foi enviado. Aguarde a confirmação.", 
+            "O recebimento do investimento foi confirmado na blockchain.", 
             self.zone);       
             self.router.navigate(['sociedade/dash-doacao']);
 
         },
         function(error) {  
           Utils.criarAlertaErro( self.bnAlertsService, 
-            "Erro ao receber doação na blockchain", 
+            "Erro ao receber investimento na blockchain", 
             error);  
         });    
   
       Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
-                                    "Confirme a operação no metamask e aguarde a confirmação do recebimento da doação." )  
+                                    "Confirme a operação no metamask e aguarde a confirmação do recebimento do investimento." )  
       }
   
   

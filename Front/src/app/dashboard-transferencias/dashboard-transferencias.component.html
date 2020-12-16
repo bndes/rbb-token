@@ -1,10 +1,12 @@
 <div class="form-group" *ngIf="selectedAccount">
 <div class="title-loading">
-  <h2 class="page-header">Dashboard de Liberações e Resgates</h2>
+  <h2 class="page-header">Dashboard de Transações</h2>
   <app-bn-loading class="loading" *ngIf="estadoLista === 'undefined'"></app-bn-loading>
 </div>
 
   <div class="container">
+
+    <!--
     <div class="row">
       <div class="col-md-3 col-sm-3 border border-dark rounded">
         <div class="">
@@ -149,7 +151,7 @@
         </div>
       </div>
     </div>
-
+-->
 <div *ngIf="estadoLista === 'cheia'"> 
   
   <input class="form-control barra-filtro" type="text" name="search" [(ngModel)]="filter" placeholder="Filtro">

@@ -45,6 +45,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
     this.liquidacaoResgate = new LiquidacaoResgate();
     this.liquidacaoResgate.hashResgate = this.route.snapshot.paramMap.get('solicitacaoResgateId');
 
+    console.log("this.liquidacaoResgate.hashResgate=");
     console.log(this.liquidacaoResgate.hashResgate);
 
     self.recuperaStatusResgate();
@@ -56,21 +57,6 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
   }
 
 
-/*
-  async recuperaContaSelecionada() {
-    
-    let self = this;
-    
-    let newSelectedAccount = await this.web3Service.getCurrentAccountSync();
-
-    if ( !self.selectedAccount || (newSelectedAccount !== self.selectedAccount && newSelectedAccount)) {
-
-      this.selectedAccount = newSelectedAccount;
-      console.log("selectedAccount=" + this.selectedAccount);
-      this.atualizaIsResponsibleForSettlement()
-    }
-  }  
-*/
   async recuperaContaSelecionada() {
             
     let self = this;    
@@ -80,7 +66,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
           this.selectedAccount = newSelectedAccount;
           console.log("selectedAccount=" + this.selectedAccount);          
           //this.preparaUpload(self.liquidacaoResgate.cnpj, this.selectedAccount, this);
-          this.fileHandleService.atualizaUploaderComponent(self.liquidacaoResgate.cnpj, self.liquidacaoResgate.contratoFinanceiro, this.selectedAccount, "comp_liq", this);
+          this.fileHandleService.atualizaUploaderComponent(self.liquidacaoResgate.cnpj, 0, this.selectedAccount, "comp_liq", this);
           this.atualizaIsResponsibleForSettlement();
         }
         else {
@@ -96,7 +82,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
     const tipo = "comp_liq";
 
     if (cnpj &&  selectedAccount) {
-      this.fileHandleService.atualizaUploaderComponent(cnpj, self.liquidacaoResgate.contratoFinanceiro, selectedAccount, tipo, self);
+      this.fileHandleService.atualizaUploaderComponent(cnpj, 0, selectedAccount, tipo, self);
     }
   }
 
@@ -109,73 +95,54 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
     let self = this;
 
-    /*
-    this.web3Service.registraEventosResgate(function (error, event) {
-      if (!error) {
-        let eventoResgate = event;
-
-        if (self.liquidacaoResgate.hashResgate == eventoResgate.transactionHash) {
-
-          self.liquidacaoResgate.cnpj = Utils.completarCnpjComZero(eventoResgate.args.cnpj);
-          self.liquidacaoResgate.contratoFinanceiro = Utils.completarContratoComZero(eventoResgate.args.idFinancialSupportAgreement);
-          self.liquidacaoResgate.valorResgate = self.web3Service.converteInteiroParaDecimal(parseInt(eventoResgate.args.amount)),
-          self.preparaUpload(self.liquidacaoResgate.cnpj, self.liquidacaoResgate.contratoFinanceiro, self);
+    this.web3Service.recuperaEventosResgateByHash(self.liquidacaoResgate.hashResgate).then(function(evento) {
       
-//          self.liquidacaoResgate.dataHoraResgate = await self.recuperaDataHora(event);
+      if (evento) {
 
-          self.pessoaJuridicaService.recuperaEmpresaPorCnpj(eventoResgate.args.cnpj).subscribe(
-            data => {
-              
-              self.liquidacaoResgate.razaoSocial = "Erro: Não encontrado";
-              if (data && data.dadosCadastrais) {
-                self.liquidacaoResgate.razaoSocial = data.dadosCadastrais.razaoSocial;
-              }              
-            })          
-        }
-
-      }
-      else {
-        console.log("Erro no registro de eventos de resgate");
-        console.log(error);
-      }
-
+        self.liquidacaoResgate.rbbId = evento.idClaimer;
+//TODO?????????
+        self.liquidacaoResgate.cnpj = "FALTA_BUSCAR";//Utils.completarCnpjComZero(evento.args.cnpj);
+        self.liquidacaoResgate.valorResgate = self.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount));
+        self.preparaUpload(self.liquidacaoResgate.cnpj, self.selectedAccount, self);
+        self.recuperaDataHora(evento).then(function(dataHora) {
+          self.liquidacaoResgate.dataHoraResgate = dataHora;
+          self.ref.detectChanges();
+        }) 
+       }
+       else {
+         console.log("ERRO - evento de resgate não encontrado");
+       }
     });
-    */
+    
   }
 
-
-  recuperaStatusLiquidacaoResgate() {
+  
+  async recuperaStatusLiquidacaoResgate() {
     let self = this;
-    this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;    
+    this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer; 
+    
+    let eventos = await this.web3Service.recuperaEventosLiquidacaoResgate();
 
-    /*
-    this.web3Service.registraEventosLiquidacaoResgate(function (error, event) {
+    console.log("eventos liq resg");
 
-      if (!error) {   
+    for (let i=0; i< eventos.length; i++)  {
+      let evento = eventos[i];
+      console.log(evento);
+      if (evento.args.redemptionTransactionHash == self.liquidacaoResgate.hashResgate) {
 
-          console.log("Encontrou algum dado ao recuperar status liquidacao resgate")
-          console.log(event)
-          console.log(self.liquidacaoResgate.hashResgate)          
-
-          if (self.liquidacaoResgate.hashResgate == event.args.redemptionTransactionHash) { //resgate jah foi liquidado
-
-            self.liquidacaoResgate.hashID       = event.transactionHash;
-            self.liquidacaoResgate.hashComprovacao = event.args.receiptHash;
+            self.liquidacaoResgate.hashID       = evento.transactionHash;
+            self.liquidacaoResgate.hashComprovacao = evento.args.docHash;
             self.liquidacaoResgate.isLiquidado = true;
-
-//            self.liquidacaoResgate.dataHoraLiquidacao = await self.recuperaDataHora(event);
-
+            self.recuperaDataHora(evento).then(function(dataHora) {
+              self.liquidacaoResgate.dataHoraLiquidacao = dataHora;
+              self.ref.detectChanges();
+            }) 
+    
             self.recuperaFilePathAndName(self,self.liquidacaoResgate);
-
-          }
-
-      } else {
-        console.log("Erro no registro de eventos de liquidacao do resgate");
-        console.log(error);
-
       }
-    })
-    */
+      
+    });
+
   }
 
   async atualizaIsResponsibleForSettlement() {
@@ -191,12 +158,12 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
     
     if ( transacao == undefined ||  (transacao.cnpj == undefined || transacao.cnpj == "" ) || ( transacao.hashComprovacao == undefined || transacao.hashComprovacao == "") 
-        || transacao.contratoFinanceiro == undefined || transacao.contratoFinanceiro == "" ) {
+        || transacao.contratoFinanceiro == undefined ) {
       console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-resgate");
       return;
     }
 
-    self.fileHandleService.buscaFileInfo(transacao.cnpj, transacao.contratoFinanceiro, "0", transacao.hashComprovacao, "comp_liq").subscribe(
+    self.fileHandleService.buscaFileInfo(transacao.cnpj, 0, "0", transacao.hashComprovacao, "comp_liq").subscribe(
         result => {
           if (result && result.pathAndName) {
             transacao.filePathAndName=ConstantesService.serverUrlRoot+result.pathAndName;
@@ -269,6 +236,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
                                    "Confirme a operação no metamask e aguarde a liquidação da conta." )
 
   }
+  
 
   async recuperaDataHora(event) {
 

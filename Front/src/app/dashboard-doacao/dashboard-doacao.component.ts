@@ -74,107 +74,46 @@ export class DashboardDoacaoComponent implements OnInit {
 
       this.URLBlockchainExplorer = this.web3Service.getInfoBlockchain().URLBlockchainExplorer;
 
-//      this.estadoLista = "vazia"
+      let self = this;
 
-      console.log("*** Executou o metodo de registrar exibicao eventos");
+      this.web3Service.recuperaEventosRegistrarInvestimento().then(function(eventos) {
+        self.processaConjuntoEventos(eventos, "Intenção Registrada");
+        });      
 
-      this.registraEventosRegistroDoacao();
+      this.web3Service.recuperaEventosRecebimentoInvestimento().then(function(eventos) {
+        self.processaConjuntoEventos(eventos, "Investimento Confirmado");
+        });                 
 
-      this.registraEventosRecebimentoDoacao();
-      
+ }
+
+  processaConjuntoEventos(eventos, tipo) {
+    for (let i=0; i<eventos.length; i++) {
+      this.processaEvento(eventos[i], tipo);
+    }
   }
+  
+  processaEvento(evento, descTipo) {
 
-  registraEventosRegistroDoacao() {
+    let transacao: DashboardDoacao;
+    
+    transacao = {
+        rbbId: evento.args.idInvestor, 
+        cnpj: "FALTA RECUPERAR",
+        razaoSocial: "FALTA RECUPERAR",
+        valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),                
+        dataHora: null,
+        tipo: descTipo,
+        hashID: evento.transactionHash,
+        uniqueIdentifier: evento.transactionHash,
+        hashComprovante: evento.args.docHash+"",
+        filePathAndName: ""
+    }
 
-    console.log("*** Executou o metodo de registrar eventos REGISTRAR INV");
+    this.includeIfNotExists(transacao);
+//            self.recuperaInfoDerivadaPorCnpj(this, transacao);
+    this.recuperaDataHora(evento, transacao);
 
-    let self = this; 
-    /*       
-    this.web3Service.registraEventosRegistrarInvestimento(function (error, event) {
-
-        if (!error) {
-
-            let transacao: DashboardDoacao;
-
-            console.log("Evento Registrar Investimento");
-            console.log(event);
-
-//            let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
-            self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted));
-                 
-            transacao = {
-                rbbId: event.args.idInvestor, 
-                cnpj: "FALTA RECUPERAR DO REGISTRY",
-                razaoSocial: "",
-                valor: self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),                
-                dataHora: null,
-                tipo: "Intenção Registrada",
-                hashID: event.transactionHash,
-                uniqueIdentifier: event.transactionHash,
-                hashComprovante: event.args.docHash+"",
-                filePathAndName: ""
-            }
-
-            self.includeIfNotExists(transacao);
-//            self.recuperaInfoDerivadaPorCnpj(self, transacao);
-            self.recuperaDataHora(self, event, transacao);
-
-
-        } else {
-            console.log("Erro no registro de eventos de cadastro");
-            console.log(error);
-        }
-    });
-    */
-  }
-
-
-  registraEventosRecebimentoDoacao() {
-
-    console.log("*** Executou o metodo de registrar eventos RECEBER INV");
-
-    let self = this;        
-    /*
-    this.web3Service.registraEventosRecebimentoInvestimento(function (error, event) {
-
-        if (!error) {
-
-            let transacao: DashboardDoacao;
-
-            console.log("------->>> Evento Receber Doacao");
-            console.log(event);
-
-            let txAdm = self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)) -
-                    self.web3Service.converteInteiroParaDecimal(parseInt(event.args.tokenMinted));
-                 
-            transacao = {
-                rbbId: event.args.idInvestor,
-                cnpj: "FALTA RECUPERAR DO REGISTRY",
-                razaoSocial: "",
-                valor      : self.web3Service.converteInteiroParaDecimal(parseInt(event.args.amount)),
-                dataHora: null,
-                tipo: "Investimento Confirmado",
-                hashID: event.transactionHash,
-                uniqueIdentifier: event.transactionHash,
-                hashComprovante: event.args.docHash,
-                filePathAndName: ""                
-            }
-
-            self.includeIfNotExists(transacao);
-//            self.recuperaInfoDerivadaPorCnpj(self, transacao);
-            self.recuperaDataHora(self, event, transacao);
-            self.recuperaFilePathAndName(self,transacao);
-
-        } else {
-            console.log("Erro no registro de eventos de cadastro");
-            console.log(error);
-        }
-    });
-    */
-  }
-
-
-
+  }  
 
  includeIfNotExists(transacao) {
     let result = this.listaDoacoes.find(tr => tr.uniqueIdentifier == transacao.uniqueIdentifier);
@@ -218,20 +157,13 @@ recuperaInfoDerivadaPorCnpj(self, pj) {
 
 }
 
-recuperaDataHora(self, event, transacaoPJ) {
-    self.web3Service.getBlockTimestamp(event.blockHash,
-        function (error, result) {
-            if (!error) {
-                transacaoPJ.dataHora = new Date(result.timestamp * 1000);
-                self.ref.detectChanges();
-            }
-            else {
-                console.log("Erro ao recuperar data e hora do bloco");
-                console.error(error);
-            }
-    });
+async recuperaDataHora(event, transacaoPJ) {
 
+    let timestamp = await this.web3Service.getBlockTimestamp(event.blockNumber);
+    transacaoPJ.dataHora = new Date(timestamp * 1000);
+    this.ref.detectChanges();
 }
+
 
 recuperaFilePathAndName(self,transacao) {
 

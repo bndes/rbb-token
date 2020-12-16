@@ -1,6 +1,9 @@
 export class DashboardTransferencia {
+  deId: number;
   deRazaoSocial: string;
   deCnpj: string;
+
+  paraId: number;
   paraRazaoSocial: string;
   paraCnpj: string;
   deConta: string;

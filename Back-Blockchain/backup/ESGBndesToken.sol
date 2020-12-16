@@ -321,12 +321,15 @@ contract ESGBndesToken is SpecificRBBToken {
     }
 
 //////////
+
     function addInvestor (uint idInvestor) public onlyOwner {
         require(registry.isRegistryOperational(idInvestor), "Conta de investidor precisa estar com cadastro validado");
-        require(!investors[idInvestor], "Investidor já cadastrado");
-        investors[idInvestor] = true;
-        emit FA_InvestorAdded(idInvestor);
+        if(!investors[idInvestor]) {
+            investors[idInvestor] = true;
+            emit FA_InvestorAdded(idInvestor);
+        }
     }
+
 
     function addClient (uint id, string memory idFinancialSupportAgreement) internal  {
 

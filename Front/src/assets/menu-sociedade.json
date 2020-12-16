@@ -19,13 +19,8 @@
 				"separador": false
 			},			
 			{
-				"titulo": "Dashboard Liberação e Resgate",
+				"titulo": "Dashboard Transações",
 				"url": "/sociedade/dash-transf",
-				"separador": false
-			},			
-			{
-				"titulo": "Dashboard Intervenções Manuais",
-				"url": "/sociedade/dash-manuais",
 				"separador": false
 			}
 		]

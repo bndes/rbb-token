@@ -152,8 +152,8 @@ let bDoador = await this.web3Service.isDoadorSync(this.doacao.contaBlockchainOri
       Utils.criarAlertasAvisoConfirmacao( txHash, 
         self.web3Service, 
         self.bnAlertsService, 
-        "Doação do cnpj " + self.doacao.cnpjOrigem + "  enviado. Aguarde a confirmação.", 
-        "A doação foi confirmada na blockchain. Aguarde recebimento de email com o boleto da doação.", 
+        "Investimento do cnpj " + self.doacao.cnpjOrigem + "  enviado. Aguarde a confirmação.", 
+        "O investimento foi confirmado na blockchain. Aguarde recebimento de email com o boleto de pagamento.", 
         self.zone)       
         
         self.router.navigate(['sociedade/dash-doacao']);
@@ -164,7 +164,7 @@ let bDoador = await this.web3Service.isDoadorSync(this.doacao.contaBlockchainOri
         "Erro ao registrar investimento na blockchain", 
         error )
 
-    });    
+    });
   
   Utils.criarAlertaAcaoUsuario( self.bnAlertsService, 
                                 "Confirme a operação no metamask e aguarde a confirmação do registro." )    

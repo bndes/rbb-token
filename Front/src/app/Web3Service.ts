@@ -12,6 +12,7 @@ export class Web3Service {
 
     private ethereum: any;
     private provider: any;
+    private netVersion: any;
     private accountProvider: any;
 
     private addrContratoRBBToken: string = '';
@@ -59,10 +60,14 @@ export class Web3Service {
         this.vetorTxJaProcessadas = [];
 
         this.serverUrl = ConstantesService.serverUrl;
-        console.log("Web3Service.ts :: Selecionou URL = " + this.serverUrl)
+        let url = this.serverUrl + 'constantesFront';
+        console.log("Web3Service.ts :: Selecionou URL = " + url);
 
-        this.http.post<Object>(this.serverUrl + 'constantesFront', {}).subscribe(
+        this.http.post<Object>(url, {}).subscribe(
             data => {
+
+                console.log("POST DO SERVER configurando atributos front");
+
 
                 this.numeroBlockchainNetwork = data["blockchainNetwork"];
                 this.URLBlockchainExplorer = data["URLBlockchainExplorer"];
@@ -80,10 +85,8 @@ export class Web3Service {
                 this.abiESGBndesToken_GetDataToCall = data['abiESGBndesToken_GetDataToCall']; 
                 this.abiRBBRegistry = data['abiRBBRegistry'];
                 this.abiESGBndesToken_BNDESRoles = data['abiESGBndesToken_BNDESRoles'];
-            
 
                 this.intializeWeb3();
-                this.inicializaQtdDecimais();
 
             },
             error => {
@@ -93,25 +96,36 @@ export class Web3Service {
     }
 
  
-    intializeWeb3() {
+    async intializeWeb3() {
 
-        console.log("#### this.URLBlockchainProvider = " + this.URLBlockchainProvider);
+        console.log("this.URLBlockchainProvider = " + this.URLBlockchainProvider);
         this.provider = new ethers.providers.JsonRpcProvider(this.URLBlockchainProvider);
         this.ethereum =  window['ethereum'];
-        console.log("provider ethers");
-        console.log(this.provider);
+
+        this.netVersion = await this.ethereum.request({
+            method: 'net_version',
+        });
+        console.log(this.netVersion);
+
+        this.accountProvider = new ethers.providers.Web3Provider(this.ethereum);
+
+        console.log("accountProvider=");
+        console.log(this.accountProvider);        
+
+        console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
+        console.log("this.addrContratoRBBToken=" + this.addrContratoRBBToken);
 
         this.rbbTokenSmartContract = new ethers.Contract(this.addrContratoRBBToken, this.abiRBBToken, this.provider);
         this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.provider);
         this.esgBndesToken_GetDataToCallSmartContract = new ethers.Contract(this.addrContratoESGBndesToken_GetDataToCall, this.abiESGBndesToken_GetDataToCall, this.provider);
         this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.provider);
-        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
-        
-        this.accountProvider = new ethers.providers.Web3Provider(this.ethereum);
+//        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
 
-        console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
-        console.log("accountProvider=");
-        console.log(this.accountProvider);        
+console.log("todos os contratos lidos");
+        
+        
+        this.inicializaQtdDecimais();
+        console.log("this.decimais=" + this.decimais);
 
     } 
 
@@ -130,10 +144,13 @@ export class Web3Service {
 
             URLBlockchainExplorer: this.URLBlockchainExplorer,
             nomeRedeBlockchain: this.nomeRedeBlockchain,
-
+            numeroBlockchainNetwork: this.numeroBlockchainNetwork,
             addrContratoRBBToken: this.addrContratoRBBToken,
             addrContratoESGBndesToken: this.addrContratoESGBndesToken,
             addrContratoRBBRegistry: this.addrContratoRBBRegistry,
+            URLBlockchainProvider: this.URLBlockchainProvider,
+
+            netVersion: this.netVersion
         };
     }
 
@@ -148,6 +165,7 @@ export class Web3Service {
 
     async inicializaQtdDecimais() {
         this.decimais = await this.rbbTokenSmartContract.getDecimals();
+        console.log("this.decimais=" + this.decimais);
         return this.decimais;
     }
 
@@ -186,6 +204,9 @@ export class Web3Service {
     }
 
     async recuperaEventosAdicionaCliente() {
+        console.log("FILTROS");
+
+        console.log(this.esgBndesTokenSmartContract.filters);
         let filter = this.esgBndesTokenSmartContract.filters.FA_ClientAdded(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
@@ -195,53 +216,65 @@ export class Web3Service {
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosRegistrarInvestimento() {
+    async recuperaEventosRegistrarInvestimento() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InvestmentBooked(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosRecebimentoInvestimento() {
+    async recuperaEventosRecebimentoInvestimento() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InvestmentConfirmed(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosAlocacaoParaDesembolso() {
+    async recuperaEventosAlocacaoParaDesembolso() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InitialAllocation_Disbursements(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
 
     }
 
-    async registraEventosAlocacaoParaContaAdm() {
+    async recuperaEventosAlocacaoParaContaAdm() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_InitialAllocation_Fee(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosLiberacao() {
+    async recuperaEventosLiberacao() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_Disbursement(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosPagamentoFornecedores() {
+    async recuperaEventosPagamentoFornecedores() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_TokenTransfer(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosBNDESPagaFornecedores() {
+    async recuperaEventosBNDESPagaFornecedores() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_BNDES_TokenTransfer(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }    
     
-    async registraEventosResgate() {
+    async recuperaEventosResgate() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionRequested(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
-    async registraEventosLiquidacaoResgate() {
+    async recuperaEventosLiquidacaoResgate() {
         let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionSettlement(null);
         return await this.esgBndesTokenSmartContract.queryFilter(filter);
     }
 
- //TODO: alterar esses eventos para dashboard de intervencoes manuais. Falta incluir ESG_BndesToken_BndesRoles 
+    //TODO: melhorar para buscar diretamente pelo hash do evento
+    async recuperaEventosResgateByHash(hash) {
+        let filter = this.esgBndesTokenSmartContract.filters.FA_RedemptionRequested(null);
+        let eventos = await this.esgBndesTokenSmartContract.queryFilter(filter);
+        for (let i=0; i<eventos.length; i++) {
+            if (eventos[i].transactionHash == hash) {
+                return eventos[i];
+            }
+          }
+        return null; 
+    }    
+
+ //TODO: alterar esses eventos para dashboard de intervencoes manuais.
     async registraEventosIntervencaoManualMintBurn() {
         console.log("web3-registraEventosIntervencaoManual");
 
@@ -262,45 +295,25 @@ export class Web3Service {
         
         let self = this;
         console.info("Callback ", callback);
-        const filtro = { fromBlock: 'latest', toBlock: 'pending' }; 
-/* TODO        
-        this.eventoRBBToken = this.rbbTokenSmartContract.allEvents( filtro );                 
-        this.eventoRBBToken.watch( function (error, result) {
-            console.log("Watcher Token Genérico executando...")
-            self.procuraTransacao(error, result, txHashProcurado, self, callback);
+        console.info("txHashProcurado= ", txHashProcurado);
+
+        this.rbbTokenSmartContract.on("*", function(evento) {
+            self.processaEventoParaChamadaCallback(evento,txHashProcurado,callback);
         });
-        this.eventoTokenEspecifico = this.esgBndesTokenSmartContract.allEvents( filtro );                 
-        this.eventoTokenEspecifico.watch( function (error, result) {
-            console.log("Watcher Token Específico executando...")
-            self.procuraTransacao(error, result, txHashProcurado, self, callback);
+        this.esgBndesTokenSmartContract.on("*", function(evento) {
+            self.processaEventoParaChamadaCallback(evento,txHashProcurado,callback);
         });
-*/
-        console.log("registrou o watcher de eventos");
         
     }
 
-    procuraTransacao(error, result, txHashProcurado, self, callback) {
-        console.log( "Entrou no procuraTransacao" );
-        console.log( "txHashProcurado: " + txHashProcurado );
-        console.log( "result.transactionHash: " + result.transactionHash );
-        self.web3.eth.getTransactionReceipt(txHashProcurado,  function (error, result) {
-            if ( !error ) {
-                let status = result.status
-                let STATUS_MINED = 0x1
-                console.log("Achou o recibo da transacao... " + status)     
-                if ( status == STATUS_MINED && !self.vetorTxJaProcessadas.includes(txHashProcurado)) {
-                    self.vetorTxJaProcessadas.push(txHashProcurado);
-                    callback(error, result);        
-                } else {
-                    console.log('"Status da tx pendente ou jah processado"')
-                }
+    processaEventoParaChamadaCallback(evento, txHashProcurado, callback) {
+        if (evento.transactionHash == txHashProcurado) {
+            if (!this.vetorTxJaProcessadas.includes(txHashProcurado)) {
+                this.vetorTxJaProcessadas.push(txHashProcurado);
+                callback();    
             }
-            else {
-              console.log('Nao eh o evento de confirmacao procurado')
-            } 
-        });     
+        }    
     }
-
 
     ////////////////////// INICIO REGISTRY
 
@@ -343,7 +356,8 @@ export class Web3Service {
 
     async registrarInvestimento(amount: number): Promise<any> {
         
-        console.log("Registra doacao!!! ");
+        console.log("Registra doacao!!! " + amount);
+        console.log("this.decimais= " + this.decimais);
         
         amount = this.converteDecimalParaInteiro(amount);     
         console.log("Amount=" + amount);
@@ -383,7 +397,7 @@ export class Web3Service {
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
         let specificHash = <string> (await this.getSpecificHashAsUint(30));
 
-        let retornedValue = await this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN,specificHash);
+        let retornedValue = await this.rbbTokenSmartContract.balanceRequestedTokens(this.ID_SPECIFIC_TOKEN, rbbId, specificHash);
 
         return self.converteInteiroParaDecimal( retornedValue.toNumber() );
     }
@@ -396,6 +410,8 @@ export class Web3Service {
         console.log("amount=" + amount);
         console.log("inv=" + rbbIDInvestor);
         console.log("addr=" + this.addrContratoESGBndesToken);
+        console.log("docHash=" + docHash);
+
 
         //TODO: resolver o que fazer porque não temos um saldo de investidor isolado
         let specificHash = <string> (await this.getSpecificHashAsUint(30));
@@ -403,9 +419,8 @@ export class Web3Service {
         const signer = this.accountProvider.getSigner();
         const contWithSigner = this.rbbTokenSmartContract.connect(signer);
 
-        //TODO: Trocar fake hash pelo hash
         return (await contWithSigner.mint(this.addrContratoESGBndesToken, rbbIDInvestor, specificHash, 
-            amount, this.FAKE_HASH, []));  
+            amount, docHash, []));  
     }  
 
     ////////////////// FIM INVESTIDOR
@@ -461,7 +476,6 @@ export class Web3Service {
         return this.converteInteiroParaDecimal(valorRetornado.toNumber());
 
     }
-// 
 
 
 
@@ -636,18 +650,20 @@ export class Web3Service {
         console.log("Web3Service - Redeem");
 
         let callData = await this.esgBndesToken_GetDataToCallSmartContract.getRedeemData();
-        console.log(callData);
         let fromHash = callData[0];
-        console.log(fromHash);
-
         let dataFromDD = callData[1];
-        console.log(dataFromDD);
 
         transferAmount = this.converteDecimalParaInteiro(transferAmount);     
+        console.log('this.addrContratoESGBndesToken=' + this.addrContratoESGBndesToken);
+        console.log('fromHash=' + fromHash);
+        console.log('this.FAKE_HASH=' + this.FAKE_HASH);
         console.log('TransferAmount(after)=' + transferAmount);
+        console.log(dataFromDD);
 
        const signer = this.accountProvider.getSigner();
        const contWithSigner = this.rbbTokenSmartContract.connect(signer);
+
+
        
        return (await contWithSigner.redeem (
             this.addrContratoESGBndesToken, fromHash, transferAmount, this.FAKE_HASH, dataFromDD));
@@ -658,6 +674,7 @@ export class Web3Service {
         console.log("Web3Service - liquidaResgate")
         console.log("HashResgate - " + hashResgate)
         console.log("HashComprovante - " + hashComprovante)
+
 //        console.log("isOk - " + isOk)
 //TODO: Avaliar se precisa incluir o isOk --->  impacto no smart contract
         let emptyData: String[];
@@ -666,10 +683,9 @@ export class Web3Service {
         const signer = this.accountProvider.getSigner();
         const contWithSigner = this.rbbTokenSmartContract.connect(signer);
 
-        
-        return (await contWithSigner.redeem (
-                this.addrContratoESGBndesToken, hashResgate, this.FAKE_HASH, emptyData));
-     
+        return (await contWithSigner.notifyRedemptionSettlement (
+                this.addrContratoESGBndesToken, hashResgate, hashComprovante, emptyData));
+            
     }
 
 
@@ -716,8 +732,11 @@ export class Web3Service {
         return false;
     }    
 
-    isResponsibleForSettlementSync(address: string) {
-        return false;
+    async isResponsibleForSettlementSync(address: string) {
+        let respSettlement = await this.rbbTokenSmartContract.responsibleForSettlement();
+        console.log("respSettlement=" + respSettlement);
+        console.log("isResponsibleForSettlementSync=");
+        return respSettlement == address;
     }
 
     async isResponsibleForDisbursementSync() {

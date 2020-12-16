@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./RBBRegistry.sol";
 import "./SpecificRBBToken.sol";
 import "./SpecificRBBTokenRegistry.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol"
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
@@ -27,8 +27,8 @@ contract RBBToken is Pausable, Ownable {
     //specificTokenId => (RBBid => (specificHash => amount)
     mapping (uint => mapping (uint => mapping (bytes32 => uint))) public rbbBalances;
 
-    //specificTokenId => RBBId => (specificHash => amount)
-    mapping (uint => mapping (uint => mapping (bytes32 => uint))) public balanceRequestedTokens;
+    //specificTokenId => (specificHash => amount)
+    mapping (uint => mapping (bytes32 => uint)) public balanceRequestedTokens;
 
     event RBBTokenMintRequested(address specificTokenAddr, bytes32 specificHash, uint idInvestor, 
             uint amount, bytes32 docHash);
@@ -66,8 +66,8 @@ contract RBBToken is Pausable, Ownable {
         
         uint specificTokenId = tokenRegistry.getSpecificRBBTokenId(specificTokenAddr);
 
-        balanceRequestedTokens[specificTokenId][idInvestor][specificInvestimentHash] = 
-            balanceRequestedTokens[specificTokenId][idInvestor][specificInvestimentHash].add(amount);
+        balanceRequestedTokens[specificTokenId][specificInvestimentHash] = 
+            balanceRequestedTokens[specificTokenId][specificInvestimentHash].add(amount);
     
         emit RBBTokenMintRequested(specificTokenAddr, specificInvestimentHash, idInvestor, amount, docHash);
 
@@ -86,8 +86,8 @@ contract RBBToken is Pausable, Ownable {
         (uint specificTokenId, uint specificTokenOwnerId) = 
                     tokenRegistry.getSpecificRBBTokenIdAndOwnerId(specificTokenAddr);
 
-        balanceRequestedTokens[specificTokenId][idInvestor][specificHash] 
-            = balanceRequestedTokens[specificTokenId][idInvestor][specificHash].sub(amount, "Total de emissão excede valor solicitado");
+        balanceRequestedTokens[specificTokenId][specificHash] 
+            = balanceRequestedTokens[specificTokenId][specificHash].sub(amount, "Total de emissão excede valor solicitado");
 
         SpecificRBBToken specificToken = SpecificRBBToken(specificTokenAddr);
 
