@@ -1,7 +1,7 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "./RBBRegistry.sol";
+import "./IRBBRegistry.sol";
 import "./SpecificRBBToken.sol";
 import "./SpecificRBBTokenRegistry.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -13,7 +13,7 @@ contract RBBToken is Pausable, Ownable {
 
 //TODO: avaliar se deveria ter um set para modificar esses atributos. Ideal seria mudar apenas pela governanca
     SpecificRBBTokenRegistry public tokenRegistry;
-    RBBRegistry public registry;
+    IRBBRegistry public registry;
 
 
     using SafeMath for uint;
@@ -46,7 +46,7 @@ contract RBBToken is Pausable, Ownable {
 
 
     constructor (address newRegistryAddr, address newSpecificRBBTokenAddr, uint8 _decimals) public {
-        registry = RBBRegistry(newRegistryAddr);
+        registry = IRBBRegistry(newRegistryAddr);
         tokenRegistry = SpecificRBBTokenRegistry(newSpecificRBBTokenAddr);
         decimals = _decimals;
         responsibleForInvestmentConfirmation = msg.sender;
