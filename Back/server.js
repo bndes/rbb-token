@@ -14,6 +14,7 @@ const https = require ('https');
 const multer = require('multer');
 
 const DIR_UPLOAD = config.infra.caminhoArquivos + config.infra.caminhoUpload;
+//const DIR_CAMINHO_DECLARACAO = config.infra.caminhoArquivos + config.infra.caminhoDeclaracao;
 const DIR_CAMINHO_COMPROVANTE_DOACAO = config.infra.caminhoArquivos + config.infra.caminhoComprovanteDoacao;
 const DIR_CAMINHO_COMPROVANTE_LIQUIDACAO = config.infra.caminhoArquivos + config.infra.caminhoComprovanteLiquidacao;
 
@@ -77,7 +78,7 @@ let contrato_json_RBBToken = require(config.infra.contrato_json_RBBToken);
 let contrato_json_ESGBndesToken = require(config.infra.contrato_json_ESGBndesToken);
 let contrato_json_ESGBndesToken_GetDataToCall = require(config.infra.contrato_json_ESGBndesToken_GetDataToCall);
 let contrato_json_RBBRegistry = require(config.infra.contrato_json_RBBRegistry);
-
+let contrato_json_ESGBndesToken_BNDESRoles=require(config.infra.contrato_json_ESGBndesToken_BNDESRoles);
 
 var n = contrato_json_RBBToken.networks;
 
@@ -94,6 +95,7 @@ addrContratoRBBToken = config.infra.endereco_RBBToken;
 addrContratoESGBndesToken = config.infra.endereco_ESGBndesToken;
 addrContratoESGBndesToken_GetDataToCall = config.infra.endereco_ESGBndesToken_GetDataToCall;
 addrContratoRBBRegistry = config.infra.endereco_RBBRegistry;
+addrContratoESGBndesToken_BNDESRoles = config.infra.endereco_ESGBndesToken_BNDESRoles 
 
 
 console.log("endereco do contrato RBBToken=" + addrContratoRBBToken);
@@ -113,7 +115,7 @@ app.get('/api/hash/:filename', async function (req, res) {
 async function calculaHash(filename) {
 	const input = fs.readFileSync(filename);	
 	let hashedResult = keccak256(input).toString('hex');	
-	return "0x" + hashedResult;					
+	return hashedResult;					
 }
 
 //recupera constantes front
@@ -127,11 +129,13 @@ app.post('/api/constantesFront', function (req, res) {
 		addrContratoESGBndesToken: addrContratoESGBndesToken,
 		addrContratoESGBndesToken_GetDataToCall: addrContratoESGBndesToken_GetDataToCall,
 		addrContratoRBBRegistry: addrContratoRBBRegistry,
+		addrContratoESGBndesToken_BNDESRoles: addrContratoESGBndesToken_BNDESRoles, 
 
 		abiRBBToken: contrato_json_RBBToken['abi'],
 		abiESGBndesToken: contrato_json_ESGBndesToken['abi'],
 		abiESGBndesToken_GetDataToCall: contrato_json_ESGBndesToken_GetDataToCall['abi'], 
-		abiRBBRegistry: contrato_json_RBBRegistry['abi']
+		abiRBBRegistry: contrato_json_RBBRegistry['abi'],
+		abiESGBndesToken_BNDESRoles: contrato_json_ESGBndesToken_BNDESRoles['abi'],
 	 });
 });
 
@@ -348,7 +352,12 @@ async function buscaFileInfo(req, res) {
 
 		hashFile = req.body.hashFile;		
 
-		if (tipo=="comp_doacao") {
+		if (tipo=="declaracao") {
+			let fileName = montaNomeArquivoDeclaracao(cnpj, contrato, blockchainAccount, hashFile);
+			filePathAndNameToFront = config.infra.caminhoDeclaracao + fileName;
+			targetPathToCalculateHash = DIR_CAMINHO_DECLARACAO + fileName;	
+		}		
+		else if (tipo=="comp_doacao") {
 			let fileName = montaNomeArquivoComprovanteDoacao(cnpj, hashFile);			
 			filePathAndNameToFront = config.infra.caminhoComprovanteDoacao + fileName;
 			targetPathToCalculateHash = DIR_CAMINHO_COMPROVANTE_DOACAO + fileName;	
