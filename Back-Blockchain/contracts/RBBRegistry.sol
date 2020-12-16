@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./RBBLib.sol";
 
-contract RBBRegistry is Ownable() {
+contract RBBRegistry is Ownable(),RBBRegistryInterface {
 
     enum BlockchainAccountState {AVAILABLE,WAITING_VALIDATION,VALIDATED,INVALIDATED}
     BlockchainAccountState blockchainState; /* Variable not used, only defined to create the enum type. */
@@ -394,13 +394,15 @@ contract RBBRegistry is Ownable() {
             CNPJ_RBBId[CNPJ] = ++currentRBBId;
 
         return CNPJ_RBBId[CNPJ];
-    }
+    } 
 /* função que pega o cnpj passando o id */
     function getCNPJbyID(uint Id) public view returns (uint ) {
         address addr =RBBId_addresses[Id][0];
         
         return legalEntitiesInfo[addr].CNPJ;
-    } 
+    }
+
+    
  
 
 }
