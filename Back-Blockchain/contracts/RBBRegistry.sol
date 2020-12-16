@@ -2,8 +2,9 @@ pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./RBBLib.sol";
+import "./RBBRegistryInterface.sol";
 
-contract RBBRegistry is Ownable() {
+contract RBBRegistry is Ownable(),RBBRegistryInterface {
 
     enum BlockchainAccountState {AVAILABLE,WAITING_VALIDATION,VALIDATED,INVALIDATED}
     BlockchainAccountState blockchainState; /* Variable not used, only defined to create the enum type. */
@@ -301,7 +302,7 @@ contract RBBRegistry is Ownable() {
         return isValidatedAccount(addr) && !isPaused(addr);
     }
 
-    function isRegistryOperational(uint RBBId) public view returns (bool) {
+    function isRegistryOperational(uint RBBId) public view override returns (bool) {
         address[] memory addresses  = RBBId_addresses[RBBId];
 
         for (uint i=0; i < addresses.length ; i++) {
@@ -325,7 +326,7 @@ contract RBBRegistry is Ownable() {
         return legalEntitiesInfo[addr].CNPJ;
     }    
 
-    function getRegistry (address addr) public view returns (uint, uint, bytes32, uint, uint, bool, uint256) {
+    function getRegistry (address addr) public view override returns (uint, uint, bytes32, uint, uint, bool, uint256) {
         Registry memory reg = legalEntitiesInfo[addr];
 
         return (  reg.RBBId,
@@ -350,7 +351,7 @@ contract RBBRegistry is Ownable() {
         return ((int) (legalEntitiesInfo[addr].role));
     }
 
-    function getIdFromCNPJ(uint cnpj) public view returns (uint) {
+    function getIdFromCNPJ(uint cnpj) public view override returns (uint) {
         return CNPJ_RBBId[cnpj];
     }
     
@@ -394,13 +395,15 @@ contract RBBRegistry is Ownable() {
             CNPJ_RBBId[CNPJ] = ++currentRBBId;
 
         return CNPJ_RBBId[CNPJ];
-    }
+    } 
 /* função que pega o cnpj passando o id */
-    function getCNPJbyID(uint Id) public view returns (uint ) {
+    function getCNPJbyID(uint Id) public view override returns (uint ) {
         address addr =RBBId_addresses[Id][0];
         
         return legalEntitiesInfo[addr].CNPJ;
-    } 
+    }
+
+    
  
 
 }
