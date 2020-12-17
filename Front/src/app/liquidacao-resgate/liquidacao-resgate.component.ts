@@ -141,7 +141,7 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
             self.recuperaFilePathAndName(self,self.liquidacaoResgate);
       }
       
-    });
+    };
 
   }
 
