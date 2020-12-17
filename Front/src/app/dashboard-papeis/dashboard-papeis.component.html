@@ -17,8 +17,9 @@
       <thead>
         <tr *ngIf="listaTransacoes.length > 0">
           <td>RBBID
-
-          </td>          
+          </td>              
+          <td>Razão Social
+          </td>
           <td >CNPJ
           </td>
           <td >Tipo Papel
@@ -34,6 +35,7 @@
       <tbody>
         <tr *ngFor="let transacao of listaTransacoes | orderBy: order: reverse: 'caseInsensitive':customComparator | filter:filter | paginate: { itemsPerPage: 10, currentPage: p } ; let i = index">
           <td>{{transacao.rbbId}}</td>
+          <td>{{transacao.razaoSocial}}</td>
           <td>{{transacao.cnpj}}</td>
           <td>{{transacao.tipo}}</td>
           <td>{{transacao.dataHora | date: 'dd/MM/yyyy hh:mm a' }}</td>

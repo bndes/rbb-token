@@ -2,16 +2,16 @@ var RBBLib = artifacts.require("./RBBLib.sol");
 //var RBBRegistry = artifacts.require("./RBBRegistry.sol");
 var SpecificRBBTokenRegistry = artifacts.require("./SpecificRBBTokenRegistry.sol");
 var RBBToken = artifacts.require("./RBBToken.sol");
-var FABndesToken = artifacts.require("./FABndesToken.sol");
-var FABndesToken_BNDESRoles = artifacts.require("./FABndesToken_BNDESRoles.sol");
-var FABndesToken_GetDataToCall = artifacts.require("./FABndesToken_GetDataToCall.sol");
+var ESGBndesToken = artifacts.require("./ESGBndesToken.sol");
+var ESGBndesToken_BNDESRoles = artifacts.require("./ESGBndesToken_BNDESRoles.sol");
+var ESGBndesToken_GetDataToCall = artifacts.require("./ESGBndesToken_GetDataToCall.sol");
 
 
 module.exports = async (deployer, network, accounts) => {
 
 	await deployer.deploy(RBBLib);
 //	await deployer.link(RBBLib, RBBRegistry);
-	await deployer.link(RBBLib, FABndesToken);
+	await deployer.link(RBBLib, ESGBndesToken);
 
 //linhas usadas para teste
 //	await deployer.deploy(RBBRegistry, accounts[0]);
@@ -25,13 +25,15 @@ module.exports = async (deployer, network, accounts) => {
 //	var registryAddr = RBBRegistry.address;
 
 //usado no deploy da RBB porque o BNDESRegistry jah foi deployado
-	var registryAddr = "0x5BC83F7EeB7A46FB0a5d2B3e0215FAdB2A61Da53";
+	var registryAddr = "0x3C4fF27302eb323bd95B8181c9fC51F832A0ac13";
 
-	await deployer.deploy(SpecificRBBTokenRegistry, registryAddr);
+	let specificRBBTokenRegistryInstance = await deployer.deploy(SpecificRBBTokenRegistry, registryAddr);
 	await deployer.deploy(RBBToken, registryAddr, SpecificRBBTokenRegistry.address, 2);
-	await deployer.deploy(FABndesToken_BNDESRoles, registryAddr);
-	await deployer.deploy(FABndesToken, RBBToken.address, FABndesToken_BNDESRoles.address); 
-	await deployer.deploy(FABndesToken_GetDataToCall, FABndesToken.address); 
+	await deployer.deploy(ESGBndesToken_BNDESRoles, registryAddr);
+	await deployer.deploy(ESGBndesToken, RBBToken.address, ESGBndesToken_BNDESRoles.address); 
+	await deployer.deploy(ESGBndesToken_GetDataToCall, ESGBndesToken.address); 
 
+//	usar conta 1 registrar contrato especifico (endereço de EsgBndesToken). Chamar o método registerSpecificRBBToken do contrato SpecificRBBTokenRegistry.sol.
+	specificRBBTokenRegistryInstance.registerSpecificRBBToken(ESGBndesToken.address);
 	
 };

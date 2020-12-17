@@ -76,8 +76,8 @@ configAcessoBDPJ.password = process.env.BNC_BD_PJ_PASSWORD;
 let contrato_json_RBBToken = require(config.infra.contrato_json_RBBToken);
 let contrato_json_ESGBndesToken = require(config.infra.contrato_json_ESGBndesToken);
 let contrato_json_ESGBndesToken_GetDataToCall = require(config.infra.contrato_json_ESGBndesToken_GetDataToCall);
-let contrato_json_RBBRegistry = require(config.infra.contrato_json_RBBRegistry);
-
+let contrato_json_IRBBRegistry = require(config.infra.contrato_json_IRBBRegistry);
+let contrato_json_ESGBndesToken_BNDESRoles=require(config.infra.contrato_json_ESGBndesToken_BNDESRoles);
 
 var n = contrato_json_RBBToken.networks;
 
@@ -94,6 +94,8 @@ addrContratoRBBToken = config.infra.endereco_RBBToken;
 addrContratoESGBndesToken = config.infra.endereco_ESGBndesToken;
 addrContratoESGBndesToken_GetDataToCall = config.infra.endereco_ESGBndesToken_GetDataToCall;
 addrContratoRBBRegistry = config.infra.endereco_RBBRegistry;
+
+addrContratoESGBndesToken_BNDESRoles = config.infra.endereco_ESGBndesToken_BNDESRoles 
 
 
 console.log("endereco do contrato RBBToken=" + addrContratoRBBToken);
@@ -127,11 +129,15 @@ app.post('/api/constantesFront', function (req, res) {
 		addrContratoESGBndesToken: addrContratoESGBndesToken,
 		addrContratoESGBndesToken_GetDataToCall: addrContratoESGBndesToken_GetDataToCall,
 		addrContratoRBBRegistry: addrContratoRBBRegistry,
+		addrContratoESGBndesToken_BNDESRoles: addrContratoESGBndesToken_BNDESRoles, 
+
 
 		abiRBBToken: contrato_json_RBBToken['abi'],
 		abiESGBndesToken: contrato_json_ESGBndesToken['abi'],
 		abiESGBndesToken_GetDataToCall: contrato_json_ESGBndesToken_GetDataToCall['abi'], 
-		abiRBBRegistry: contrato_json_RBBRegistry['abi']
+		abiRBBRegistry: contrato_json_IRBBRegistry['abi'],
+		abiESGBndesToken_BNDESRoles: contrato_json_ESGBndesToken_BNDESRoles['abi'],
+
 	 });
 });
 
