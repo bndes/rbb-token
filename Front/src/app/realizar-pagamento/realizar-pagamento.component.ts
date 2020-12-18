@@ -89,7 +89,7 @@ export class RealizarPagamentoComponent implements OnInit {
       await this.recuperaClientePorCNPJ(cnpjConta);
 
       let idConta = <number> (await this.web3Service.getRBBIDByCNPJSync(cnpjConta));
-      let cliente = await this.web3Service.isclient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
+      let cliente = await this.web3Service.isClient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
       if(!cliente){
         let erro = "não é uma conta cliente"
         this.bnAlertsService.criarAlerta("error", "Erro",erro , 5); 
@@ -224,7 +224,7 @@ async recuperaFornecedor() {
     let  contaBlockchainOrigem= this.transferencia.contaBlockchainOrigem;
     let cnpjConta = <string> (await this.web3Service.getCNPJByAddressSync(contaBlockchainOrigem.toLowerCase()));
     let idConta = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpjConta)));
-    let cliente = await this.web3Service.isclient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
+    let cliente = await this.web3Service.isClient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
     if(!cliente){
       let erro = "não é uma conta cliente"
       this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);

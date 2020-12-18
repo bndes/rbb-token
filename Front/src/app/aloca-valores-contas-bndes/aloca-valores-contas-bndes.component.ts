@@ -44,7 +44,18 @@ ValorA_Alocar: any = 0;
   async ngOnInit() {
   }
 
-  async onSubmit(){
+  async alocarValor(){
+    if (!(await this.web3Service.isResponsibleForInitialAllocation())) {
+      let s = "essa conta nao é responsavel pela Alocação";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+    }
+    if(this.disponivelParaAlocacao<this.ValorA_Alocar){
+      let s = "Valor a alocar maior que o valor disponivel";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+    }
+    
     let idConta = await this.web3Service.getIdByAddressSync( await this.web3Service.getCurrentAccountSync());
     let verificadoDeMudanca1=this.disponivelParaAlocacao;
     let verificadoDeMudanca2=this.SaldoAtual;
@@ -76,6 +87,12 @@ ValorA_Alocar: any = 0;
   
       this.selectedAccount = newSelectedAccount;
       console.log("selectedAccount=" + this.selectedAccount);
+
+      if (!(await this.web3Service.isResponsibleForInitialAllocation())) {
+        let s = "essa conta nao é responsavel pela Alocação";
+        this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      }
+
       self.recuperaSaldoBNDESToken();
       
     }

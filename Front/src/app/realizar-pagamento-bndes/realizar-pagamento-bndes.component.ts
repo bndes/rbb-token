@@ -81,7 +81,7 @@ export class RealizarPagamentoBndesComponent implements OnInit {
     contaBlockchain = contaBlockchain.toLowerCase();   
 
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
-      let isbndesResposiblePaying = (await this.web3Service.isresposibleForPayingBNDESSuppliers());
+      let isbndesResposiblePaying = (await this.web3Service.isResposibleForPayingBNDESSuppliers());
       if (!isbndesResposiblePaying){
         let s = "essa conta nao pode fazer essa operação";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
@@ -220,7 +220,7 @@ async recuperaFornecedor() {
    async transferir() {
     ////////////////////////////////////////////////////////Verifica Cliente
   
-    let isbndesResposiblePaying = await this.web3Service.isresposibleForPayingBNDESSuppliers();
+    let isbndesResposiblePaying = await this.web3Service.isResposibleForPayingBNDESSuppliers();
     
     if(!isbndesResposiblePaying){
       let erro = "não é uma conta BNDES Responsavel por pagamento";

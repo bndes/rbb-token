@@ -66,7 +66,7 @@ export class RegistraDoacaoComponent implements OnInit {
     if ( contaBlockchain != undefined && contaBlockchain != "" && contaBlockchain.length == 42 ) {
 
       let cnpjContaOrigem = <string> (await this.web3Service.getCNPJByAddressSync(this.doacao.contaBlockchainOrigem));
-      let isinvestor = await  this.web3Service.isinvestor((await this.web3Service.getIdByAddressSync(this.doacao.contaBlockchainOrigem)));
+      let isinvestor = await  this.web3Service.isInvestor((await this.web3Service.getIdByAddressSync(this.doacao.contaBlockchainOrigem)));
        if (!isinvestor) {
         let s = "essa conta não é do tipo investidor.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
@@ -126,7 +126,7 @@ async registrarDoacao() {
     this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
     return;
   }
-  let isinvestor = await  this.web3Service.isinvestor(idContaOrigem);
+  let isinvestor = await  this.web3Service.isInvestor(idContaOrigem);
   if (!isinvestor) {
     let s = "essa conta não é do tipo investidor.";
     this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
