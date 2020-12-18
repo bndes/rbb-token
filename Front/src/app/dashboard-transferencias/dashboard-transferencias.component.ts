@@ -196,11 +196,6 @@ export class DashboardTransferenciasComponent implements OnInit {
     });      
 
     
-    // EVENTOS LIBERAÇÃO
-//    this.registrarExibicaoEventosLiberacao()
-
-    // EVENTOS SOLICITACAO DE RESGATE
-//    this.registrarExibicaoEventosSolicitacaoResgate()
 
 //    console.log("antes de atualizar - contador liberacao " + self.contadorLiberacao);
 //    console.log("antes de atualizar - contador liquidacao resgate " + self.contadorLiquidacaoResgate);
@@ -223,7 +218,7 @@ export class DashboardTransferenciasComponent implements OnInit {
     return itemB - itemA;
   }
 
-  processaEventoAlocacaoParaDesembolso(evento) {
+  async processaEventoAlocacaoParaDesembolso(evento) {
     
     let transacao: DashboardTransferencia;
     
@@ -245,6 +240,10 @@ export class DashboardTransferenciasComponent implements OnInit {
 
     this.includeIfNotExists(transacao);
     this.recuperaDataHora(evento, transacao); 
+    transacao.deCnpj = await this.web3Service.getCnpjByRBBId(transacao.deId);
+    transacao.paraCnpj = await this.web3Service.getCnpjByRBBId(transacao.paraId);
+
+    // this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
 
   }
 
