@@ -92,7 +92,7 @@ export class DashboardDoacaoComponent implements OnInit {
     }
   }
   
-  processaEvento(evento, descTipo) {
+  async processaEvento(evento, descTipo) {
 
     let transacao: DashboardDoacao;
     
@@ -110,8 +110,9 @@ export class DashboardDoacaoComponent implements OnInit {
     }
 
     this.includeIfNotExists(transacao);
-//            self.recuperaInfoDerivadaPorCnpj(this, transacao);
     this.recuperaDataHora(evento, transacao);
+    transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
+    this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
 
   }  
 
@@ -133,65 +134,64 @@ customComparator(itemA, itemB) {
     return itemB - itemA;
 }
 
-recuperaInfoDerivadaPorCnpj(self, pj) {
-    self.pessoaJuridicaService.recuperaEmpresaPorCnpj(pj.cnpj).subscribe(
-        data => {
-            pj.razaoSocial = "Erro: Não encontrado";
-            if (data && data.dadosCadastrais) {
-                pj.razaoSocial = data.dadosCadastrais.razaoSocial;
-              }
-              
-            // Colocar dentro da zona do Angular para ter a atualização de forma correta
-            self.zone.run(() => {
-                self.estadoLista = "cheia"
-            });
+async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
 
-        },
-        error => {
-            console.log("Erro ao buscar dados da empresa");
-            pj.razaoSocial = "";
-            pj.contaBlockchain = "";
-        });
+  transacao.razacaoSocial = "Erro: Não encontrado";
 
-    if (pj.nomeConta=="0") pj.nomeConta="-";
+  let self = this;
+  this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
+      data => {
+          transacao.razaoSocial = "Erro: Não encontrado";
+          if (data && data.dadosCadastrais) {
+            transacao.razaoSocial = data.dadosCadastrais.razaoSocial;
+            }
+            
+          // Colocar dentro da zona do Angular para ter a atualização de forma correta
+          self.zone.run(() => {
+              self.estadoLista = "cheia";
+          });
 
-}
+      },
+      error => {
+          console.log("Erro ao buscar dados da empresa");
+          transacao.razaoSocial = "";
+      });
+  }
+  async recuperaDataHora(event, transacaoPJ) {
 
-async recuperaDataHora(event, transacaoPJ) {
-
-    let timestamp = await this.web3Service.getBlockTimestamp(event.blockNumber);
-    transacaoPJ.dataHora = new Date(timestamp * 1000);
-    this.ref.detectChanges();
-}
+      let timestamp = await this.web3Service.getBlockTimestamp(event.blockNumber);
+      transacaoPJ.dataHora = new Date(timestamp * 1000);
+      this.ref.detectChanges();
+  }
 
 
-recuperaFilePathAndName(self,transacao) {
+  recuperaFilePathAndName(self,transacao) {
 
-    if ( transacao == undefined ||  (transacao.cnpj == undefined || transacao.cnpj == "" ) || ( transacao.hashComprovante == undefined || transacao.hashComprovante == "") ) {
-        console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-doacao");
-        return;
-    }
+      if ( transacao == undefined ||  (transacao.cnpj == undefined || transacao.cnpj == "" ) || ( transacao.hashComprovante == undefined || transacao.hashComprovante == "") ) {
+          console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-doacao");
+          return;
+      }
 
-    self.fileHandleService.buscaFileInfo(transacao.cnpj, "0", "0", transacao.hashComprovante, "comp_doacao").subscribe(
-        result => {
-          if (result && result.pathAndName) {
-            transacao.filePathAndName=ConstantesService.serverUrlRoot+result.pathAndName;
-          }
-          else {
-            let texto = "Não foi possível encontrar informações associadas ao arquivo.";
+      self.fileHandleService.buscaFileInfo(transacao.cnpj, "0", "0", transacao.hashComprovante, "comp_doacao").subscribe(
+          result => {
+            if (result && result.pathAndName) {
+              transacao.filePathAndName=ConstantesService.serverUrlRoot+result.pathAndName;
+            }
+            else {
+              let texto = "Não foi possível encontrar informações associadas ao arquivo.";
+              console.log(texto);
+              Utils.criarAlertaAcaoUsuario( self.bnAlertsService, texto);       
+            }                  
+          }, 
+          error => {
+            let texto = "Erro ao buscar dados de arquivo";
             console.log(texto);
-            Utils.criarAlertaAcaoUsuario( self.bnAlertsService, texto);       
-          }                  
-        }, 
-        error => {
-          let texto = "Erro ao buscar dados de arquivo";
-          console.log(texto);
-          console.log("cnpj=" + transacao.cnpj);
-          console.log("hashComprovante=" + transacao.hashComprovante);
-//              Utils.criarAlertaErro( self.bnAlertsService, texto,error);
-        }) //fecha busca fileInfo
+            console.log("cnpj=" + transacao.cnpj);
+            console.log("hashComprovante=" + transacao.hashComprovante);
+  //              Utils.criarAlertaErro( self.bnAlertsService, texto,error);
+          }) //fecha busca fileInfo
 
-}
+  }
 
 
 }

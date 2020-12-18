@@ -121,8 +121,10 @@ export class Web3Service {
         this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.provider);
         this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
 
+
 console.log("todos os contratos lidos");
         
+
         
         this.inicializaQtdDecimais();
         console.log("this.decimais=" + this.decimais);
@@ -165,7 +167,6 @@ console.log("todos os contratos lidos");
 
     async inicializaQtdDecimais() {
         this.decimais = await this.rbbTokenSmartContract.getDecimals();
-        console.log("this.decimais=" + this.decimais);
         return this.decimais;
     }
 
@@ -341,6 +342,10 @@ console.log("todos os contratos lidos");
         return registry;
     }
 
+    getCnpjByRBBId(id: number) {
+        return this.rbbRegistrySmartContract.getCNPJbyID(id);
+    }
+    
 
     ////////////////////// FIM REGISTRY
 
@@ -462,8 +467,6 @@ console.log("todos os contratos lidos");
             specificHash =  <string> (await this.getSpecificHashAsString(valorToHash));
         }
         else {
-            
-
             
             let valorToHash = this.RESERVED_BNDES_ADMIN_FEE_TO_HASH;//ver aqui
             specificHash = <string> (await this.getSpecificHashAsUint(valorToHash));
@@ -769,13 +772,12 @@ console.log("todos os contratos lidos");
        
          if (bndesResposible == contaBlockchain){
             return true;
-
         }
         else{
             return false;
         }
-
     }
+
     async isresponsibleForInitialAllocation(){
        let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.responsibleForInitialAllocation();
        let contaBlockchain = await this.accountProvider.getSigner().getAddress();
@@ -786,15 +788,13 @@ console.log("todos os contratos lidos");
         else{
             return false;
         }
-
     }
 
     async isresponsibleForDisbursement(){
         let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.responsibleForDisbursement();
         let contaBlockchain = await this.accountProvider.getSigner().getAddress();
-          if (bndesResposible == contaBlockchain){
+        if (bndesResposible == contaBlockchain){
              return true;
- 
          }
          else{
              return false;

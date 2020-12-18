@@ -2,6 +2,7 @@ import { Component, OnInit, NgZone } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import {DashboardPapeis} from './DashboardPapeis';
 import { Web3Service } from './../Web3Service';
+import { PessoaJuridicaService } from '../pessoa-juridica.service';
 import { BnAlertsService } from 'bndes-ux4';
 
 @Component({
@@ -23,7 +24,7 @@ export class DashboardPapeisComponent implements OnInit {
 
   selectedAccount: any;
 
-  constructor(protected bnAlertsService: BnAlertsService, private web3Service: Web3Service,
+  constructor(private pessoaJuridicaService: PessoaJuridicaService,protected bnAlertsService: BnAlertsService, private web3Service: Web3Service,
     private ref: ChangeDetectorRef, private zone: NgZone) { 
 
       let self = this;
@@ -87,13 +88,14 @@ processaConjuntoEventos(eventos, tipo) {
   }
 }
 
-processaEvento(evento, descTipo) {
+async processaEvento(evento, descTipo) {
   
       let transacao: DashboardPapeis;
 
       transacao = {
           rbbId: evento.args.id,
           cnpj: "FALTA BUSCAR NO RBB REGISTRY",
+          razaoSocial: "-",
           dataHora: null,
           tipo: descTipo,
           hashID: evento.transactionHash,
@@ -102,6 +104,8 @@ processaEvento(evento, descTipo) {
           
       this.includeIfNotExists(transacao);
       this.recuperaDataHora(evento, transacao);
+      transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
+      this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
 
 }
 
@@ -149,5 +153,30 @@ async recuperaDataHora(event, transacaoPJ) {
     transacaoPJ.dataHora = new Date(timestamp * 1000);
     this.ref.detectChanges();
 }
+
+async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
+
+  transacao.razacaoSocial = "Erro: Não encontrado";
+
+  let self = this;
+  this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
+      data => {
+          transacao.razaoSocial = "Erro: Não encontrado";
+          if (data && data.dadosCadastrais) {
+            transacao.razaoSocial = data.dadosCadastrais.razaoSocial;
+            }
+            
+          // Colocar dentro da zona do Angular para ter a atualização de forma correta
+          self.zone.run(() => {
+              self.estadoLista = "cheia";
+          });
+
+      },
+      error => {
+          console.log("Erro ao buscar dados da empresa");
+          transacao.razaoSocial = "";
+      });
+  }
+
 
 }
