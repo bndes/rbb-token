@@ -119,7 +119,7 @@ export class Web3Service {
         this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.provider);
         this.esgBndesToken_GetDataToCallSmartContract = new ethers.Contract(this.addrContratoESGBndesToken_GetDataToCall, this.abiESGBndesToken_GetDataToCall, this.provider);
         this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.provider);
-//        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
+        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
 
 console.log("todos os contratos lidos");
         
@@ -762,9 +762,11 @@ console.log("todos os contratos lidos");
 
 
     async isresposibleForPayingBNDESSuppliers(){
-
+        
        let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.resposibleForPayingBNDESSuppliers();
+       
        let contaBlockchain = await this.accountProvider.getSigner().getAddress();
+       
          if (bndesResposible == contaBlockchain){
             return true;
 
