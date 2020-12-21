@@ -226,7 +226,7 @@ async recuperaFornecedor() {
     let idConta = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(cnpjConta)));
     let cliente = await this.web3Service.isClient(idConta,(this.transferencia.numeroSubcreditoSelecionado).toString());
     if(!cliente){
-      let erro = "não é uma conta cliente"
+      let erro = "não é uma conta cliente";
       this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);
       
       return;
@@ -235,12 +235,17 @@ async recuperaFornecedor() {
     let  fornecedorCPF = this.transferencia.cnpjDestino;
     let idfornecedor = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(fornecedorCPF)));
     let fornecedor = await this.web3Service.isOperacional(idfornecedor);
-    if(!fornecedor){
-      let erro = "CNPJ de fornecedor não está operacional"
+    if(!(await this.web3Service.isSupplier(idfornecedor))){
+      let erro = "CNPJ nao é de um fornecedor";
       this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);
       return;
+    }
 
 
+    if(!(await this.web3Service.isOperacional(idfornecedor))){
+      let erro = "CNPJ de fornecedor não está operacional";
+      this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);
+      return;
     }
     /////////////////////////////////////////////////
 

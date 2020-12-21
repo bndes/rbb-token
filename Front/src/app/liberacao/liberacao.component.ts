@@ -66,7 +66,7 @@ export class LiberacaoComponent implements OnInit {
 
     this.selectedAccount = newSelectedAccount;
     console.log("selectedAccount=" + this.selectedAccount);
-    if((await this.web3Service.isResponsibleForDisbursement)){
+    if(!(await this.web3Service.isResponsibleForDisbursement())){
       let s = "conta nao é responsavel por desembolso";
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
     }
@@ -184,7 +184,7 @@ export class LiberacaoComponent implements OnInit {
   async liberar() {
 
     let self = this;
-    if(!(await this.web3Service.isResponsibleForDisbursement)){
+    if(!(await this.web3Service.isResponsibleForDisbursement())){
         let s = "conta nao é responsavel por desembolso";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
         return;

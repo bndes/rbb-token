@@ -54,7 +54,10 @@ export class ResgateComponent implements OnInit {
       self.selectedAccount = newSelectedAccount;
       console.log("selectedAccount=" + self.selectedAccount);
       this.resgate.contaBlockchainOrigem = newSelectedAccount+"";
+      
+      
       this.recuperaInformacoesDerivadasConta();
+      
       
     }
   } 
@@ -77,10 +80,16 @@ async recuperaInformacoesDerivadasConta() {
     let cnpjContaOrigem = registryOrigem["cnpj"];
 
     if ( cnpjContaOrigem != "") { //encontrou uma PJ valida
-
+         
             console.log(cnpjContaOrigem);
             self.resgate.cnpjOrigem = cnpjContaOrigem;
 
+            let supplierId = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.resgate.cnpjOrigem)));
+            if (!(await this.web3Service.isSupplier(supplierId))) {
+              let s = "CNPJ não é um fornecedor.";
+              this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      
+             }  
             this.pessoaJuridicaService.recuperaEmpresaPorCnpj(self.resgate.cnpjOrigem).subscribe(
               data => {
                   if (data && data.dadosCadastrais) {
@@ -140,6 +149,12 @@ async recuperaInformacoesDerivadasConta() {
       return;
     }
 */
+    let supplierId = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.resgate.cnpjOrigem)));
+    if (!(await this.web3Service.isSupplier(supplierId))) {
+      let s = "CNPJ não é um fornecedor.";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+    } 
 
     if ((this.resgate.valor * 1) > (Number(this.resgate.saldoOrigem) * 1)) {
       let s = "Não é possível resgatar mais do que o valor do saldo de origem.";
