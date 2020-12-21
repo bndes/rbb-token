@@ -335,6 +335,7 @@ app.post('/api/fileinfo', buscaFileInfo);
 
 async function buscaFileInfo(req, res) {
 
+	console.log("buscaFileInfo")
 	let filePathAndNameToFront;
 	let hashedResult;
 	let hashFile;

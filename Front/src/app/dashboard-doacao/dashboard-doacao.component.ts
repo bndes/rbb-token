@@ -94,12 +94,16 @@ export class DashboardDoacaoComponent implements OnInit {
   
   async processaEvento(evento, descTipo) {
 
-    let transacao: DashboardDoacao;
-    
-    transacao = {
+    let result = this.isEventAlreadyIncluded(evento.transactionHash);
+
+    if (!result) {
+
+      let transacao: DashboardDoacao;
+
+      transacao = {
         rbbId: evento.args.idInvestor, 
-        cnpj: "FALTA RECUPERAR",
-        razaoSocial: "FALTA RECUPERAR",
+        cnpj: "-",
+        razaoSocial: "-",
         valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),                
         dataHora: null,
         tipo: descTipo,
@@ -107,19 +111,26 @@ export class DashboardDoacaoComponent implements OnInit {
         uniqueIdentifier: evento.transactionHash,
         hashComprovante: evento.args.docHash+"",
         filePathAndName: ""
-    }
+      }
 
-    this.includeIfNotExists(transacao);
-    this.recuperaDataHora(evento, transacao);
-    transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
-    this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
+      this.listaDoacoes.push(transacao); 
+      this.recuperaDataHora(evento, transacao);
+      transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
+      this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
+      if (evento.args.docHash!=0) {
+        this.recuperaFilePathAndName(transacao);
+      }
+
+    }
+    else {
+      console.error("evento duplicado", result);
+    }  
 
   }  
 
- includeIfNotExists(transacao) {
-    let result = this.listaDoacoes.find(tr => tr.uniqueIdentifier == transacao.uniqueIdentifier);
-    if (!result) this.listaDoacoes.push(transacao);        
-}
+  isEventAlreadyIncluded(id) {
+    return this.listaDoacoes.find(tr => tr.uniqueIdentifier == id);
+  }
 
 
 setOrder(value: string) {
@@ -165,14 +176,17 @@ async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
   }
 
 
-  recuperaFilePathAndName(self,transacao) {
+  recuperaFilePathAndName(transacao) {
+
+    console.log("***** recuperaFilePathAndName ***** ");
 
       if ( transacao == undefined ||  (transacao.cnpj == undefined || transacao.cnpj == "" ) || ( transacao.hashComprovante == undefined || transacao.hashComprovante == "") ) {
           console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-doacao");
           return;
       }
 
-      self.fileHandleService.buscaFileInfo(transacao.cnpj, "0", "0", transacao.hashComprovante, "comp_doacao").subscribe(
+      let self = this;
+      this.fileHandleService.buscaFileInfo(transacao.cnpj, "0", "0", transacao.hashComprovante, "comp_doacao").subscribe(
           result => {
             if (result && result.pathAndName) {
               transacao.filePathAndName=ConstantesService.serverUrlRoot+result.pathAndName;
