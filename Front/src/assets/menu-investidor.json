@@ -11,7 +11,7 @@
 			"subitem": [
 				{
 					"titulo": "Registrar Intenção de Investimento",
-					"url": "/investidor/registra-doacao",
+					"url": "/investidor/registra-investimento",
 					"separador": false
 				}			]
 	},
@@ -26,7 +26,7 @@
 			},
 			{
 				"titulo": "Dashboard Investimentos",
-				"url": "/sociedade/dash-doacao",
+				"url": "/sociedade/dash-investimento",
 				"separador": false
 			},			
 			{
