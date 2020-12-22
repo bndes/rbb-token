@@ -94,7 +94,7 @@ async processaEvento(evento, descTipo) {
 
       transacao = {
           rbbId: evento.args.id,
-          cnpj: "FALTA BUSCAR NO RBB REGISTRY",
+          cnpj: "-",
           razaoSocial: "-",
           dataHora: null,
           tipo: descTipo,

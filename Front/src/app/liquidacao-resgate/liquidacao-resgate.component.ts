@@ -95,19 +95,23 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
 
     let self = this;
 
-    this.web3Service.recuperaEventosResgateByHash(self.liquidacaoResgate.hashResgate).then(function(evento) {
+    this.web3Service.recuperaEventosResgateByHash(self.liquidacaoResgate.hashResgate).then(async function(evento) {
       
       if (evento) {
 
         self.liquidacaoResgate.rbbId = evento.idClaimer;
-//TODO?????????
-        self.liquidacaoResgate.cnpj = "FALTA_BUSCAR";//Utils.completarCnpjComZero(evento.args.cnpj);
         self.liquidacaoResgate.valorResgate = self.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount));
-        self.preparaUpload(self.liquidacaoResgate.cnpj, self.selectedAccount, self);
         self.recuperaDataHora(evento).then(function(dataHora) {
           self.liquidacaoResgate.dataHoraResgate = dataHora;
           self.ref.detectChanges();
-        }) 
+        });
+        console.log("idClaimer");
+        console.log(evento.args.idClaimer);
+        self.liquidacaoResgate.cnpj = await self.web3Service.getCnpjByRBBId(evento.args.idClaimer);        
+        //"FALTA_BUSCAR";//Utils.completarCnpjComZero(evento.args.cnpj);
+        self.preparaUpload(self.liquidacaoResgate.cnpj, self.selectedAccount, self);
+        self.recuperaInfoDerivadaPorCnpj(self.liquidacaoResgate.cnpj, self.liquidacaoResgate, "razaoSocial");
+       
        }
        else {
          console.log("ERRO - evento de resgate não encontrado");
@@ -133,12 +137,13 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
             self.liquidacaoResgate.hashID       = evento.transactionHash;
             self.liquidacaoResgate.hashComprovacao = evento.args.docHash;
             self.liquidacaoResgate.isLiquidado = true;
+            self.recuperaFilePathAndName(self,self.liquidacaoResgate);
+
             self.recuperaDataHora(evento).then(function(dataHora) {
               self.liquidacaoResgate.dataHoraLiquidacao = dataHora;
               self.ref.detectChanges();
             }) 
     
-            self.recuperaFilePathAndName(self,self.liquidacaoResgate);
       }
       
     };
@@ -157,16 +162,26 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
   recuperaFilePathAndName(self,transacao) {
 
     
-    if ( transacao == undefined ||  (transacao.cnpj == undefined || transacao.cnpj == "" ) || ( transacao.hashComprovacao == undefined || transacao.hashComprovacao == "") 
-        || transacao.contratoFinanceiro == undefined ) {
-      console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-resgate");
+    if ( transacao == undefined ||  (transacao.cnpj == undefined || transacao.cnpj == "" ) 
+         ) {
+      console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-resgate, falta cnpj ou a propria transacao");
+      return;
+    }
+    if ( ( transacao.hashComprovacao == undefined || transacao.hashComprovacao == "") 
+         ) {
+      console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-resgate, falta hashcomprovacao");
       return;
     }
 
+    console.log("## recuperaFilePathAndName");
+    console.log(transacao.cnpj);
+    console.log(transacao.hashComprovacao);
+    
     self.fileHandleService.buscaFileInfo(transacao.cnpj, 0, "0", transacao.hashComprovacao, "comp_liq").subscribe(
         result => {
           if (result && result.pathAndName) {
             transacao.filePathAndName=ConstantesService.serverUrlRoot+result.pathAndName;
+            console.log(result.pathAndName);
           }
           else {
             let texto = "Não foi possível encontrar informações associadas ao arquivo.";
@@ -244,5 +259,23 @@ export class LiquidacaoResgateComponent implements OnInit, DeclarationComponentI
     return new Date(timestamp * 1000);
 }
 
+async recuperaInfoDerivadaPorCnpj(cnpj, liquidacaoResgate, nomeCampo) {
+
+  liquidacaoResgate[nomeCampo] = "Erro: Não encontrado";
+
+  let self = this;
+  this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
+      data => {
+        liquidacaoResgate[nomeCampo] = "Erro: Não encontrado";
+          if (data && data.dadosCadastrais) {
+            liquidacaoResgate[nomeCampo] = data.dadosCadastrais.razaoSocial;
+            }
+          
+      },
+      error => {
+          console.log("Erro ao buscar dados da empresa");
+          liquidacaoResgate[nomeCampo] = "";
+      });
+  }
 
 }
