@@ -796,12 +796,9 @@ this.inicializaQtdDecimais();
     }
 
     async isResponsibleForDisbursement(){
-        console.log("///////////////////////////////////////////////////////////////////");
         let bndesResposible = await this.ESGBndesToken_BNDESRolesSmartContract.responsibleForDisbursement();
-        console.log(bndesResposible);
         let contaBlockchain = await this.accountProvider.getSigner().getAddress();
-        console.log(contaBlockchain);
-        console.log("///////////////////////////////////////////////////////////////////");
+
           if (bndesResposible == contaBlockchain){
              return true;
  

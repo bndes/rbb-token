@@ -234,7 +234,6 @@ async recuperaFornecedor() {
     ///////////////////////////////////////////////////////verifica destino
     let  fornecedorCPF = this.transferencia.cnpjDestino;
     let idfornecedor = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(fornecedorCPF)));
-    let fornecedor = await this.web3Service.isOperacional(idfornecedor);
     if(!(await this.web3Service.isSupplier(idfornecedor))){
       let erro = "CNPJ nao é de um fornecedor";
       this.bnAlertsService.criarAlerta("error", "Erro",erro , 5);
