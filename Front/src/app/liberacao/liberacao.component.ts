@@ -57,13 +57,19 @@ export class LiberacaoComponent implements OnInit {
  async recuperaContaSelecionada() {
 
   let self = this;
+
   
+
   let newSelectedAccount = await this.web3Service.getCurrentAccountSync();
 
   if ( !self.selectedAccount || (newSelectedAccount !== self.selectedAccount && newSelectedAccount)) {
 
     this.selectedAccount = newSelectedAccount;
     console.log("selectedAccount=" + this.selectedAccount);
+    if(!(await this.web3Service.isResponsibleForDisbursement())){
+      let s = "conta nao é responsavel por desembolso";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+    }
     self.recuperaSaldoBNDESToken();
     
   }
@@ -178,6 +184,11 @@ export class LiberacaoComponent implements OnInit {
   async liberar() {
 
     let self = this;
+    if(!(await this.web3Service.isResponsibleForDisbursement())){
+        let s = "conta nao é responsavel por desembolso";
+        this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+        return;
+    }
 
 /*    
     let bRD = await this.web3Service.isResponsibleForDisbursementSync();    
@@ -198,6 +209,7 @@ export class LiberacaoComponent implements OnInit {
         return;
 */
     }
+
 
         console.log(this.liberacao.valor);          
 

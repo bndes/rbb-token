@@ -110,12 +110,19 @@ export class DashboardTransferenciasComponent implements OnInit {
 
       this.selectedAccount = newSelectedAccount;
       console.log("selectedAccount=" + this.selectedAccount);
+      
+        
     }
 
   }    
 
 
-  routeToLiquidacaoResgate(solicitacaoResgateId) {
+  async routeToLiquidacaoResgate(solicitacaoResgateId) {
+    if(!(await this.web3Service.isResponsibleForSettlement())){
+      let s = "conta nao é responsavel por liquidação";
+      this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+      return;
+  }
     this.router.navigate(['bndes/liquidar/' + solicitacaoResgateId]);
 
   }  

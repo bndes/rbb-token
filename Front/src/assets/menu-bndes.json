@@ -11,7 +11,7 @@
 			"subitem": [
 				{
 					"titulo": "Confirmar Recebimento de Investimento",
-					"url": "/bndes/confirma-doacao",
+					"url": "/bndes/confirma-investimento",
 					"separador": false
 				}
 			]
@@ -69,7 +69,7 @@
 			},
 			{
 				"titulo": "Dashboard Investimentos",
-				"url": "/sociedade/dash-doacao",
+				"url": "/sociedade/dash-investimento",
 				"separador": false
 			},			
 			{

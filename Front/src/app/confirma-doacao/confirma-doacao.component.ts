@@ -59,6 +59,12 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
         if ( this.flagUploadConcluido == false ) {
           this.selectedAccount = newSelectedAccount;
           console.log("selectedAccount=" + this.selectedAccount);
+
+          if (!(await this.web3Service.isResponsibleForInvestmentConfirmation())) {
+            let s = "essa conta nao é responsavel por confirmação";
+            this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+          }
+
           //this.verificaEstadoContaBlockchainSelecionada(this.selectedAccount);
           this.preparaUpload(this.doacao.cnpj, this.selectedAccount, this);
         }
@@ -153,7 +159,12 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
         return;
       }
  */ 
-
+      if (!(await this.web3Service.isResponsibleForInvestmentConfirmation())) {
+        let s = "essa conta nao é responsavel por confirmação";
+        this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+        return;
+      }   
+     
       if (!this.doacao.rbbId) {
         let s = "CNPJ do investidor não está cadastrado.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);

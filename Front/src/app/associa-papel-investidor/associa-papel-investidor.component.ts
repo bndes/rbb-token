@@ -46,6 +46,14 @@ export class AssociaPapelInvestidorComponent implements OnInit {
       this.selectedAccount = newSelectedAccount;
           console.log("selectedAccount=" + this.selectedAccount);
           //this.verificaEstadoContaBlockchainSelecionada(this.selectedAccount);
+
+      let ResponsavelPorAssociarInvestidor = await this.web3Service.isResponsavelPorAssociarInvestidorSync();
+      if (!ResponsavelPorAssociarInvestidor) 
+        {
+          let s = "Conta selecionada no Metamask não pode executar a Confirmação.";
+          this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+          
+        } 
       }
   }
 
@@ -94,9 +102,20 @@ export class AssociaPapelInvestidorComponent implements OnInit {
     let self = this;
     this.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
 
-    let b = await this.web3Service.isResponsavelPorAssociarInvestidorSync();  
-  
-    if (!b) 
+     
+
+    let idInvestor = (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.cnpj)));
+    let isInvestor = await this.web3Service.isInvestor(idInvestor);
+    if (isInvestor) 
+    {
+        let s = "esse CNPJ ja é um Investidor";
+        this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
+        return;
+    }
+    //Todo criar conta especifica para cadastro de investidor 
+    
+    let ResponsavelPorAssociarInvestidor = await this.web3Service.isResponsavelPorAssociarInvestidorSync();
+    if (!ResponsavelPorAssociarInvestidor) 
     {
         let s = "Conta selecionada no Metamask não pode executar a Confirmação.";
         this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
