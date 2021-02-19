@@ -10,6 +10,9 @@ import { PessoaJuridicaService } from '../pessoa-juridica.service';
 import { BnAlertsService } from 'bndes-ux4';
 import { Utils } from '../shared/utils';
 
+import {PessoaJuridicaHandle} from '../PessoaJuridicaHandle/PessoaJuridicaHandle';
+
+
 @Component({
   selector: 'app-realizar-pagamento',
   templateUrl: './realizar-pagamento.component.html',
@@ -23,7 +26,7 @@ export class RealizarPagamentoComponent implements OnInit {
   cnpjOrigem : string;
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService, private web3Service: Web3Service,
-    private ref: ChangeDetectorRef, private zone: NgZone, private router: Router) {
+    private ref: ChangeDetectorRef, private zone: NgZone, private router: Router, private pessoaJuridicaHandle: PessoaJuridicaHandle) {
 
       let self = this;
       setInterval(function () {
@@ -49,8 +52,8 @@ export class RealizarPagamentoComponent implements OnInit {
 
   inicializaDadosDestino() {
 
-    this.transferencia.cnpjDestino = "";
-    this.transferencia.razaoSocialDestino = "";
+    //this.transferencia.cnpjDestino = "";
+    //this.transferencia.razaoSocialDestino = "";
   }
 
   async recuperaContaSelecionada() {
@@ -184,12 +187,14 @@ async atualizaInfoPorMudancaSubcredito() {
 
 async recuperaFornecedor() {
 
-    this.transferencia.cnpjDestino = Utils.removeSpecialCharacters(this.transferencia.cnpjDestinoWithMask);
-    let cnpj = this.transferencia.cnpjDestino;
+
+  this.pessoaJuridicaHandle.cnpj = Utils.removeSpecialCharacters(this.transferencia.cnpjDestinoWithMask);
+    let cnpj = this.pessoaJuridicaHandle.cnpj;
 
     if ( cnpj.length == 14 ) { 
       console.log (" Buscando o CNPJ  (14 digitos fornecidos)...  " + cnpj)
-
+      this.pessoaJuridicaHandle.recuperaClientePorCNPJ();
+      /*
       this.pessoaJuridicaService.recuperaEmpresaPorCnpj(cnpj).subscribe(
         empresa => {
           if (empresa && empresa.dadosCadastrais.razaoSocial) {
@@ -212,8 +217,10 @@ async recuperaFornecedor() {
           console.log(texto);
           Utils.criarAlertaErro( this.bnAlertsService, texto,error);
         })
-
-    } 
+*/
+    }else{
+      this.pessoaJuridicaHandle.razaoSocial="";
+    }  
 
 }
 
@@ -232,7 +239,7 @@ async recuperaFornecedor() {
       return;
     }
     ///////////////////////////////////////////////////////verifica destino
-    let  fornecedorCPF = this.transferencia.cnpjDestino;
+    let  fornecedorCPF = this.pessoaJuridicaHandle.cnpj;
     let idfornecedor = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(fornecedorCPF)));
     if(!(await this.web3Service.isSupplier(idfornecedor))){
       let erro = "CNPJ nao é de um fornecedor";
@@ -250,7 +257,7 @@ async recuperaFornecedor() {
 
     let self = this;
 
-    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.transferencia.cnpjDestino)));
+    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.pessoaJuridicaHandle.cnpj)));
 
     if (!rbbID) {
       let s = "CNPJ de fornecedor não está cadastrado.";
@@ -301,7 +308,7 @@ async recuperaFornecedor() {
           Utils.criarAlertasAvisoConfirmacao( txHash, 
                                               self.web3Service, 
                                               self.bnAlertsService, 
-                                              "Pagamento para cnpj " + self.transferencia.cnpjDestino + "  enviado. Aguarde a confirmação.", 
+                                              "Pagamento para cnpj " + self.pessoaJuridicaHandle.cnpj + "  enviado. Aguarde a confirmação.", 
                                               "O pagamento foi confirmado na blockchain.", 
                                               self.zone);       
           self.router.navigate(['sociedade/dash-transf']);

@@ -9,6 +9,9 @@ import { PessoaJuridicaService } from '../pessoa-juridica.service';
 import { Web3Service } from './../Web3Service';
 import { Utils } from '../shared/utils';
 
+import {PessoaJuridicaHandle} from '../PessoaJuridicaHandle/PessoaJuridicaHandle';
+
+
 @Component({
   selector: 'app-confirma-doacao',
   templateUrl: './confirma-doacao.component.html',
@@ -28,7 +31,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
     private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef,
-    private fileHandleService: FileHandleService) {       
+    private fileHandleService: FileHandleService,private pessoaJuridicaHandle:PessoaJuridicaHandle) {       
 
       let self = this;
       setInterval(function () {
@@ -39,12 +42,14 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
   ngOnInit() {
     this.maskCnpj = Utils.getMaskCnpj(); 
     this.doacao = new Doacao();
+    this.pessoaJuridicaHandle.razaoSocial="";
+    this.pessoaJuridicaHandle.cnpj="";
 
   }
 
   inicializaDoacao() {
-    this.doacao.dadosCadastrais = undefined;
-    this.doacao.cnpj = "";
+    //this.doacao.dadosCadastrais = undefined;
+    //this.doacao.cnpj = "";
     this.doacao.saldo = undefined;
     this.doacao.valor = 0;
     this.hashdeclaracao = "";   
@@ -66,7 +71,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
           }
 
           //this.verificaEstadoContaBlockchainSelecionada(this.selectedAccount);
-          this.preparaUpload(this.doacao.cnpj, this.selectedAccount, this);
+          this.preparaUpload(this.pessoaJuridicaHandle.cnpj, this.selectedAccount, this);
         }
         else {
           console.log( "Upload has already made! You should not change your account. Reseting... " );
@@ -87,22 +92,26 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
 
     changeCnpj() {
 
-      this.doacao.cnpj = Utils.removeSpecialCharacters(this.doacao.cnpjWithMask);
-      let cnpj = this.doacao.cnpj;
+      this.pessoaJuridicaHandle.cnpj = Utils.removeSpecialCharacters(this.doacao.cnpjWithMask);
+      let cnpj = this.pessoaJuridicaHandle.cnpj;
   
       if ( cnpj.length == 14 ) { 
         console.log (" Buscando o CNPJ  (14 digitos fornecidos)...  " + cnpj)
-        this.recuperaDoadorPorCNPJ(cnpj);
+        this.pessoaJuridicaHandle.recuperaClientePorCNPJ();
+        this.recuperaSaldo(this.pessoaJuridicaHandle.cnpj);
       } 
+    else{
+      this.pessoaJuridicaHandle.razaoSocial = "";
+    } 
 
-      this.fileHandleService.atualizaUploaderComponent(this.doacao.cnpj, this.CONTRATO_DOADOR, this.selectedAccount, "comp_doacao", this);
+      this.fileHandleService.atualizaUploaderComponent(this.pessoaJuridicaHandle.cnpj, this.CONTRATO_DOADOR, this.selectedAccount, "comp_doacao", this);
     }
   
     cancelar() { 
       this.doacao = new Doacao();
       this.inicializaDoacao();
     }
-
+    /*
     recuperaDoadorPorCNPJ(cnpj) {
       console.log("RECUPERA Doador com CNPJ =" + cnpj)
   
@@ -128,7 +137,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
           Utils.criarAlertaErro( this.bnAlertsService, texto,error);
         })
     }
-
+    */
 
     async recuperaSaldo(cnpj) {
 
@@ -201,7 +210,7 @@ export class ConfirmaDoacaoComponent implements OnInit, DeclarationComponentInte
           Utils.criarAlertasAvisoConfirmacao( txHash, 
             self.web3Service, 
             self.bnAlertsService, 
-            "O recebimento do investimento vindo do CNPJ " + self.doacao.cnpj + "  foi enviado. Aguarde a confirmação.", 
+            "O recebimento do investimento vindo do CNPJ " + self.pessoaJuridicaHandle.cnpj + "  foi enviado. Aguarde a confirmação.", 
             "O recebimento do investimento foi confirmado na blockchain.", 
             self.zone);       
             self.router.navigate(['sociedade/dash-doacao']);

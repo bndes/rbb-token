@@ -20,12 +20,12 @@
     </div>
 
     <div class="row">
-      <div class="form-group col-md-6 col-sm-6" *ngIf="doacao.dadosCadastrais">
+      <div class="form-group col-md-6 col-sm-6" *ngIf="pessoaJuridicaHandle.razaoSocial">
         <label>Razão Social:</label>
-        <input name="razaoSocial" class="form-control form-control-sm" [ngModel]="doacao.dadosCadastrais.razaoSocial" readonly disabled/>
+        <input name="razaoSocial" class="form-control form-control-sm" [ngModel]="pessoaJuridicaHandle.razaoSocial" readonly disabled/>
       </div>
 
-      <div class="form-group col-md-4 col-sm-4" *ngIf="doacao.cnpjWithMask">
+      <div class="form-group col-md-4 col-sm-4" *ngIf="doacao.cnpjWithMask  && pessoaJuridicaHandle.cnpj.length==14 && pessoaJuridicaHandle.razaoSocial">
         <label>Saldo TOTAL a confirmar:</label>
         <input currencyMask type="text" class="form-control form-control-sm" [ngModel]="doacao.saldo" readonly disabled/>
       </div>

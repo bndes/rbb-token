@@ -10,6 +10,9 @@ import { PessoaJuridicaService } from '../pessoa-juridica.service';
 import { BnAlertsService } from 'bndes-ux4';
 import { Utils } from '../shared/utils';
 
+import {PessoaJuridicaHandle} from '../PessoaJuridicaHandle/PessoaJuridicaHandle';
+
+
 @Component({
   selector: 'app-resgate',
   templateUrl: './resgate.component.html',
@@ -23,7 +26,9 @@ export class ResgateComponent implements OnInit {
   selectedAccount: any;    
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService, private web3Service: Web3Service,
-    private ref: ChangeDetectorRef, private zone: NgZone, private router: Router) {
+    private ref: ChangeDetectorRef, private zone: NgZone, private router: Router, private pessoaJuridicaHandle: PessoaJuridicaHandle) {
+      this.pessoaJuridicaHandle.razaoSocial="";
+      this.pessoaJuridicaHandle.cnpj="";
 
       let self = this;
       setInterval(function () {
@@ -82,15 +87,16 @@ async recuperaInformacoesDerivadasConta() {
     if ( cnpjContaOrigem != "") { //encontrou uma PJ valida
          
             console.log(cnpjContaOrigem);
-            self.resgate.cnpjOrigem = cnpjContaOrigem;
+            self.pessoaJuridicaHandle.cnpj = cnpjContaOrigem;
 
-            let supplierId = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.resgate.cnpjOrigem)));
+            let supplierId = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.pessoaJuridicaHandle.cnpj)));
             if (!(await this.web3Service.isSupplier(supplierId))) {
               let s = "CNPJ não é um fornecedor.";
               this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
       
              }  
-            this.pessoaJuridicaService.recuperaEmpresaPorCnpj(self.resgate.cnpjOrigem).subscribe(
+             this.pessoaJuridicaHandle.recuperaClientePorCNPJ(); 
+           /* this.pessoaJuridicaService.recuperaEmpresaPorCnpj(self.resgate.cnpjOrigem).subscribe(
               data => {
                   if (data && data.dadosCadastrais) {
                   self.resgate.razaoSocialOrigem = data.dadosCadastrais.razaoSocial;
@@ -107,7 +113,7 @@ async recuperaInformacoesDerivadasConta() {
               Utils.criarAlertaErro( this.bnAlertsService, texto,error);      
               this.inicializaResgate();
             });              
-
+            */
             self.ref.detectChanges();
 
             this.recuperaSaldoOrigem(registryOrigem["id"]);
@@ -120,11 +126,13 @@ async recuperaInformacoesDerivadasConta() {
           console.log(texto);
           Utils.criarAlertaAcaoUsuario( this.bnAlertsService, texto);
           this.inicializaResgate();
+          this.pessoaJuridicaHandle.razaoSocial="";
     }
                
   } 
   else {
       this.inicializaResgate();
+      this.pessoaJuridicaHandle.razaoSocial="";
   }
 }  
 
@@ -149,7 +157,7 @@ async recuperaInformacoesDerivadasConta() {
       return;
     }
 */
-    let supplierId = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.resgate.cnpjOrigem)));
+    let supplierId = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.pessoaJuridicaHandle.cnpj)));
     if (!(await this.web3Service.isSupplier(supplierId))) {
       let s = "CNPJ não é um fornecedor.";
       this.bnAlertsService.criarAlerta("error", "Erro", s, 5);
@@ -170,7 +178,7 @@ async recuperaInformacoesDerivadasConta() {
           Utils.criarAlertasAvisoConfirmacao(txHash, 
             self.web3Service, 
             self.bnAlertsService, 
-            "Resgate para cnpj " + self.resgate.cnpjOrigem + "  enviado. Aguarde a confirmação.", 
+            "Resgate para cnpj " + self.pessoaJuridicaHandle.cnpj + "  enviado. Aguarde a confirmação.", 
             "O Resgate foi confirmado na blockchain.", 
             self.zone)       
           self.router.navigate(['sociedade/dash-transf']);
