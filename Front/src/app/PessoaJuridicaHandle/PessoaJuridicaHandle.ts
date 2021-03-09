@@ -9,7 +9,8 @@ export class PessoaJuridicaHandle  {
   razaoSocial: string="";
   
 
-  constructor(private pessoaJuridicaService: PessoaJuridicaService,protected bnAlertsService: BnAlertsService) { 
+  constructor(private pessoaJuridicaService: PessoaJuridicaService,protected bnAlertsService: BnAlertsService,
+    ) { 
     
   }
 
@@ -41,6 +42,9 @@ export class PessoaJuridicaHandle  {
       });
 
   }
+
+  
+
   
 
   

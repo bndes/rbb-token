@@ -9,6 +9,10 @@ import { Router } from '@angular/router';
 
 import { DashboardTransferencia } from './DashboardTransferencia';
 
+import{ PessoaJuridicaHandle} from '../PessoaJuridicaHandle/PessoaJuridicaHandle';
+import { t } from '@angular/core/src/render3';
+
+
 @Component({
   selector: 'app-dashboard-transferencias',
   templateUrl: './dashboard-transferencias.component.html',
@@ -235,10 +239,12 @@ export class DashboardTransferenciasComponent implements OnInit {
         deId: this.idBNDES,
         deRazaoSocial: "Erro: Não encontrado",
         deCnpj: "-",
+        dePessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService,),
         deConta: "0",
         paraId: this.idBNDES,
         paraRazaoSocial: "Erro: Não encontrado",
         paraCnpj: "-",
+        paraPessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
         paraConta: "0",
         valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
         tipo: "Alocação Desembolso",
@@ -246,7 +252,10 @@ export class DashboardTransferenciasComponent implements OnInit {
         dataHora: null
 
     }
-
+    transacao.dePessoaJuridica.cnpj="-";
+    transacao.dePessoaJuridica.razaoSocial="Erro: Não encontrado";
+    transacao.paraPessoaJuridica.cnpj="-";
+    transacao.paraPessoaJuridica.razaoSocial="Erro: Não encontrado";
     this.complementaTransacao(evento, transacao);
 
   }
@@ -260,10 +269,12 @@ export class DashboardTransferenciasComponent implements OnInit {
         deId: this.idBNDES,
         deRazaoSocial: "Erro: Não encontrado " + this.idBNDES,
         deCnpj: "-",
+        dePessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
         deConta: "0",
         paraId: this.idBNDES,
         paraRazaoSocial: "Erro: Não encontrado " + this.idBNDES,
         paraCnpj: "-",
+        paraPessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
         paraConta: "0",
         valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
         tipo: "Alocação Adm",
@@ -271,7 +282,10 @@ export class DashboardTransferenciasComponent implements OnInit {
         dataHora: null
 
     }
-
+    transacao.dePessoaJuridica.cnpj="-";
+    transacao.dePessoaJuridica.razaoSocial="Erro: Não encontrado " + this.idBNDES;
+    transacao.paraPessoaJuridica.cnpj="-";
+    transacao.paraPessoaJuridica.razaoSocial="Erro: Não encontrado " + this.idBNDES;
     this.complementaTransacao(evento, transacao);
 
   }
@@ -285,17 +299,23 @@ export class DashboardTransferenciasComponent implements OnInit {
         deId: this.idBNDES,
         deRazaoSocial: "Erro: Não encontrado",
         deCnpj: "-",
+        dePessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
         deConta: "0",
         paraId: evento.args.idClient,
         paraRazaoSocial: "Erro: Não encontrado",
         paraCnpj: "-",
         paraConta: evento.args.idFinancialSupportAgreement,
+        paraPessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
         valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
         tipo: "Liberacao",
         hashID: evento.transactionHash,
         dataHora: null
 
     }
+    transacao.dePessoaJuridica.cnpj="-";
+    transacao.dePessoaJuridica.razaoSocial="Erro: Não encontrado";
+    transacao.paraPessoaJuridica.cnpj="-";
+    transacao.paraPessoaJuridica.razaoSocial="Erro: Não encontrado";
 
     this.complementaTransacao(evento, transacao);
 
@@ -309,17 +329,22 @@ export class DashboardTransferenciasComponent implements OnInit {
       deId: evento.args.fromId,
       deRazaoSocial: "Erro: Não encontrado",
       deCnpj: "-",
+      dePessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
       deConta: evento.args.idFinancialSupportAgreement,
       paraId: evento.args.toId,
       paraRazaoSocial: "Erro: Não encontrado",
       paraCnpj: "-",
+      paraPessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
       paraConta: "0",
       valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
       tipo: "Pagamento",
       hashID: evento.transactionHash,
       dataHora: null
     }
-
+    transacao.dePessoaJuridica.cnpj="-";
+    transacao.dePessoaJuridica.razaoSocial="Erro: Não encontrado";
+    transacao.paraPessoaJuridica.cnpj="-";
+    transacao.paraPessoaJuridica.razaoSocial="Erro: Não encontrado";
     this.complementaTransacao(evento, transacao);
 
   }
@@ -331,17 +356,22 @@ export class DashboardTransferenciasComponent implements OnInit {
       deId: this.idBNDES,
       deRazaoSocial: "Erro: Não encontrado",
       deCnpj: "-",
+      dePessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
       deConta: "0",
       paraId: evento.args.toId,
       paraRazaoSocial: "Erro: Não encontrado",
       paraCnpj: "-",
+      paraPessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
       paraConta: "0",
       valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
       tipo: "Pagamento BNDES",
       hashID: evento.transactionHash,
       dataHora: null
     }
-
+    transacao.dePessoaJuridica.cnpj="-";
+    transacao.dePessoaJuridica.razaoSocial="Erro: Não encontrado";
+    transacao.paraPessoaJuridica.cnpj="-";
+    transacao.paraPessoaJuridica.razaoSocial="Erro: Não encontrado";
     this.complementaTransacao(evento, transacao);
 
   }
@@ -353,17 +383,22 @@ export class DashboardTransferenciasComponent implements OnInit {
       deId: evento.args.idClaimer,
       deRazaoSocial: "Erro: Não encontrado",
       deCnpj: "-",
+      dePessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService,),
       deConta: "0",
       paraId: 0,
       paraRazaoSocial: "N/A",
       paraCnpj: "N/A",
+      paraPessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService,),
       paraConta: "0",
       valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),
       tipo: "Solicitação de Resgate",
       hashID: evento.transactionHash,
       dataHora: null
     }
-
+    transacao.dePessoaJuridica.cnpj="-";
+    transacao.dePessoaJuridica.razaoSocial="Erro: Não encontrado";
+    transacao.paraPessoaJuridica.cnpj="N/A";
+    transacao.paraPessoaJuridica.razaoSocial="N/A";
     this.complementaTransacao(evento, transacao);
 
   }
@@ -372,12 +407,32 @@ export class DashboardTransferenciasComponent implements OnInit {
 
     this.includeIfNotExists(transacao);
     this.recuperaDataHora(evento, transacao); 
-    transacao.deCnpj = await this.web3Service.getCnpjByRBBId(transacao.deId);
+   /* transacao.deCnpj = await this.web3Service.getCnpjByRBBId(transacao.deId);
     this.recuperaInfoDerivadaPorCnpj(transacao.deCnpj, transacao, "deRazaoSocial");
-  
+    */
+   
+
+
+
+    transacao.dePessoaJuridica.cnpj = await this.web3Service.getCnpjByRBBId(transacao.deId);
+    transacao.dePessoaJuridica.recuperaClientePorCNPJ();
+    if(transacao.dePessoaJuridica.razaoSocial != "Erro: Não encontrado"){
+      this.zone.run(() => {
+        this.estadoLista = "cheia";
+    });
+    }
+
+    /*
     transacao.paraCnpj = await this.web3Service.getCnpjByRBBId(transacao.paraId);
     this.recuperaInfoDerivadaPorCnpj(transacao.paraCnpj, transacao, "paraRazaoSocial");
-  
+    */
+    transacao.paraPessoaJuridica.cnpj = await this.web3Service.getCnpjByRBBId(transacao.paraId);
+    transacao.paraPessoaJuridica.recuperaClientePorCNPJ();
+    if(transacao.paraPessoaJuridica.razaoSocial != "Erro: Não encontrado" && transacao.dePessoaJuridica.razaoSocial != "N/A"){
+      this.zone.run(() => {
+        this.estadoLista = "cheia";
+    });
+    }
   }
 
 

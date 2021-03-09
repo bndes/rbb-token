@@ -9,6 +9,9 @@ import { Utils } from '../shared/utils';
 import {FileHandleService} from "../file-handle.service";
 import {DashboardDoacao} from "./DashboardDoacao";
 
+import{ PessoaJuridicaHandle} from '../PessoaJuridicaHandle/PessoaJuridicaHandle';
+
+
 @Component({
   selector: 'app-dashboard-doacao',
   templateUrl: './dashboard-doacao.component.html',
@@ -104,6 +107,7 @@ export class DashboardDoacaoComponent implements OnInit {
         rbbId: evento.args.idInvestor, 
         cnpj: "-",
         razaoSocial: "-",
+        pessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
         valor: this.web3Service.converteInteiroParaDecimal(parseInt(evento.args.amount)),                
         dataHora: null,
         tipo: descTipo,
@@ -115,8 +119,15 @@ export class DashboardDoacaoComponent implements OnInit {
 
       this.listaDoacoes.push(transacao); 
       this.recuperaDataHora(evento, transacao);
-      transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
-      this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
+      //transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
+      transacao.pessoaJuridica.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
+      transacao.pessoaJuridica.recuperaClientePorCNPJ();
+      if(transacao.pessoaJuridica.razaoSocial != ""){
+        this.zone.run(() => {
+          this.estadoLista = "cheia";
+      });
+      }
+      //this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
       if (evento.args.docHash!=0) {
         this.recuperaFilePathAndName(transacao);
       }
@@ -144,7 +155,7 @@ setOrder(value: string) {
 customComparator(itemA, itemB) {
     return itemB - itemA;
 }
-
+/*
 async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
 
   transacao.razacaoSocial = "Erro: Não encontrado";
@@ -168,6 +179,7 @@ async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
           transacao.razaoSocial = "";
       });
   }
+  */
   async recuperaDataHora(event, transacaoPJ) {
 
       let timestamp = await this.web3Service.getBlockTimestamp(event.blockNumber);
@@ -180,13 +192,13 @@ async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
 
     console.log("***** recuperaFilePathAndName ***** ");
 
-      if ( transacao == undefined ||  (transacao.cnpj == undefined || transacao.cnpj == "" ) || ( transacao.hashComprovante == undefined || transacao.hashComprovante == "") ) {
+      if ( transacao == undefined ||  (transacao.pessoaJuridica.cnpj == undefined || transacao.pessoaJuridica.cnpj == "" ) || ( transacao.hashComprovante == undefined || transacao.hashComprovante == "") ) {
           console.log("Transacao incompleta no recuperaFilePathAndName do dashboard-doacao");
           return;
       }
 
       let self = this;
-      this.fileHandleService.buscaFileInfo(transacao.cnpj, "0", "0", transacao.hashComprovante, "comp_doacao").subscribe(
+      this.fileHandleService.buscaFileInfo(transacao.pessoaJuridica.cnpj, "0", "0", transacao.hashComprovante, "comp_doacao").subscribe(
           result => {
             if (result && result.pathAndName) {
               transacao.filePathAndName=ConstantesService.serverUrlRoot+result.pathAndName;
@@ -200,7 +212,7 @@ async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
           error => {
             let texto = "Erro ao buscar dados de arquivo";
             console.log(texto);
-            console.log("cnpj=" + transacao.cnpj);
+            console.log("cnpj=" + transacao.pessoaJuridica.cnpj);
             console.log("hashComprovante=" + transacao.hashComprovante);
   //              Utils.criarAlertaErro( self.bnAlertsService, texto,error);
           }) //fecha busca fileInfo
