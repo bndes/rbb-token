@@ -48,7 +48,7 @@ import { PessoaJuridicaService } from './pessoa-juridica.service';
 import { FileHandleService } from './file-handle.service';
 import { ConstantesService } from './ConstantesService';
 import { GoogleMapsService } from './shared/google-maps.service';
-
+import{ PessoaJuridicaHandle} from './PessoaJuridicaHandle/PessoaJuridicaHandle';
 
 import { MetamsgComponent } from './shared/metamsg/metamsg.component';
 import { AssinadorComponent } from './shared/assinador/assinador.component';
@@ -136,7 +136,7 @@ export const optionsMaskCurrencyBND: CurrencyMaskConfig = {
     FileUploadModule,
     NgbModule.forRoot()
   ],
-  providers: [PessoaJuridicaService, Web3Service, ConstantesService, GoogleMapsService, FileHandleService,
+  providers: [PessoaJuridicaService, Web3Service, ConstantesService, GoogleMapsService, FileHandleService,PessoaJuridicaHandle,
     { provide: CURRENCY_MASK_CONFIG, useValue: optionsMaskCurrencyBND }
   ],
   bootstrap: [AppComponent]

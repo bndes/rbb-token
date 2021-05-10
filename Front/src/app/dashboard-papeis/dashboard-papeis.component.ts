@@ -5,6 +5,7 @@ import { Web3Service } from './../Web3Service';
 import { PessoaJuridicaService } from '../pessoa-juridica.service';
 import { BnAlertsService } from 'bndes-ux4';
 
+import{ PessoaJuridicaHandle} from '../PessoaJuridicaHandle/PessoaJuridicaHandle';
 @Component({
   selector: 'app-dashboard-papeis',
   templateUrl: './dashboard-papeis.component.html',
@@ -25,7 +26,7 @@ export class DashboardPapeisComponent implements OnInit {
   selectedAccount: any;
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService,protected bnAlertsService: BnAlertsService, private web3Service: Web3Service,
-    private ref: ChangeDetectorRef, private zone: NgZone) { 
+    private ref: ChangeDetectorRef, private zone: NgZone, private pessoaJuridicaHandle:PessoaJuridicaHandle) { 
 
       let self = this;
       self.recuperaContaSelecionada();
@@ -91,7 +92,7 @@ processaConjuntoEventos(eventos, tipo) {
 async processaEvento(evento, descTipo) {
   
       let transacao: DashboardPapeis;
-
+    /*
       transacao = {
           rbbId: evento.args.id,
           cnpj: "-",
@@ -101,11 +102,29 @@ async processaEvento(evento, descTipo) {
           hashID: evento.transactionHash,
           uniqueIdentifier: evento.transactionHash,
       }
-          
+      */
+      transacao = {
+        rbbId: evento.args.id,
+        cnpj: "-",
+        razaoSocial: "-",
+        pessoaJuridica: new PessoaJuridicaHandle(this.pessoaJuridicaService,this.bnAlertsService),
+        dataHora: null,
+        tipo: descTipo,
+        hashID: evento.transactionHash,
+        uniqueIdentifier: evento.transactionHash,
+    }   
       this.includeIfNotExists(transacao);
       this.recuperaDataHora(evento, transacao);
-      transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
-      this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
+      //transacao.cnpj = await this.web3Service.getCnpjByRBBId(transacao.rbbId);
+      transacao.pessoaJuridica.cnpj=await this.web3Service.getCnpjByRBBId(transacao.rbbId);
+      transacao.pessoaJuridica.recuperaClientePorCNPJ();
+      if(transacao.pessoaJuridica.razaoSocial != ""){
+        this.zone.run(() => {
+          this.estadoLista = "cheia";
+      });
+        
+      }
+      //this.recuperaInfoDerivadaPorCnpj(transacao.cnpj, transacao);
 
 }
 
@@ -153,7 +172,7 @@ async recuperaDataHora(event, transacaoPJ) {
     transacaoPJ.dataHora = new Date(timestamp * 1000);
     this.ref.detectChanges();
 }
-
+/*
 async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
 
   transacao.razacaoSocial = "Erro: Não encontrado";
@@ -177,6 +196,6 @@ async recuperaInfoDerivadaPorCnpj(cnpj, transacao) {
           transacao.razaoSocial = "";
       });
   }
-
+*/
 
 }

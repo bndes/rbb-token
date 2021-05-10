@@ -35,8 +35,8 @@
       <tbody>
         <tr *ngFor="let transacao of listaTransacoes | orderBy: order: reverse: 'caseInsensitive':customComparator | filter:filter | paginate: { itemsPerPage: 10, currentPage: p } ; let i = index">
           <td>{{transacao.rbbId}}</td>
-          <td>{{transacao.razaoSocial}}</td>
-          <td>{{transacao.cnpj}}</td>
+          <td>{{transacao.pessoaJuridica.razaoSocial}}</td>
+          <td>{{transacao.pessoaJuridica.cnpj}}</td>
           <td>{{transacao.tipo}}</td>
           <td>{{transacao.dataHora | date: 'dd/MM/yyyy hh:mm a' }}</td>
           <td class="text-center">

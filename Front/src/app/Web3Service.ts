@@ -99,8 +99,8 @@ export class Web3Service {
  
     async intializeWeb3() {
 
-        console.log("this.URLBlockchainProvider = " + this.URLBlockchainProvider);
-        this.provider = new ethers.providers.JsonRpcProvider(this.URLBlockchainProvider);
+        //console.log("this.URLBlockchainProvider = " + this.URLBlockchainProvider);
+        //this.provider = new ethers.providers.JsonRpcProvider(this.URLBlockchainProvider);
         this.ethereum =  window['ethereum'];
 
         this.netVersion = await this.ethereum.request({
@@ -115,12 +115,18 @@ export class Web3Service {
 
         console.log("INICIALIZOU O WEB3 - rbbTokenSmartContract abaixo");
         console.log("this.addrContratoRBBToken=" + this.addrContratoRBBToken);
-
+        /*
         this.rbbTokenSmartContract = new ethers.Contract(this.addrContratoRBBToken, this.abiRBBToken, this.provider);
         this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.provider);
         this.esgBndesToken_GetDataToCallSmartContract = new ethers.Contract(this.addrContratoESGBndesToken_GetDataToCall, this.abiESGBndesToken_GetDataToCall, this.provider);
         this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.provider);
         this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.provider);
+        */
+        this.rbbTokenSmartContract = new ethers.Contract(this.addrContratoRBBToken, this.abiRBBToken, this.accountProvider);
+        this.esgBndesTokenSmartContract = new ethers.Contract(this.addrContratoESGBndesToken,this.abiESGBndesToken, this.accountProvider);
+        this.esgBndesToken_GetDataToCallSmartContract = new ethers.Contract(this.addrContratoESGBndesToken_GetDataToCall, this.abiESGBndesToken_GetDataToCall, this.accountProvider);
+        this.rbbRegistrySmartContract = new ethers.Contract(this.addrContratoRBBRegistry, this.abiRBBRegistry, this.accountProvider);
+        this.ESGBndesToken_BNDESRolesSmartContract= new ethers.Contract(this.addrContratoESGBndesToken_BNDESRoles, this.abiESGBndesToken_BNDESRoles, this.accountProvider);
 
 
         console.log("todos os contratos lidos");

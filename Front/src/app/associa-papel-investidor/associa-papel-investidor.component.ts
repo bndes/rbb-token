@@ -7,6 +7,8 @@ import { PessoaJuridicaService } from '../pessoa-juridica.service';
 import { Web3Service } from './../Web3Service';
 import { Utils } from '../shared/utils';
 
+import{ PessoaJuridicaHandle} from '../PessoaJuridicaHandle/PessoaJuridicaHandle';
+
 @Component({
   selector: 'app-associa-papel-investidor',
   templateUrl: './associa-papel-investidor.component.html',
@@ -17,13 +19,15 @@ export class AssociaPapelInvestidorComponent implements OnInit {
   selectedAccount: any;
   maskCnpj : any;
 
-  cnpj: string;
+ // cnpj: string;
   cnpjWithMask: string;  
-  razaoSocial: string;
-
+  //razaoSocial: string;
+//
 
   constructor(private pessoaJuridicaService: PessoaJuridicaService, protected bnAlertsService: BnAlertsService,
-    private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef) { 
+    private web3Service: Web3Service, private router: Router, private zone: NgZone, private ref: ChangeDetectorRef,
+    private pessoaJuridicaHandle:PessoaJuridicaHandle
+    ) { 
 
     let self = this;
     setInterval(function () {
@@ -33,7 +37,9 @@ export class AssociaPapelInvestidorComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.maskCnpj = Utils.getMaskCnpj(); 
+    this.maskCnpj = Utils.getMaskCnpj();
+    this.pessoaJuridicaHandle.razaoSocial="";
+    this.pessoaJuridicaHandle.cnpj=""; 
 
   }
 
@@ -58,18 +64,19 @@ export class AssociaPapelInvestidorComponent implements OnInit {
   }
 
   recuperaInformacoesDerivadasCNPJ() {
-    this.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
+    this.pessoaJuridicaHandle.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
 
-    if ( this.cnpj.length == 14 ) { 
+    if ( this.pessoaJuridicaHandle.cnpj.length == 14 ) { 
       console.log (" Buscando o CNPJ do cliente (14 digitos fornecidos)...  ")
-      this.recuperaClientePorCNPJ(this.cnpj);
+      this.pessoaJuridicaHandle.recuperaClientePorCNPJ();
+      //this.recuperaClientePorCNPJ(this.cnpj);
     } 
     else {
-      this.razaoSocial="";
+      this.pessoaJuridicaHandle.razaoSocial="";
     }
 
   }
-
+/*
   recuperaClientePorCNPJ(cnpj) {
     console.log(cnpj);
 
@@ -95,16 +102,16 @@ export class AssociaPapelInvestidorComponent implements OnInit {
       });
 
   }  
-
+*/
 
   async associaPapel() {
 
     let self = this;
-    this.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
+    this.pessoaJuridicaHandle.cnpj = Utils.removeSpecialCharacters(this.cnpjWithMask);
 
      
 
-    let idInvestor = (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.cnpj)));
+    let idInvestor = (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.pessoaJuridicaHandle.cnpj)));
     let isInvestor = await this.web3Service.isInvestor(idInvestor);
     if (isInvestor) 
     {
@@ -122,7 +129,7 @@ export class AssociaPapelInvestidorComponent implements OnInit {
         return;
     } 
 
-    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.cnpj)));
+    let rbbID = <number> (await this.web3Service.getRBBIDByCNPJSync(parseInt(this.pessoaJuridicaHandle.cnpj)));
 
     if (!rbbID) {
       let s = "CNPJ não está cadastrado.";
@@ -137,7 +144,7 @@ export class AssociaPapelInvestidorComponent implements OnInit {
         Utils.criarAlertasAvisoConfirmacao( txHash, 
           self.web3Service, 
           self.bnAlertsService, 
-          "O solicitação de associação do cnpj " + self.cnpj + " como papel de investidor foi enviada. Aguarde a confirmação.", 
+          "O solicitação de associação do cnpj " + self.pessoaJuridicaHandle.cnpj + " como papel de investidor foi enviada. Aguarde a confirmação.", 
           "A associação foi confirmada na blockchain.", 
           self.zone) 
 
